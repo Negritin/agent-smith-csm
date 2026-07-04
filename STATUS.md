@@ -75,8 +75,8 @@ Atualizado em 2026-07-04 23:25 UTC.
 - Supabase setup: `CONFIRM=1 scripts/setup-supabase.sh fresh` aplicado com
   sucesso. Tabelas, buckets, seeds e `private.app_runtime_secrets` foram
   validados por `scripts/check-supabase.sh`.
-- Supabase admin: ainda falta criar o primeiro `master_admin` com
-  `scripts/create-admin.sh`.
+- Supabase admin: primeiro `master_admin` criado e login validado em
+  `/api/admin/login`.
 - Supabase safety: scripts de setup/check/sync rejeitam placeholders como
   `project-ref`, `*_here`, senha fake e exemplos antes de chamar `psql`.
 - Supabase DB helper: `scripts/prefill-supabase-db-url.sh` monta
