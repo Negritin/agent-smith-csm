@@ -19,7 +19,7 @@ if [ ! -f /opt/agent-smith/.env.app ]; then
 fi
 
 scripts/validate-env.sh infra
-scripts/validate-env.sh app
+scripts/validate-env.sh app-core
 
 docker compose \
   --env-file /opt/agent-smith/.env.infra \

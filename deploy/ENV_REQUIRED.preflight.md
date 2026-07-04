@@ -198,9 +198,11 @@ SENTRY_AUTH_TOKEN=
 cd /opt/agent-smith
 scripts/check-ready.sh
 scripts/validate-env.sh infra
+scripts/validate-env.sh app-core
 scripts/validate-env.sh app
 scripts/validate-env.sh vercel
 ```
 
-`infra` ja deve passar. `app` e `vercel` passam quando os dominios, Supabase,
-provedores externos, Stripe e credenciais da Vercel forem preenchidos.
+`infra` ja deve passar. `app-core` passa quando o backend tem o minimo para
+subir. `app` e `vercel` passam quando os dominios, Supabase, provedores
+externos, Stripe e credenciais da Vercel forem preenchidos.

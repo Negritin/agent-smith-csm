@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-04 14:14 UTC.
+Atualizado em 2026-07-04 14:18 UTC.
 
 ## Estado atual
 
@@ -17,6 +17,8 @@ Atualizado em 2026-07-04 14:14 UTC.
 - Vercel: projeto `agent-smith-csm` criado/linkado na conta logada da CLI.
 - Imagens Docker: backend, worker, beat, docling-api e docling-worker foram
   buildadas com sucesso.
+- Backend smoke: `scripts/smoke-backend.sh` passou, validando compose, build da
+  imagem backend e `python -m compileall -q app` dentro do container.
 - Docling real do projeto: `docling-api` e `docling-worker` estao rodando na rede
   interna e `/health` respondeu `{"status":"ok","service":"docling","workers":1}`.
 - Backend FastAPI, Celery worker e Celery beat: prontos para subir, aguardando
@@ -73,6 +75,7 @@ para esse IP.
 - `/opt/agent-smith/scripts/validate-env.sh`
 - `/opt/agent-smith/scripts/deploy-app.sh`
 - `/opt/agent-smith/scripts/find-frontend.sh`
+- `/opt/agent-smith/scripts/smoke-backend.sh`
 - `/opt/agent-smith/scripts/sync-vercel-env.sh`
 - `/opt/agent-smith/scripts/deploy-frontend-vercel.sh`
 - `/opt/agent-smith/scripts/setup-supabase.sh`
@@ -100,6 +103,8 @@ DOCLING_SERVICE_URL=http://docling-api:8001
 
 Preencher `/opt/agent-smith/.env.app`:
 
+Obrigatorio para `scripts/deploy-app.sh` / `scripts/validate-env.sh app-core`:
+
 - `AGENT_SMITH_API_HOST`
 - `FRONTEND_URL`
 - `APP_URL`
@@ -107,8 +112,18 @@ Preencher `/opt/agent-smith/.env.app`:
 - `SUPABASE_URL`
 - `SUPABASE_KEY`
 - `SUPABASE_DB_URL`
-- `DATABASE_URL`
 - `OPENAI_API_KEY`
+- `ENCRYPTION_KEY`
+- `APP_SECRET`
+- `INTERNAL_JWT_SECRET`
+- `WIDGET_HMAC_SECRET`
+- `ADMIN_API_KEY`
+- `ATTENDANCE_SCHEDULER_SECRET`
+- `DOCLING_SERVICE_KEY`
+
+Obrigatorio para `scripts/validate-env.sh app` completo:
+
+- `DATABASE_URL`
 - `ANTHROPIC_API_KEY`
 - `OPENROUTER_API_KEY`
 - `TAVILY_API_KEY`
@@ -140,6 +155,8 @@ cd /opt/agent-smith
 scripts/check-ready.sh
 scripts/analyze-upstream.sh
 scripts/validate-env.sh infra
+scripts/validate-env.sh app-core
+scripts/smoke-backend.sh
 scripts/validate-env.sh app
 scripts/validate-env.sh vercel
 scripts/check-public-access.sh

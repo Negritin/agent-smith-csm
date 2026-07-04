@@ -132,7 +132,7 @@ check_infra() {
   done
 }
 
-check_app() {
+check_app_core() {
   require_file "$APP_ENV_FILE" "app"
 
   local keys=(
@@ -143,21 +143,33 @@ check_app() {
     SUPABASE_URL
     SUPABASE_KEY
     SUPABASE_DB_URL
-    DATABASE_URL
     OPENAI_API_KEY
-    ANTHROPIC_API_KEY
-    OPENROUTER_API_KEY
-    TAVILY_API_KEY
-    COHERE_API_KEY
-    GROQ_API_KEY
     ENCRYPTION_KEY
-    SESSION_SECRET
     APP_SECRET
     INTERNAL_JWT_SECRET
     WIDGET_HMAC_SECRET
     ADMIN_API_KEY
     ATTENDANCE_SCHEDULER_SECRET
     DOCLING_SERVICE_KEY
+  )
+
+  local key
+  for key in "${keys[@]}"; do
+    require_key "$APP_ENV_FILE" "$key" "app-core"
+  done
+}
+
+check_app() {
+  check_app_core
+
+  local keys=(
+    DATABASE_URL
+    ANTHROPIC_API_KEY
+    OPENROUTER_API_KEY
+    TAVILY_API_KEY
+    COHERE_API_KEY
+    GROQ_API_KEY
+    SESSION_SECRET
     STRIPE_SECRET_KEY
     STRIPE_WEBHOOK_SECRET
   )
@@ -250,10 +262,11 @@ main() {
       check_vercel
       ;;
     infra) check_infra ;;
+    app-core) check_app_core ;;
     app) check_app ;;
     vercel) check_vercel ;;
     *)
-      echo "usage: $0 [all|infra|app|vercel]" >&2
+      echo "usage: $0 [all|infra|app-core|app|vercel]" >&2
       return 2
       ;;
   esac
