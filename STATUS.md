@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-04 14:57 UTC.
+Atualizado em 2026-07-04 15:00 UTC.
 
 ## Estado atual
 
@@ -49,6 +49,8 @@ Atualizado em 2026-07-04 14:57 UTC.
 - Supabase setup: wrapper `scripts/setup-supabase.sh` preparado para aplicar
   schema/seeds, sincronizar `WIDGET_HMAC_SECRET` em `private.app_runtime_secrets`
   e validar tabelas/buckets/seeds com `scripts/check-supabase.sh`.
+- Supabase safety: scripts de setup/check/sync rejeitam placeholders como
+  `project-ref`, `*_here`, senha fake e exemplos antes de chamar `psql`.
 
 ## Arquitetura real encontrada
 

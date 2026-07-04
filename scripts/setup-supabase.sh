@@ -20,6 +20,23 @@ die() {
   exit 1
 }
 
+is_placeholder() {
+  local value="$1"
+
+  [ -z "$value" ] && return 0
+  [[ "$value" == *example.com* ]] && return 0
+  [[ "$value" == *"<"* ]] && return 0
+  [[ "$value" == *">"* ]] && return 0
+  [[ "$value" == *"_here" ]] && return 0
+  [[ "$value" == *"project-ref"* ]] && return 0
+  [[ "$value" == *":password@"* ]] && return 0
+  [[ "$value" == postgresql://user:password@* ]] && return 0
+  [[ "$value" == "changeme" ]] && return 0
+  [[ "$value" == "CHANGE_ME" ]] && return 0
+
+  return 1
+}
+
 run_psql() {
   local file="$1"
   local rel="${file#$SUPABASE_DIR/}"
@@ -127,7 +144,9 @@ if [ "${CONFIRM:-}" != "1" ]; then
   exit 0
 fi
 
-[ -n "${SUPABASE_DB_URL:-}" ] || die "set SUPABASE_DB_URL in $APP_ENV_FILE"
+if is_placeholder "${SUPABASE_DB_URL:-}"; then
+  die "set a real SUPABASE_DB_URL in $APP_ENV_FILE"
+fi
 
 for file in "${files[@]}"; do
   run_psql "$file"

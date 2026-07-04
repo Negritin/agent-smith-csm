@@ -31,7 +31,12 @@ is_placeholder() {
   [[ "$value" == *example.com* ]] && return 0
   [[ "$value" == *"<"* ]] && return 0
   [[ "$value" == *">"* ]] && return 0
+  [[ "$value" == *"_here" ]] && return 0
+  [[ "$value" == *"project-ref"* ]] && return 0
+  [[ "$value" == *":password@"* ]] && return 0
   [[ "$value" == postgresql://user:password@* ]] && return 0
+  [[ "$value" == "changeme" ]] && return 0
+  [[ "$value" == "CHANGE_ME" ]] && return 0
 
   return 1
 }
@@ -69,6 +74,11 @@ require_count_at_least() {
 main() {
   if is_placeholder "${SUPABASE_DB_URL:-}"; then
     fail "SUPABASE_DB_URL is missing or placeholder"
+    return "$FAILED"
+  fi
+
+  if ! command -v psql >/dev/null 2>&1; then
+    fail "psql is unavailable"
     return "$FAILED"
   fi
 
