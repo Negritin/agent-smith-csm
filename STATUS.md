@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-04 14:18 UTC.
+Atualizado em 2026-07-04 14:23 UTC.
 
 ## Estado atual
 
@@ -14,11 +14,14 @@ Atualizado em 2026-07-04 14:18 UTC.
 - Import upstream: concluido em `app/agent-smith-v6`.
 - Frontend Next.js: dependencias instaladas, typecheck passou e suite de testes
   passou localmente. Build de producao Next.js tambem passou com envs dummy.
+- Frontend smoke: `scripts/smoke-frontend.sh` passou, cobrindo typecheck, 246
+  testes e build Next.js com envs dummy.
 - Vercel: projeto `agent-smith-csm` criado/linkado na conta logada da CLI.
 - Imagens Docker: backend, worker, beat, docling-api e docling-worker foram
   buildadas com sucesso.
 - Backend smoke: `scripts/smoke-backend.sh` passou, validando compose, build da
-  imagem backend e `python -m compileall -q app` dentro do container.
+  imagem backend, `python -m compileall -q app` e import de `app.main` dentro do
+  container.
 - Docling real do projeto: `docling-api` e `docling-worker` estao rodando na rede
   interna e `/health` respondeu `{"status":"ok","service":"docling","workers":1}`.
 - Backend FastAPI, Celery worker e Celery beat: prontos para subir, aguardando
@@ -75,6 +78,7 @@ para esse IP.
 - `/opt/agent-smith/scripts/validate-env.sh`
 - `/opt/agent-smith/scripts/deploy-app.sh`
 - `/opt/agent-smith/scripts/find-frontend.sh`
+- `/opt/agent-smith/scripts/smoke-frontend.sh`
 - `/opt/agent-smith/scripts/smoke-backend.sh`
 - `/opt/agent-smith/scripts/sync-vercel-env.sh`
 - `/opt/agent-smith/scripts/deploy-frontend-vercel.sh`
@@ -157,6 +161,7 @@ scripts/analyze-upstream.sh
 scripts/validate-env.sh infra
 scripts/validate-env.sh app-core
 scripts/smoke-backend.sh
+scripts/smoke-frontend.sh
 scripts/validate-env.sh app
 scripts/validate-env.sh vercel
 scripts/check-public-access.sh

@@ -59,8 +59,10 @@ scripts/check-ready.sh
 - `scripts/validate-env.sh`: valida envs locais sem imprimir valores sensiveis.
 - `scripts/deploy-app.sh`: sobe backend, workers e Docling depois dos envs reais.
 - `scripts/find-frontend.sh`: localiza o pacote Next.js.
-- `scripts/smoke-backend.sh`: valida compose, build e compilacao Python da imagem
-  backend sem precisar tocar no Supabase.
+- `scripts/smoke-frontend.sh`: valida typecheck, testes e build Next.js com envs
+  dummy seguros antes do deploy na Vercel.
+- `scripts/smoke-backend.sh`: valida compose, build, compilacao Python e import
+  FastAPI da imagem backend sem precisar tocar no Supabase real.
 - `scripts/sync-vercel-env.sh`: sincroniza `/opt/agent-smith/.env.vercel`
   com as envs do projeto Vercel sem imprimir valores.
 - `scripts/deploy-frontend-vercel.sh`: faz deploy Vercel nao interativo.
@@ -87,6 +89,7 @@ scripts/check-ready.sh
 scripts/validate-env.sh infra
 scripts/validate-env.sh app-core
 scripts/smoke-backend.sh
+scripts/smoke-frontend.sh
 scripts/validate-env.sh app
 scripts/validate-env.sh vercel
 ```
