@@ -28,6 +28,7 @@ Ver status:
 ```bash
 docker compose --env-file /opt/agent-smith/.env.infra -f /opt/agent-smith/deploy/docker-compose.infra.yml ps
 systemctl status agent-smith-infra.service --no-pager
+scripts/check-ready.sh
 ```
 
 ## Arquivos importantes
@@ -45,8 +46,9 @@ commitado. Ele está protegido pelo `.gitignore`.
 ## Proximos passos
 
 1. Autorizar a deploy key da VPS no repo `LionLabsCommunity/Agent-SmithV6`.
-2. Rodar `scripts/import-upstream.sh` para importar o código real em `app/agent-smith-v6`.
-3. Conferir docs, `.env.example`, compose/Dockerfiles e scripts reais do app.
-4. Conectar backend/workers aos serviços internos.
-5. Expor backend por Traefik/Easypanel.
-6. Fazer deploy do frontend Next.js na Vercel.
+2. Rodar `scripts/check-ready.sh` para confirmar acesso ao upstream e infra local.
+3. Rodar `scripts/import-upstream.sh` para importar o código real em `app/agent-smith-v6`.
+4. Conferir docs, `.env.example`, compose/Dockerfiles e scripts reais do app.
+5. Conectar backend/workers aos serviços internos.
+6. Expor backend por Traefik/Easypanel.
+7. Fazer deploy do frontend Next.js na Vercel.

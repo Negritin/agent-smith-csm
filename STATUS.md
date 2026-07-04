@@ -44,6 +44,7 @@ Redis, Qdrant, MinIO e Docling responderam aos health checks internos.
 - `/opt/agent-smith/.env.infra` com permissao `600`
 - `/opt/agent-smith/deploy/ENV_REQUIRED.preflight.md`
 - `/opt/agent-smith/scripts/import-upstream.sh`
+- `/opt/agent-smith/scripts/check-ready.sh`
 
 ## Env interno ja definido
 
@@ -88,6 +89,7 @@ docker compose --env-file /opt/agent-smith/.env.infra -f /opt/agent-smith/deploy
 docker compose --env-file /opt/agent-smith/.env.infra -f /opt/agent-smith/deploy/docker-compose.infra.yml down
 systemctl status agent-smith-infra.service --no-pager
 git ls-remote git@github.com:LionLabsCommunity/Agent-SmithV6.git
+scripts/check-ready.sh
 scripts/import-upstream.sh
 ```
 
