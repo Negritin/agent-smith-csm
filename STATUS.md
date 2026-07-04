@@ -1,11 +1,12 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-04 13:40 UTC.
+Atualizado em 2026-07-04 14:14 UTC.
 
 ## Estado atual
 
 - VPS: Ubuntu 24.04, Docker/Compose ativos.
 - Frontend tooling: Node.js `v22.23.1`, npm `10.9.8`, Vercel CLI `54.20.1`.
+- Ops tooling: `psql` 16.14, `jq` 1.7 e `dig` instalados.
 - GitHub CLI: autenticado como `Negritin` com escopo `repo`.
 - Vercel CLI: autenticada localmente; `VERCEL_TOKEN` e opcional nesse modo.
 - Repo destino: `/opt/agent-smith` publicado em `Negritin/agent-smith-csm`.
@@ -50,6 +51,8 @@ Servicos internos:
 
 Todos os servicos ficam na rede Docker interna `agent_smith_internal`. O backend
 sera exposto pela rede `easypanel`/Traefik usando `AGENT_SMITH_API_HOST`.
+A VPS publica 80/443 via Traefik no IP `5.161.73.5`; o DNS da API deve apontar
+para esse IP.
 
 ## Arquivos
 
@@ -65,6 +68,7 @@ sera exposto pela rede `easypanel`/Traefik usando `AGENT_SMITH_API_HOST`.
 - `/opt/agent-smith/deploy/ENV_REQUIRED.preflight.md`
 - `/opt/agent-smith/scripts/import-upstream.sh`
 - `/opt/agent-smith/scripts/check-ready.sh`
+- `/opt/agent-smith/scripts/check-public-access.sh`
 - `/opt/agent-smith/scripts/analyze-upstream.sh`
 - `/opt/agent-smith/scripts/validate-env.sh`
 - `/opt/agent-smith/scripts/deploy-app.sh`
@@ -138,6 +142,7 @@ scripts/analyze-upstream.sh
 scripts/validate-env.sh infra
 scripts/validate-env.sh app
 scripts/validate-env.sh vercel
+scripts/check-public-access.sh
 scripts/deploy-app.sh
 scripts/deploy-frontend-vercel.sh
 docker compose --env-file /opt/agent-smith/.env.infra --env-file /opt/agent-smith/.env.app -f deploy/docker-compose.app.template.yml ps

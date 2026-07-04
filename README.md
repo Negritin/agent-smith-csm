@@ -55,6 +55,7 @@ scripts/check-ready.sh
   frontend Next.js, nao o backend FastAPI/Docling.
 - `scripts/analyze-upstream.sh`: varre o codigo importado e mostra docs, envs e
   comandos detectados.
+- `scripts/check-public-access.sh`: valida DNS e acesso HTTPS depois do deploy.
 - `scripts/validate-env.sh`: valida envs locais sem imprimir valores sensiveis.
 - `scripts/deploy-app.sh`: sobe backend, workers e Docling depois dos envs reais.
 - `scripts/find-frontend.sh`: localiza o pacote Next.js.
@@ -105,4 +106,5 @@ Depois de preencher `/opt/agent-smith/.env.vercel`:
 cd /opt/agent-smith
 scripts/sync-vercel-env.sh production
 scripts/deploy-frontend-vercel.sh
+scripts/check-public-access.sh
 ```

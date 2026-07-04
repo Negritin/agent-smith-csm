@@ -17,9 +17,17 @@ Os arquivos reais ficam ignorados pelo Git. Os templates versionados estao em
 
 ```env
 AGENT_SMITH_API_HOST=api.<dominio>
+PUBLIC_SERVER_IP=5.161.73.5
 FRONTEND_URL=https://app.<dominio>
 APP_URL=https://app.<dominio>
 ALLOWED_ORIGINS=https://app.<dominio>
+```
+
+O DNS de `AGENT_SMITH_API_HOST` precisa apontar para a VPS `5.161.73.5` antes
+de subir o backend via Traefik. Apos o deploy, valide com:
+
+```bash
+scripts/check-public-access.sh
 ```
 
 Na Vercel:
