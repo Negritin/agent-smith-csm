@@ -63,6 +63,8 @@ scripts/check-ready.sh
 - `scripts/validate-env.sh`: valida envs locais sem imprimir valores sensiveis.
 - `scripts/deploy-app.sh`: sobe backend, workers e Docling depois dos envs reais.
 - `scripts/find-frontend.sh`: localiza o pacote Next.js.
+- `scripts/sync-local-envs.sh`: copia valores compartilhados de `.env.app` para
+  `.env.vercel` sem imprimir segredos.
 - `scripts/smoke-frontend.sh`: valida typecheck, testes e build Next.js com envs
   dummy seguros antes do deploy na Vercel.
 - `scripts/smoke-backend.sh`: valida compose, build, compilacao Python e import
@@ -119,6 +121,7 @@ Depois de preencher `/opt/agent-smith/.env.vercel`:
 
 ```bash
 cd /opt/agent-smith
+scripts/sync-local-envs.sh
 scripts/sync-vercel-env.sh production
 scripts/deploy-frontend-vercel.sh
 scripts/check-public-access.sh

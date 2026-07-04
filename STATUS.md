@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-04 14:26 UTC.
+Atualizado em 2026-07-04 14:30 UTC.
 
 ## Estado atual
 
@@ -17,6 +17,9 @@ Atualizado em 2026-07-04 14:26 UTC.
 - Frontend smoke: `scripts/smoke-frontend.sh` passou, cobrindo typecheck, 246
   testes e build Next.js com envs dummy.
 - Vercel: projeto `agent-smith-csm` criado/linkado na conta logada da CLI.
+- Env local: `scripts/sync-local-envs.sh` sincronizou segredos compartilhados de
+  `.env.app` para `.env.vercel`; ainda falta `NEXT_PUBLIC_SUPABASE_ANON_KEY` e
+  as URLs publicas reais.
 - Imagens Docker: backend, worker, beat, docling-api e docling-worker foram
   buildadas com sucesso.
 - Backend smoke: `scripts/smoke-backend.sh` passou, validando compose, build da
@@ -83,6 +86,7 @@ para esse IP.
 - `/opt/agent-smith/scripts/validate-env.sh`
 - `/opt/agent-smith/scripts/deploy-app.sh`
 - `/opt/agent-smith/scripts/find-frontend.sh`
+- `/opt/agent-smith/scripts/sync-local-envs.sh`
 - `/opt/agent-smith/scripts/smoke-frontend.sh`
 - `/opt/agent-smith/scripts/smoke-backend.sh`
 - `/opt/agent-smith/scripts/sync-vercel-env.sh`
@@ -168,6 +172,7 @@ scripts/validate-env.sh infra
 scripts/validate-env.sh app-core
 scripts/smoke-backend.sh
 scripts/smoke-frontend.sh
+scripts/sync-local-envs.sh
 scripts/check-supabase.sh
 scripts/validate-env.sh app
 scripts/validate-env.sh vercel
