@@ -99,12 +99,19 @@ check_dns_resolves() {
 check_url() {
   local url="$1"
   local label="$2"
+  local required="${3:-0}"
   local code
 
   code="$(curl -k -sS -o /tmp/agent-smith-public-check.out -w '%{http_code}' "$url" || true)"
   case "$code" in
     200|204|301|302|307|308) pass "$label reachable ($code)" ;;
-    401|403|404) warn "$label reachable but returned $code" ;;
+    401|403|404)
+      if [ "$required" = "1" ]; then
+        fail "$label returned HTTP $code"
+      else
+        warn "$label reachable but returned $code"
+      fi
+      ;;
     000|"") fail "$label unreachable" ;;
     *) fail "$label returned HTTP $code" ;;
   esac
@@ -126,7 +133,7 @@ main() {
     api_host="$AGENT_SMITH_API_HOST"
     check_dns_points_to_ip "$api_host" "$server_ip"
     check_url "https://$api_host/" "API root"
-    check_url "https://$api_host/health" "API health"
+    check_url "https://$api_host/health" "API health" 1
   fi
 
   frontend_url="${APP_URL:-${NEXT_PUBLIC_BASE_URL:-}}"
@@ -135,7 +142,8 @@ main() {
   else
     frontend_host="$(host_from_url "$frontend_url")"
     check_dns_resolves "$frontend_host"
-    check_url "$frontend_url" "frontend"
+    check_url "$frontend_url" "frontend" 1
+    check_url "${frontend_url%/}/admin/login" "frontend admin login" 1
   fi
 
   if [ "$FAILED" -eq 0 ]; then

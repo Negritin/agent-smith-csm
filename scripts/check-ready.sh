@@ -89,6 +89,14 @@ check_vercel() {
     fail "vercel project not linked in $frontend_dir"
     return 1
   fi
+
+  if [ -f "$frontend_dir/vercel.json" ] &&
+     grep -Eq '"framework"[[:space:]]*:[[:space:]]*"nextjs"' "$frontend_dir/vercel.json"; then
+    pass "vercel local config targets Next.js"
+  else
+    fail "vercel local config missing Next.js framework in $frontend_dir/vercel.json"
+    return 1
+  fi
 }
 
 main() {

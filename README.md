@@ -65,6 +65,8 @@ scripts/check-ready.sh
 - `scripts/validate-env.sh`: valida envs locais sem imprimir valores sensiveis.
 - `scripts/env-report.sh`: mostra os envs obrigatorios/pendentes sem imprimir
   valores, cobrindo entrada externa, app e Vercel.
+- `scripts/prefill-public-envs.sh`: preenche somente URLs publicas nao secretas
+  em `/opt/agent-smith/.env.external` usando `sslip.io` e o projeto Vercel.
 - `scripts/apply-external-envs.sh`: aplica `/opt/agent-smith/.env.external` em
   `.env.app` e `.env.vercel`, sincroniza valores compartilhados e valida `app`
   completo + Vercel.
@@ -137,6 +139,7 @@ Depois de preencher `/opt/agent-smith/.env.external` e aplicar:
 ```bash
 cd /opt/agent-smith
 scripts/env-report.sh
+scripts/prefill-public-envs.sh
 scripts/apply-external-envs.sh
 CONFIRM=1 scripts/deploy-production.sh
 scripts/create-admin.sh

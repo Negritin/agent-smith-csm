@@ -20,8 +20,14 @@ cd /opt/agent-smith
 cp deploy/external.env.example /opt/agent-smith/.env.external
 nano /opt/agent-smith/.env.external
 scripts/env-report.sh
+scripts/prefill-public-envs.sh
 scripts/apply-external-envs.sh
 ```
+
+`scripts/prefill-public-envs.sh` nao escreve segredos. Ele so sugere URLs
+publicas com `sslip.io` para a API e o dominio padrao da Vercel para o
+frontend. Use `FORCE=1 scripts/prefill-public-envs.sh` se quiser sobrescrever
+esses campos depois de trocar de dominio.
 
 O helper aplica as chaves externas em `/opt/agent-smith/.env.app`, sincroniza
 os valores compartilhados em `/opt/agent-smith/.env.vercel` e roda as validacoes
@@ -37,6 +43,9 @@ FRONTEND_URL=https://app.<dominio>
 APP_URL=https://app.<dominio>
 ALLOWED_ORIGINS=https://app.<dominio>
 ```
+
+Sem dominio proprio, o host provisiorio da API pode ser
+`agent-smith-api.5.161.73.5.sslip.io`, que resolve para a VPS.
 
 O DNS de `AGENT_SMITH_API_HOST` precisa apontar para a VPS `5.161.73.5` antes
 de subir o backend via Traefik. Apos o deploy, valide com:
@@ -237,6 +246,7 @@ Depois dos envs preenchidos, a subida completa pode ser feita por:
 
 ```bash
 scripts/env-report.sh
+scripts/prefill-public-envs.sh
 scripts/apply-external-envs.sh
 CONFIRM=1 scripts/deploy-production.sh
 scripts/create-admin.sh
