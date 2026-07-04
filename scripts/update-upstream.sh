@@ -33,7 +33,7 @@ echo "Checking upstream access: $UPSTREAM_URL"
 SYMREF_OUTPUT="$(git ls-remote --symref "$UPSTREAM_URL" HEAD)"
 UPSTREAM_BRANCH="$(
   printf '%s\n' "$SYMREF_OUTPUT" |
-    awk '/^ref:/ { sub("refs\/heads\//, "", $2); print $2; exit }'
+    awk '/^ref:/ { sub("refs/heads/", "", $2); print $2; exit }'
 )"
 UPSTREAM_BRANCH="${UPSTREAM_BRANCH:-main}"
 
