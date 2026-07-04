@@ -133,4 +133,7 @@ for file in "${files[@]}"; do
   run_psql "$file"
 done
 
+"$REPO_ROOT/scripts/sync-supabase-runtime-secrets.sh"
+"$REPO_ROOT/scripts/check-supabase.sh"
+
 echo "Supabase setup complete."

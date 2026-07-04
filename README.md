@@ -56,6 +56,10 @@ scripts/check-ready.sh
 - `scripts/analyze-upstream.sh`: varre o codigo importado e mostra docs, envs e
   comandos detectados.
 - `scripts/check-public-access.sh`: valida DNS e acesso HTTPS depois do deploy.
+- `scripts/check-supabase.sh`: valida tabelas/seeds/buckets essenciais no
+  Supabase apos migrations.
+- `scripts/create-admin.sh`: roda o criador interativo do primeiro admin master
+  dentro da imagem Docker do backend.
 - `scripts/validate-env.sh`: valida envs locais sem imprimir valores sensiveis.
 - `scripts/deploy-app.sh`: sobe backend, workers e Docling depois dos envs reais.
 - `scripts/find-frontend.sh`: localiza o pacote Next.js.
@@ -68,6 +72,8 @@ scripts/check-ready.sh
 - `scripts/deploy-frontend-vercel.sh`: faz deploy Vercel nao interativo.
 - `scripts/setup-supabase.sh`: aplica schema/seeds do Supabase em modo `fresh`
   ou migrations em modo `upgrade`.
+- `scripts/sync-supabase-runtime-secrets.sh`: grava o `WIDGET_HMAC_SECRET` em
+  `private.app_runtime_secrets` no Supabase.
 - `STATUS.md`: estado operacional da VPS.
 
 ## Segredos
@@ -105,6 +111,7 @@ Depois de preencher `/opt/agent-smith/.env.app`:
 ```bash
 cd /opt/agent-smith
 CONFIRM=1 scripts/setup-supabase.sh fresh
+scripts/create-admin.sh
 scripts/deploy-app.sh
 ```
 

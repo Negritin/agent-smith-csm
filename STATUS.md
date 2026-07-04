@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-04 14:23 UTC.
+Atualizado em 2026-07-04 14:26 UTC.
 
 ## Estado atual
 
@@ -26,6 +26,9 @@ Atualizado em 2026-07-04 14:23 UTC.
   interna e `/health` respondeu `{"status":"ok","service":"docling","workers":1}`.
 - Backend FastAPI, Celery worker e Celery beat: prontos para subir, aguardando
   envs externos reais.
+- Supabase setup: wrapper `scripts/setup-supabase.sh` preparado para aplicar
+  schema/seeds, sincronizar `WIDGET_HMAC_SECRET` em `private.app_runtime_secrets`
+  e validar tabelas/buckets/seeds com `scripts/check-supabase.sh`.
 
 ## Arquitetura real encontrada
 
@@ -74,6 +77,8 @@ para esse IP.
 - `/opt/agent-smith/scripts/import-upstream.sh`
 - `/opt/agent-smith/scripts/check-ready.sh`
 - `/opt/agent-smith/scripts/check-public-access.sh`
+- `/opt/agent-smith/scripts/check-supabase.sh`
+- `/opt/agent-smith/scripts/create-admin.sh`
 - `/opt/agent-smith/scripts/analyze-upstream.sh`
 - `/opt/agent-smith/scripts/validate-env.sh`
 - `/opt/agent-smith/scripts/deploy-app.sh`
@@ -83,6 +88,7 @@ para esse IP.
 - `/opt/agent-smith/scripts/sync-vercel-env.sh`
 - `/opt/agent-smith/scripts/deploy-frontend-vercel.sh`
 - `/opt/agent-smith/scripts/setup-supabase.sh`
+- `/opt/agent-smith/scripts/sync-supabase-runtime-secrets.sh`
 
 ## Env interno ja definido
 
@@ -162,6 +168,7 @@ scripts/validate-env.sh infra
 scripts/validate-env.sh app-core
 scripts/smoke-backend.sh
 scripts/smoke-frontend.sh
+scripts/check-supabase.sh
 scripts/validate-env.sh app
 scripts/validate-env.sh vercel
 scripts/check-public-access.sh

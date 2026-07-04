@@ -65,7 +65,10 @@ Configurar no Supabase antes da subida completa:
 - Para upgrade v6.2 -> v7.0: `CONFIRM=1 scripts/setup-supabase.sh upgrade`.
 - O modo `fresh` aplica `schema_completo_v7.0.sql`, `storage_buckets.sql`,
   `seed_llm_pricing.sql` e `seed_platform_settings.sql`.
+- `scripts/setup-supabase.sh` tambem sincroniza `WIDGET_HMAC_SECRET` em
+  `private.app_runtime_secrets` e roda `scripts/check-supabase.sh`.
 - Criar o usuario master/admin com `app/agent-smith-v6/backend/scripts/create_admin.py`.
+  Na VPS, use o wrapper `scripts/create-admin.sh`.
 
 ## Modelos, busca e guardrails
 
