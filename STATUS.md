@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-04 23:05 UTC.
+Atualizado em 2026-07-04 23:25 UTC.
 
 ## Estado atual
 
@@ -29,14 +29,14 @@ Atualizado em 2026-07-04 23:05 UTC.
   e Node.js `22.x`.
 - Vercel local CLI: link criado tambem na raiz `/opt/agent-smith`, que e o
   diretorio correto para operar este monorepo com `Root Directory=app/agent-smith-v6`.
-- Vercel deployments: deploy Git do commit `4e49f3a` ficou `READY`, com aliases
-  de producao atribuidos.
+- Vercel deployments: redeploy de producao `agent-smith-gzwxlfbt7` ficou
+  `READY`, com aliases de producao atribuidos.
 - Supabase API keys: URL, publishable key e secret/service key foram validadas
   contra o Supabase sem imprimir valores. A chave `sb_secret_*` funciona como
   server-side/service-role e a `sb_publishable_*` ficou mapeada como chave
   publica do frontend.
 - Vercel envs de producao: Supabase/URLs/segredos internos sincronizados. O
-  build Next.js passou depois disso.
+  build/redeploy Next.js passou depois disso.
 - Frontend Vercel: `https://agent-smith-csm.vercel.app` responde 200 em `/`,
   `/login` e `/admin/login`.
 - Preflight base: `scripts/check-ready.sh` valida Git/origin/upstream, Redis,
@@ -55,12 +55,12 @@ Atualizado em 2026-07-04 23:05 UTC.
 - Env report: `scripts/env-report.sh` mostra arquivos e chaves obrigatorias
   vazias ou ainda com placeholder sem imprimir valores sensiveis.
 - `/opt/agent-smith/.env.external`: criado com permissao `600`; `PUBLIC_SERVER_IP`,
-  URLs publicas, `SUPABASE_URL`, `SUPABASE_KEY` e `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-  estao preenchidos. Ainda faltam `SUPABASE_DB_URL`/`DATABASE_URL`, providers
-  LLM/busca e Stripe.
+  URLs publicas, `SUPABASE_URL`, `SUPABASE_KEY`, `SUPABASE_DB_URL`,
+  `DATABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` estao preenchidos. Ainda
+  faltam providers LLM/busca e Stripe.
 - Preparacao de producao: `scripts/prepare-production-envs.sh` passa nos checks
   base e no prefill publico, mas para corretamente em `scripts/check-external-services.sh`
-  enquanto faltarem `SUPABASE_DB_URL`, providers LLM/busca e Stripe.
+  enquanto faltarem providers LLM/busca e Stripe.
 - Imagens Docker: backend, worker, beat, docling-api e docling-worker foram
   buildadas com sucesso.
 - Backend smoke: `scripts/smoke-backend.sh` passou, validando compose, build da
@@ -72,9 +72,11 @@ Atualizado em 2026-07-04 23:05 UTC.
   `/status/{task_id}` com chave correta e 401 com chave incorreta.
 - Backend FastAPI, Celery worker e Celery beat: prontos para subir, aguardando
   envs externos reais.
-- Supabase setup: wrapper `scripts/setup-supabase.sh` preparado para aplicar
-  schema/seeds, sincronizar `WIDGET_HMAC_SECRET` em `private.app_runtime_secrets`
-  e validar tabelas/buckets/seeds com `scripts/check-supabase.sh`.
+- Supabase setup: `CONFIRM=1 scripts/setup-supabase.sh fresh` aplicado com
+  sucesso. Tabelas, buckets, seeds e `private.app_runtime_secrets` foram
+  validados por `scripts/check-supabase.sh`.
+- Supabase admin: ainda falta criar o primeiro `master_admin` com
+  `scripts/create-admin.sh`.
 - Supabase safety: scripts de setup/check/sync rejeitam placeholders como
   `project-ref`, `*_here`, senha fake e exemplos antes de chamar `psql`.
 - Supabase DB helper: `scripts/prefill-supabase-db-url.sh` monta
@@ -197,10 +199,10 @@ Tambem ja preenchido/validado:
 
 Ainda obrigatorio para `scripts/deploy-app.sh` / `scripts/validate-env.sh app-core`:
 
-- `SUPABASE_DB_URL`
 - `OPENAI_API_KEY`
 
-Para preencher o DB URL sem colar a connection string completa:
+`SUPABASE_DB_URL`/`DATABASE_URL` ja foram preenchidos e validados. Para refazer
+o DB URL sem colar a connection string completa:
 
 ```bash
 SUPABASE_DB_PASSWORD='<senha-do-banco>' SUPABASE_DB_REGION='<regiao>' scripts/prefill-supabase-db-url.sh
@@ -209,7 +211,6 @@ scripts/apply-external-envs.sh
 
 Obrigatorio para `scripts/validate-env.sh app` completo:
 
-- `DATABASE_URL`
 - `ANTHROPIC_API_KEY`
 - `OPENROUTER_API_KEY`
 - `TAVILY_API_KEY`
