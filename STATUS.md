@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-04 22:38 UTC.
+Atualizado em 2026-07-04 23:05 UTC.
 
 ## Estado atual
 
@@ -29,25 +29,22 @@ Atualizado em 2026-07-04 22:38 UTC.
   e Node.js `22.x`.
 - Vercel local CLI: link criado tambem na raiz `/opt/agent-smith`, que e o
   diretorio correto para operar este monorepo com `Root Directory=app/agent-smith-v6`.
-- Vercel deployments: push no `main` disparou deploy automatico de producao no
-  commit `11289cf`; terminou em erro porque o build Next.js nao tem Supabase
-  configurado (`supabaseUrl is required`). Isso confirma que a integracao Git
-  esta ativa, mas os envs de producao da Vercel continuam vazios.
+- Vercel deployments: deploy Git do commit `4e49f3a` ficou `READY`, com aliases
+  de producao atribuidos.
 - Supabase API keys: URL, publishable key e secret/service key foram validadas
   contra o Supabase sem imprimir valores. A chave `sb_secret_*` funciona como
   server-side/service-role e a `sb_publishable_*` ficou mapeada como chave
   publica do frontend.
 - Vercel envs de producao: Supabase/URLs/segredos internos sincronizados. O
   build Next.js passou depois disso.
-- Frontend Vercel: deploy Git do commit `7db90a3` ficou `READY` e recebeu alias
-  de producao. `https://agent-smith-csm.vercel.app` responde 200 em `/`,
+- Frontend Vercel: `https://agent-smith-csm.vercel.app` responde 200 em `/`,
   `/login` e `/admin/login`.
 - Preflight base: `scripts/check-ready.sh` valida Git/origin/upstream, Redis,
   Qdrant, MinIO, app importado, rede `easypanel`, Traefik/80/443 e Vercel
   autenticada/linkada.
 - Env local: `scripts/sync-local-envs.sh` sincronizou segredos compartilhados de
-  `.env.app` para `.env.vercel`; ainda falta `NEXT_PUBLIC_SUPABASE_ANON_KEY` e
-  as URLs publicas reais.
+  `.env.app` para `.env.vercel`; os envs exigidos pela Vercel passam em
+  `scripts/validate-env.sh vercel`.
 - Vercel URL backend: `BACKEND_URL`, `NEXT_PUBLIC_BACKEND_URL`,
   `NEXT_PUBLIC_API_URL` e `NEXT_PUBLIC_LANGCHAIN_API_URL` sao sincronizados para
   a API publica para evitar fallback `localhost` nas rotas server-side do Next;
@@ -57,13 +54,13 @@ Atualizado em 2026-07-04 22:38 UTC.
   imprimir valores, validando `app` completo + Vercel por padrao.
 - Env report: `scripts/env-report.sh` mostra arquivos e chaves obrigatorias
   vazias ou ainda com placeholder sem imprimir valores sensiveis.
-- `/opt/agent-smith/.env.external`: criado com permissao `600`; `PUBLIC_SERVER_IP`
-  ja preenchido com `5.161.73.5`; as URLs publicas provisorias tambem estao
-  preenchidas com `sslip.io`/Vercel. Os campos Supabase ainda sao placeholders
-  e providers/Stripe continuam vazios.
+- `/opt/agent-smith/.env.external`: criado com permissao `600`; `PUBLIC_SERVER_IP`,
+  URLs publicas, `SUPABASE_URL`, `SUPABASE_KEY` e `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  estao preenchidos. Ainda faltam `SUPABASE_DB_URL`/`DATABASE_URL`, providers
+  LLM/busca e Stripe.
 - Preparacao de producao: `scripts/prepare-production-envs.sh` passa nos checks
   base e no prefill publico, mas para corretamente em `scripts/check-external-services.sh`
-  enquanto faltarem Supabase real, providers LLM/busca e Stripe.
+  enquanto faltarem `SUPABASE_DB_URL`, providers LLM/busca e Stripe.
 - Imagens Docker: backend, worker, beat, docling-api e docling-worker foram
   buildadas com sucesso.
 - Backend smoke: `scripts/smoke-backend.sh` passou, validando compose, build da
@@ -80,6 +77,10 @@ Atualizado em 2026-07-04 22:38 UTC.
   e validar tabelas/buckets/seeds com `scripts/check-supabase.sh`.
 - Supabase safety: scripts de setup/check/sync rejeitam placeholders como
   `project-ref`, `*_here`, senha fake e exemplos antes de chamar `psql`.
+- Supabase DB helper: `scripts/prefill-supabase-db-url.sh` monta
+  `SUPABASE_DB_URL`/`DATABASE_URL` a partir de `SUPABASE_DB_PASSWORD` +
+  `SUPABASE_DB_REGION` ou `SUPABASE_DB_HOST`, sem imprimir senha. Os preflights
+  rejeitam `https://*.supabase.co` como DB URL.
 
 ## Arquitetura real encontrada
 
@@ -187,23 +188,24 @@ Ja preenchido com valores publicos provisorios:
 - `APP_URL=https://agent-smith-csm.vercel.app`
 - `ALLOWED_ORIGINS=https://agent-smith-csm.vercel.app`
 
+Tambem ja preenchido/validado:
+
+- `SUPABASE_URL`
+- `SUPABASE_KEY` como server-side/service-role
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` como chave publica
+- envs obrigatorios da Vercel
+
 Ainda obrigatorio para `scripts/deploy-app.sh` / `scripts/validate-env.sh app-core`:
 
-- `AGENT_SMITH_API_HOST`
-- `FRONTEND_URL`
-- `APP_URL`
-- `ALLOWED_ORIGINS`
-- `SUPABASE_URL`
-- `SUPABASE_KEY`
 - `SUPABASE_DB_URL`
 - `OPENAI_API_KEY`
-- `ENCRYPTION_KEY`
-- `APP_SECRET`
-- `INTERNAL_JWT_SECRET`
-- `WIDGET_HMAC_SECRET`
-- `ADMIN_API_KEY`
-- `ATTENDANCE_SCHEDULER_SECRET`
-- `DOCLING_SERVICE_KEY`
+
+Para preencher o DB URL sem colar a connection string completa:
+
+```bash
+SUPABASE_DB_PASSWORD='<senha-do-banco>' SUPABASE_DB_REGION='<regiao>' scripts/prefill-supabase-db-url.sh
+scripts/apply-external-envs.sh
+```
 
 Obrigatorio para `scripts/validate-env.sh app` completo:
 
@@ -218,16 +220,7 @@ Obrigatorio para `scripts/validate-env.sh app` completo:
 
 Preencher `/opt/agent-smith/.env.vercel`:
 
-- `VERCEL_TOKEN` se nao for usar login local da CLI
-- `VERCEL_ORG_ID` se o projeto ainda nao estiver linkado
-- `VERCEL_PROJECT_ID` se o projeto ainda nao estiver linkado
-- `APP_URL`
-- `NEXT_PUBLIC_BACKEND_URL`
-- `NEXT_PUBLIC_API_URL`
-- `NEXT_PUBLIC_BASE_URL`
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
+- Nada obrigatorio no momento; `scripts/validate-env.sh vercel` passa.
 
 Tambem e necessario aplicar as migrations/seeds do Supabase indicadas em
 `deploy/ENV_REQUIRED.preflight.md`.
