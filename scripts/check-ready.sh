@@ -73,7 +73,7 @@ check_public_edge() {
 }
 
 check_vercel() {
-  local frontend_dir
+  local frontend_dir project_json remote_root remote_framework remote_install remote_build
 
   if ! command -v vercel >/dev/null 2>&1; then
     fail "vercel CLI unavailable"
@@ -87,6 +87,27 @@ check_vercel() {
     pass "vercel project linked"
   else
     fail "vercel project not linked in $frontend_dir"
+    return 1
+  fi
+  project_json="$frontend_dir/.vercel/project.json"
+
+  if ! command -v jq >/dev/null 2>&1; then
+    fail "jq unavailable for Vercel project settings check"
+    return 1
+  fi
+
+  remote_root="$(jq -r '.settings.rootDirectory // ""' "$project_json")"
+  remote_framework="$(jq -r '.settings.framework // ""' "$project_json")"
+  remote_install="$(jq -r '.settings.installCommand // ""' "$project_json")"
+  remote_build="$(jq -r '.settings.buildCommand // ""' "$project_json")"
+
+  if [ "$remote_root" = "app/agent-smith-v6" ] &&
+     [ "$remote_framework" = "nextjs" ] &&
+     [ "$remote_install" = "npm install" ] &&
+     [ "$remote_build" = "npm run build" ]; then
+    pass "vercel remote settings target Next.js app root"
+  else
+    fail "vercel remote settings mismatch: run vercel pull and verify root/framework/build settings"
     return 1
   fi
 

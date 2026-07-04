@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-04 15:46 UTC.
+Atualizado em 2026-07-04 16:03 UTC.
 
 ## Estado atual
 
@@ -22,6 +22,13 @@ Atualizado em 2026-07-04 15:46 UTC.
 - Gate de producao: `scripts/deploy-production.sh` valida `app` completo por
   padrao; `APP_VALIDATE_SCOPE=app-core` fica reservado para teste minimo.
 - Vercel: projeto `agent-smith-csm` criado/linkado na conta logada da CLI.
+- Vercel Git: conectado ao GitHub `Negritin/agent-smith-csm`, branch de
+  producao `main`.
+- Vercel settings remotas: corrigidas para `Root Directory=app/agent-smith-v6`,
+  `Framework=Next.js`, `Install Command=npm install`, `Build Command=npm run build`
+  e Node.js `22.x`.
+- Vercel deployments: ainda nao ha deployment criado; os envs de producao da
+  Vercel continuam vazios.
 - Preflight base: `scripts/check-ready.sh` valida Git/origin/upstream, Redis,
   Qdrant, MinIO, app importado, rede `easypanel`, Traefik/80/443 e Vercel
   autenticada/linkada.
