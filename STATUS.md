@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-04 16:13 UTC.
+Atualizado em 2026-07-04 22:33 UTC.
 
 ## Estado atual
 
@@ -33,6 +33,17 @@ Atualizado em 2026-07-04 16:13 UTC.
   commit `11289cf`; terminou em erro porque o build Next.js nao tem Supabase
   configurado (`supabaseUrl is required`). Isso confirma que a integracao Git
   esta ativa, mas os envs de producao da Vercel continuam vazios.
+- Supabase API keys: URL, publishable key e secret/service key foram validadas
+  contra o Supabase sem imprimir valores. A chave `sb_secret_*` funciona como
+  server-side/service-role e a `sb_publishable_*` ficou mapeada como chave
+  publica do frontend.
+- Vercel envs de producao: Supabase/URLs/segredos internos sincronizados. O
+  build Next.js passou depois disso.
+- Frontend provisiorio: `https://agent-smith-lieuh0we6-csm-marketings-projects.vercel.app`
+  responde 200 em `/`, `/login` e `/admin/login`. O alias curto
+  `https://agent-smith-csm.vercel.app` ainda retorna 404 porque a Vercel marca
+  o deployment prebuilt como `BLOCKED` para alias/promote, apesar da URL gerada
+  estar publica.
 - Preflight base: `scripts/check-ready.sh` valida Git/origin/upstream, Redis,
   Qdrant, MinIO, app importado, rede `easypanel`, Traefik/80/443 e Vercel
   autenticada/linkada.
