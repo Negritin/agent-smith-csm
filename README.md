@@ -75,6 +75,8 @@ scripts/check-ready.sh
 - `scripts/apply-external-envs.sh`: aplica `/opt/agent-smith/.env.external` em
   `.env.app` e `.env.vercel`, sincroniza valores compartilhados e valida `app`
   completo + Vercel.
+- `scripts/prepare-production-envs.sh`: roda readiness, prefill publico,
+  preflight externo, apply dos envs e relatorio final sem publicar.
 - `scripts/deploy-app.sh`: sobe backend, workers e Docling depois dos envs reais.
 - `scripts/deploy-production.sh`: orquestra a subida completa com gates,
   smoke tests, check de provedores externos, Supabase, backend/workers,
@@ -144,13 +146,13 @@ Depois de preencher `/opt/agent-smith/.env.external` e aplicar:
 
 ```bash
 cd /opt/agent-smith
-scripts/env-report.sh
-scripts/prefill-public-envs.sh
-scripts/check-external-services.sh
-scripts/apply-external-envs.sh
+scripts/prepare-production-envs.sh
 CONFIRM=1 scripts/deploy-production.sh
 scripts/create-admin.sh
 ```
+
+Use `RUN_LIVE=1 scripts/prepare-production-envs.sh` para validar autenticacao dos
+provedores antes da publicacao.
 
 Se quiser criar o admin no mesmo fluxo, rode de um terminal interativo com
 `CONFIRM=1 CREATE_ADMIN=1 scripts/deploy-production.sh`.
