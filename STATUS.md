@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-04 14:51 UTC.
+Atualizado em 2026-07-04 14:57 UTC.
 
 ## Estado atual
 
@@ -22,6 +22,9 @@ Atualizado em 2026-07-04 14:51 UTC.
 - Gate de producao: `scripts/deploy-production.sh` valida `app` completo por
   padrao; `APP_VALIDATE_SCOPE=app-core` fica reservado para teste minimo.
 - Vercel: projeto `agent-smith-csm` criado/linkado na conta logada da CLI.
+- Preflight base: `scripts/check-ready.sh` valida Git/origin/upstream, Redis,
+  Qdrant, MinIO, app importado, rede `easypanel`, Traefik/80/443 e Vercel
+  autenticada/linkada.
 - Env local: `scripts/sync-local-envs.sh` sincronizou segredos compartilhados de
   `.env.app` para `.env.vercel`; ainda falta `NEXT_PUBLIC_SUPABASE_ANON_KEY` e
   as URLs publicas reais.

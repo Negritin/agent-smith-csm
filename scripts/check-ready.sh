@@ -57,6 +57,40 @@ check_imported_app() {
   fi
 }
 
+check_public_edge() {
+  docker network inspect easypanel >/dev/null
+  pass "easypanel network"
+
+  docker ps --filter name=easypanel-traefik --filter status=running --format '{{.Names}}' |
+    grep -q '^easypanel-traefik'
+  pass "traefik running"
+
+  ss -ltn | awk '{ print $4 }' | grep -Eq '(^|:)80$'
+  pass "port 80 listening"
+
+  ss -ltn | awk '{ print $4 }' | grep -Eq '(^|:)443$'
+  pass "port 443 listening"
+}
+
+check_vercel() {
+  local frontend_dir
+
+  if ! command -v vercel >/dev/null 2>&1; then
+    fail "vercel CLI unavailable"
+    return 1
+  fi
+  vercel whoami >/dev/null 2>&1
+  pass "vercel auth"
+
+  frontend_dir="$("$REPO_ROOT/scripts/find-frontend.sh")"
+  if [ -f "$frontend_dir/.vercel/project.json" ]; then
+    pass "vercel project linked"
+  else
+    fail "vercel project not linked in $frontend_dir"
+    return 1
+  fi
+}
+
 main() {
   local failed=0
 
@@ -64,6 +98,8 @@ main() {
   check_git_upstream || failed=1
   check_infra || failed=1
   check_imported_app || failed=1
+  check_public_edge || failed=1
+  check_vercel || failed=1
 
   if [ "$failed" -eq 0 ]; then
     pass "ready for env validation and app deployment work"
