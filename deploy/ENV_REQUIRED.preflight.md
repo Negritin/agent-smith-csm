@@ -13,6 +13,19 @@ Os arquivos reais ficam ignorados pelo Git. Os templates versionados estao em
 `deploy/.env.app.example`, `deploy/.env.infra.example` e
 `deploy/vercel.env.example`.
 
+Para reduzir erro manual, preencha um unico arquivo fora do Git:
+
+```bash
+cd /opt/agent-smith
+cp deploy/external.env.example /opt/agent-smith/.env.external
+nano /opt/agent-smith/.env.external
+scripts/apply-external-envs.sh
+```
+
+O helper aplica as chaves externas em `/opt/agent-smith/.env.app`, sincroniza
+os valores compartilhados em `/opt/agent-smith/.env.vercel` e roda as validacoes
+`app-core` e `vercel` sem imprimir valores sensiveis.
+
 ## Dominios publicos
 
 ```env
@@ -214,6 +227,7 @@ externos, Stripe e credenciais da Vercel forem preenchidos.
 Depois dos envs preenchidos, a subida completa pode ser feita por:
 
 ```bash
+scripts/apply-external-envs.sh
 CONFIRM=1 CREATE_ADMIN=1 scripts/deploy-production.sh
 ```
 

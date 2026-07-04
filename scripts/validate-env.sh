@@ -51,6 +51,9 @@ is_placeholder() {
   [[ "$value" == *example.com* ]] && return 0
   [[ "$value" == *"<"* ]] && return 0
   [[ "$value" == *">"* ]] && return 0
+  [[ "$value" == *"_here" ]] && return 0
+  [[ "$value" == *"project-ref"* ]] && return 0
+  [[ "$value" == *":password@"* ]] && return 0
   [[ "$value" == postgresql://user:password@* ]] && return 0
   [[ "$value" == "changeme" ]] && return 0
   [[ "$value" == "CHANGE_ME" ]] && return 0

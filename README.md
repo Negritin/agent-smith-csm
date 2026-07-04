@@ -49,6 +49,8 @@ scripts/check-ready.sh
 - `deploy/.env.infra.example`: template seguro do env interno.
 - `deploy/.env.app.example`: template de env da aplicacao e integracoes externas.
 - `deploy/vercel.env.example`: template das credenciais e envs publicos da Vercel.
+- `deploy/external.env.example`: template unico para colar envs externos reais
+  antes de aplicar nos arquivos locais ignorados pelo Git.
 - `deploy/ENV_REQUIRED.preflight.md`: lista objetiva dos envs que ainda precisam
   vir de Supabase/Vercel/provedores externos.
 - `app/agent-smith-v6/.vercelignore`: garante que a Vercel publique apenas o
@@ -61,6 +63,8 @@ scripts/check-ready.sh
 - `scripts/create-admin.sh`: roda o criador interativo do primeiro admin master
   dentro da imagem Docker do backend.
 - `scripts/validate-env.sh`: valida envs locais sem imprimir valores sensiveis.
+- `scripts/apply-external-envs.sh`: aplica `/opt/agent-smith/.env.external` em
+  `.env.app` e `.env.vercel`, sincroniza valores compartilhados e valida.
 - `scripts/deploy-app.sh`: sobe backend, workers e Docling depois dos envs reais.
 - `scripts/deploy-production.sh`: orquestra a subida completa com gates,
   smoke tests, Supabase, backend/workers, Vercel e validacao publica.
@@ -89,9 +93,18 @@ Os arquivos reais ficam somente na VPS e estao protegidos pelo `.gitignore`:
 - `/opt/agent-smith/.env.infra`
 - `/opt/agent-smith/.env.app`
 - `/opt/agent-smith/.env.vercel`
+- `/opt/agent-smith/.env.external`
 
 Os segredos internos ja foram gerados localmente. Ainda faltam dominios,
 credenciais Supabase, chaves de provedores externos, Stripe e credenciais Vercel.
+Para preencher tudo sem editar varios arquivos manualmente:
+
+```bash
+cd /opt/agent-smith
+cp deploy/external.env.example /opt/agent-smith/.env.external
+nano /opt/agent-smith/.env.external
+scripts/apply-external-envs.sh
+```
 
 ## Validacao
 
@@ -113,10 +126,11 @@ preenchidos.
 
 ## Deploy
 
-Depois de preencher `/opt/agent-smith/.env.app`:
+Depois de preencher `/opt/agent-smith/.env.external` e aplicar:
 
 ```bash
 cd /opt/agent-smith
+scripts/apply-external-envs.sh
 CONFIRM=1 CREATE_ADMIN=1 scripts/deploy-production.sh
 ```
 

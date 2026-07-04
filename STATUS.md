@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-04 14:39 UTC.
+Atualizado em 2026-07-04 14:44 UTC.
 
 ## Estado atual
 
@@ -23,6 +23,9 @@ Atualizado em 2026-07-04 14:39 UTC.
 - Env local: `scripts/sync-local-envs.sh` sincronizou segredos compartilhados de
   `.env.app` para `.env.vercel`; ainda falta `NEXT_PUBLIC_SUPABASE_ANON_KEY` e
   as URLs publicas reais.
+- Env externo: `deploy/external.env.example` e `scripts/apply-external-envs.sh`
+  preparados para aplicar as chaves reais em `.env.app`/`.env.vercel` sem
+  imprimir valores.
 - Imagens Docker: backend, worker, beat, docling-api e docling-worker foram
   buildadas com sucesso.
 - Backend smoke: `scripts/smoke-backend.sh` passou, validando compose, build da
@@ -81,6 +84,7 @@ para esse IP.
 - `/opt/agent-smith/.env.vercel` com permissao `600`
 - `/opt/agent-smith/deploy/.env.app.example`
 - `/opt/agent-smith/deploy/vercel.env.example`
+- `/opt/agent-smith/deploy/external.env.example`
 - `/opt/agent-smith/deploy/ENV_REQUIRED.preflight.md`
 - `/opt/agent-smith/scripts/import-upstream.sh`
 - `/opt/agent-smith/scripts/check-ready.sh`
@@ -89,6 +93,7 @@ para esse IP.
 - `/opt/agent-smith/scripts/create-admin.sh`
 - `/opt/agent-smith/scripts/analyze-upstream.sh`
 - `/opt/agent-smith/scripts/validate-env.sh`
+- `/opt/agent-smith/scripts/apply-external-envs.sh`
 - `/opt/agent-smith/scripts/deploy-app.sh`
 - `/opt/agent-smith/scripts/deploy-production.sh`
 - `/opt/agent-smith/scripts/find-frontend.sh`
@@ -123,6 +128,14 @@ DOCLING_SERVICE_URL=http://docling-api:8001
 ## Pendencias para deploy completo
 
 Preencher `/opt/agent-smith/.env.app`:
+
+Atalho recomendado:
+
+```bash
+cp /opt/agent-smith/deploy/external.env.example /opt/agent-smith/.env.external
+nano /opt/agent-smith/.env.external
+/opt/agent-smith/scripts/apply-external-envs.sh
+```
 
 Obrigatorio para `scripts/deploy-app.sh` / `scripts/validate-env.sh app-core`:
 
@@ -176,6 +189,7 @@ cd /opt/agent-smith
 scripts/check-ready.sh
 scripts/analyze-upstream.sh
 scripts/validate-env.sh infra
+scripts/apply-external-envs.sh
 scripts/validate-env.sh app-core
 scripts/smoke-backend.sh
 scripts/smoke-frontend.sh
