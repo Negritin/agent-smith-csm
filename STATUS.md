@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-04 14:30 UTC.
+Atualizado em 2026-07-04 14:32 UTC.
 
 ## Estado atual
 
@@ -27,6 +27,8 @@ Atualizado em 2026-07-04 14:30 UTC.
   container.
 - Docling real do projeto: `docling-api` e `docling-worker` estao rodando na rede
   interna e `/health` respondeu `{"status":"ok","service":"docling","workers":1}`.
+- Docling smoke: `scripts/smoke-docling.sh` passou, validando health, worker ativo,
+  `/status/{task_id}` com chave correta e 401 com chave incorreta.
 - Backend FastAPI, Celery worker e Celery beat: prontos para subir, aguardando
   envs externos reais.
 - Supabase setup: wrapper `scripts/setup-supabase.sh` preparado para aplicar
@@ -89,6 +91,7 @@ para esse IP.
 - `/opt/agent-smith/scripts/sync-local-envs.sh`
 - `/opt/agent-smith/scripts/smoke-frontend.sh`
 - `/opt/agent-smith/scripts/smoke-backend.sh`
+- `/opt/agent-smith/scripts/smoke-docling.sh`
 - `/opt/agent-smith/scripts/sync-vercel-env.sh`
 - `/opt/agent-smith/scripts/deploy-frontend-vercel.sh`
 - `/opt/agent-smith/scripts/setup-supabase.sh`
@@ -172,6 +175,7 @@ scripts/validate-env.sh infra
 scripts/validate-env.sh app-core
 scripts/smoke-backend.sh
 scripts/smoke-frontend.sh
+scripts/smoke-docling.sh
 scripts/sync-local-envs.sh
 scripts/check-supabase.sh
 scripts/validate-env.sh app

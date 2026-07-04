@@ -69,6 +69,8 @@ scripts/check-ready.sh
   dummy seguros antes do deploy na Vercel.
 - `scripts/smoke-backend.sh`: valida compose, build, compilacao Python e import
   FastAPI da imagem backend sem precisar tocar no Supabase real.
+- `scripts/smoke-docling.sh`: valida health, worker Celery e auth interna do
+  microservico Docling.
 - `scripts/sync-vercel-env.sh`: sincroniza `/opt/agent-smith/.env.vercel`
   com as envs do projeto Vercel sem imprimir valores.
 - `scripts/deploy-frontend-vercel.sh`: faz deploy Vercel nao interativo.
@@ -98,6 +100,7 @@ scripts/validate-env.sh infra
 scripts/validate-env.sh app-core
 scripts/smoke-backend.sh
 scripts/smoke-frontend.sh
+scripts/smoke-docling.sh
 scripts/validate-env.sh app
 scripts/validate-env.sh vercel
 ```
