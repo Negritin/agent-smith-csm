@@ -116,8 +116,10 @@ sync_from_app_to_vercel() {
 
   api_host="$(value_for "$APP_ENV_FILE" AGENT_SMITH_API_HOST)"
   if ! is_placeholder "$api_host"; then
+    set_key "$VERCEL_ENV_FILE" BACKEND_URL "https://$api_host"
     set_key "$VERCEL_ENV_FILE" NEXT_PUBLIC_BACKEND_URL "https://$api_host"
     set_key "$VERCEL_ENV_FILE" NEXT_PUBLIC_API_URL "https://$api_host"
+    set_key "$VERCEL_ENV_FILE" NEXT_PUBLIC_LANGCHAIN_API_URL "https://$api_host/chat"
   fi
 
   supabase_url="$(value_for "$APP_ENV_FILE" SUPABASE_URL)"

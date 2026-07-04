@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-04 14:49 UTC.
+Atualizado em 2026-07-04 14:51 UTC.
 
 ## Estado atual
 
@@ -25,6 +25,10 @@ Atualizado em 2026-07-04 14:49 UTC.
 - Env local: `scripts/sync-local-envs.sh` sincronizou segredos compartilhados de
   `.env.app` para `.env.vercel`; ainda falta `NEXT_PUBLIC_SUPABASE_ANON_KEY` e
   as URLs publicas reais.
+- Vercel URL backend: `BACKEND_URL`, `NEXT_PUBLIC_BACKEND_URL`,
+  `NEXT_PUBLIC_API_URL` e `NEXT_PUBLIC_LANGCHAIN_API_URL` sao sincronizados para
+  a API publica para evitar fallback `localhost` nas rotas server-side do Next;
+  `NEXT_PUBLIC_LANGCHAIN_API_URL` usa o endpoint direto `/chat`.
 - Env externo: `deploy/external.env.example` e `scripts/apply-external-envs.sh`
   preparados para aplicar as chaves reais em `.env.app`/`.env.vercel` sem
   imprimir valores, validando `app` completo + Vercel por padrao.

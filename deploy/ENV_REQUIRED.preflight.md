@@ -48,8 +48,10 @@ Na Vercel:
 
 ```env
 APP_URL=https://app.<dominio>
+BACKEND_URL=https://api.<dominio>
 NEXT_PUBLIC_BACKEND_URL=https://api.<dominio>
 NEXT_PUBLIC_API_URL=https://api.<dominio>
+NEXT_PUBLIC_LANGCHAIN_API_URL=https://api.<dominio>/chat
 NEXT_PUBLIC_BASE_URL=https://app.<dominio>
 NEXT_PUBLIC_SUPPORT_EMAIL=suporte@<dominio>
 ```
