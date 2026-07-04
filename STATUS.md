@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-04 15:06 UTC.
+Atualizado em 2026-07-04 15:46 UTC.
 
 ## Estado atual
 
@@ -36,9 +36,14 @@ Atualizado em 2026-07-04 15:06 UTC.
   preparados para aplicar as chaves reais em `.env.app`/`.env.vercel` sem
   imprimir valores, validando `app` completo + Vercel por padrao.
 - Env report: `scripts/env-report.sh` mostra arquivos e chaves obrigatorias
-  faltantes sem imprimir valores sensiveis.
+  vazias ou ainda com placeholder sem imprimir valores sensiveis.
 - `/opt/agent-smith/.env.external`: criado com permissao `600`; `PUBLIC_SERVER_IP`
-  ja preenchido com `5.161.73.5`, faltando os dominios/chaves reais.
+  ja preenchido com `5.161.73.5`; as URLs publicas provisorias tambem estao
+  preenchidas com `sslip.io`/Vercel. Os campos Supabase ainda sao placeholders
+  e providers/Stripe continuam vazios.
+- Preparacao de producao: `scripts/prepare-production-envs.sh` passa nos checks
+  base e no prefill publico, mas para corretamente em `scripts/check-external-services.sh`
+  enquanto faltarem Supabase real, providers LLM/busca e Stripe.
 - Imagens Docker: backend, worker, beat, docling-api e docling-worker foram
   buildadas com sucesso.
 - Backend smoke: `scripts/smoke-backend.sh` passou, validando compose, build da
@@ -143,7 +148,8 @@ DOCLING_SERVICE_URL=http://docling-api:8001
 
 ## Pendencias para deploy completo
 
-Preencher `/opt/agent-smith/.env.app`:
+Preencher `/opt/agent-smith/.env.external` com valores reais e depois aplicar em
+`/opt/agent-smith/.env.app` e `/opt/agent-smith/.env.vercel`:
 
 Atalho recomendado:
 
@@ -153,7 +159,15 @@ nano /opt/agent-smith/.env.external
 /opt/agent-smith/scripts/apply-external-envs.sh
 ```
 
-Obrigatorio para `scripts/deploy-app.sh` / `scripts/validate-env.sh app-core`:
+Ja preenchido com valores publicos provisorios:
+
+- `AGENT_SMITH_API_HOST=agent-smith-api.5.161.73.5.sslip.io`
+- `PUBLIC_SERVER_IP=5.161.73.5`
+- `FRONTEND_URL=https://agent-smith-csm.vercel.app`
+- `APP_URL=https://agent-smith-csm.vercel.app`
+- `ALLOWED_ORIGINS=https://agent-smith-csm.vercel.app`
+
+Ainda obrigatorio para `scripts/deploy-app.sh` / `scripts/validate-env.sh app-core`:
 
 - `AGENT_SMITH_API_HOST`
 - `FRONTEND_URL`

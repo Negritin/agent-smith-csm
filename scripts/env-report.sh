@@ -58,8 +58,10 @@ status_for() {
   local value
 
   value="$(value_for "$file" "$key")"
-  if is_placeholder "$value"; then
-    printf 'missing'
+  if [ -z "$value" ]; then
+    printf 'empty'
+  elif is_placeholder "$value"; then
+    printf 'placeholder'
   else
     printf 'set'
   fi
@@ -77,7 +79,7 @@ print_required_group() {
     if [ "$status" = "set" ]; then
       printf 'ok      %s\n' "$key"
     else
-      printf 'missing %s\n' "$key"
+      printf '%-7s %s\n' "$status" "$key"
       FAILED=1
     fi
   done
@@ -95,7 +97,7 @@ print_optional_group() {
     if [ "$status" = "set" ]; then
       printf 'ok       %s\n' "$key"
     else
-      printf 'optional %s\n' "$key"
+      printf 'optional %-11s %s\n' "$status" "$key"
     fi
   done
 }
@@ -197,7 +199,7 @@ main() {
   if [ "$FAILED" -eq 0 ]; then
     printf '\nok      env report complete\n'
   else
-    printf '\nmissing env report found missing required items\n'
+    printf '\nmissing env report found empty or placeholder required items\n'
   fi
 
   return "$FAILED"
