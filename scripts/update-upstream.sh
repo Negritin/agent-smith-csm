@@ -42,11 +42,12 @@ UPSTREAM_HEAD="$(
     awk '/HEAD$/ && $1 !~ /^ref:/ { print $1; exit }'
 )"
 
-IMPORTED_HEAD="$(
+IMPORTED_SUBJECT="$(
   git log --all --format=%s |
-    sed -n "s/^Squashed '$PREFIX\/' content from commit //p" |
-    head -1
+    grep -F "Squashed '$PREFIX/' content from commit " |
+    head -1 || true
 )"
+IMPORTED_HEAD="${IMPORTED_SUBJECT##* }"
 
 echo "Upstream branch: $UPSTREAM_BRANCH"
 echo "Upstream HEAD:   ${UPSTREAM_HEAD:-unknown}"
