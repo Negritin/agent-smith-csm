@@ -36,21 +36,27 @@ GITHUB_TOKEN=<token-com-acesso-ao-repo> scripts/check-ready.sh
 ## Arquivos importantes
 
 - `deploy/docker-compose.infra.yml`: Redis, Qdrant, MinIO e Docling em rede interna.
+- `deploy/docker-compose.app.template.yml`: template para backend FastAPI, Celery worker e Celery beat depois do import.
 - `deploy/.env.infra.example`: template seguro do env interno.
+- `deploy/.env.app.example`: template de env da aplicacao e integrações externas.
 - `deploy/ENV_REQUIRED.preflight.md`: lista preliminar de envs externos.
+- `scripts/analyze-upstream.sh`: varre o código importado e mostra docs, envs e comandos prováveis.
 - `STATUS.md`: estado operacional da VPS.
 
 ## Segredos
 
 O arquivo real `/opt/agent-smith/.env.infra` existe na VPS e nao deve ser
-commitado. Ele está protegido pelo `.gitignore`.
+commitado. O arquivo `/opt/agent-smith/.env.app` tambem existe localmente a
+partir de `deploy/.env.app.example` e deve receber os segredos reais depois do
+import. Ambos estao protegidos pelo `.gitignore`.
 
 ## Proximos passos
 
 1. Autorizar a deploy key da VPS no repo `LionLabsCommunity/Agent-SmithV6`.
 2. Rodar `scripts/check-ready.sh` para confirmar acesso ao upstream e infra local. Se preferir token/PAT, usar `GITHUB_TOKEN=... scripts/check-ready.sh`.
 3. Rodar `scripts/import-upstream.sh` para importar o código real em `app/agent-smith-v6`.
-4. Conferir docs, `.env.example`, compose/Dockerfiles e scripts reais do app.
-5. Conectar backend/workers aos serviços internos.
-6. Expor backend por Traefik/Easypanel.
-7. Fazer deploy do frontend Next.js na Vercel.
+4. Rodar `scripts/analyze-upstream.sh` para localizar docs, envs, Dockerfiles e comandos reais.
+5. Ajustar `/opt/agent-smith/.env.app` a partir de `deploy/.env.app.example`.
+6. Conectar backend/workers aos serviços internos.
+7. Expor backend por Traefik/Easypanel.
+8. Fazer deploy do frontend Next.js na Vercel.

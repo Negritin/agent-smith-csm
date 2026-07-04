@@ -41,11 +41,15 @@ Redis, Qdrant, MinIO e Docling responderam aos health checks internos.
 ## Arquivos
 
 - `/opt/agent-smith/deploy/docker-compose.infra.yml`
+- `/opt/agent-smith/deploy/docker-compose.app.template.yml`
 - `/opt/agent-smith/.env.infra` com permissao `600`
+- `/opt/agent-smith/.env.app` criado com placeholders e permissao `600`
+- `/opt/agent-smith/deploy/.env.app.example`
 - `/opt/agent-smith/deploy/ENV_REQUIRED.preflight.md`
 - `/opt/agent-smith/scripts/import-upstream.sh`
 - `/opt/agent-smith/scripts/check-ready.sh`
 - `/opt/agent-smith/scripts/lib/git-auth.sh`
+- `/opt/agent-smith/scripts/analyze-upstream.sh`
 
 ## Env interno ja definido
 
@@ -94,6 +98,7 @@ scripts/check-ready.sh
 GITHUB_TOKEN=<token-com-acesso-ao-repo> scripts/check-ready.sh
 scripts/import-upstream.sh
 GITHUB_TOKEN=<token-com-acesso-ao-repo> scripts/import-upstream.sh
+scripts/analyze-upstream.sh
 ```
 
 ## Repo local
