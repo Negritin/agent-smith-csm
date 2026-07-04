@@ -53,7 +53,7 @@ echo "Upstream branch: $UPSTREAM_BRANCH"
 echo "Upstream HEAD:   ${UPSTREAM_HEAD:-unknown}"
 echo "Imported HEAD:   ${IMPORTED_HEAD:-unknown}"
 
-if [ -n "$UPSTREAM_HEAD" ] && [ "$UPSTREAM_HEAD" = "$IMPORTED_HEAD" ]; then
+if [ -n "$UPSTREAM_HEAD" ] && [ -n "$IMPORTED_HEAD" ] && [[ "$UPSTREAM_HEAD" == "$IMPORTED_HEAD"* ]]; then
   echo "Upstream snapshot is already current."
   exit 0
 fi
