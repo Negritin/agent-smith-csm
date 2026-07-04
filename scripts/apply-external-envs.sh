@@ -212,6 +212,11 @@ main() {
 
   apply_defaults
 
+  if [ "$DRY_RUN" != "1" ]; then
+    chmod 600 "$APP_ENV_FILE" "$VERCEL_ENV_FILE"
+    "$REPO_ROOT/scripts/sync-local-envs.sh"
+  fi
+
   local vercel_direct_keys=(
     VERCEL_TOKEN
     VERCEL_ORG_ID
@@ -233,8 +238,7 @@ main() {
   done
 
   if [ "$DRY_RUN" != "1" ]; then
-    chmod 600 "$APP_ENV_FILE" "$VERCEL_ENV_FILE"
-    "$REPO_ROOT/scripts/sync-local-envs.sh"
+    chmod 600 "$VERCEL_ENV_FILE"
   fi
 
   if [ "$RUN_VALIDATE" = "1" ]; then
