@@ -1,26 +1,40 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-04 02:05 UTC.
+Atualizado em 2026-07-04 13:40 UTC.
 
 ## Estado atual
 
 - VPS: Ubuntu 24.04, Docker/Compose ativos.
 - Frontend tooling: Node.js `v22.23.1`, npm `10.9.8`, Vercel CLI `54.20.1`.
-- GitHub CLI: instalado, ainda sem login.
-- Vercel CLI: instalado, ainda sem credencial local.
-- Repo privado: ainda bloqueado por `Permission denied (publickey)`.
-- Systemd: `agent-smith-infra.service` habilitado no boot e validado com `status=0/SUCCESS` usando `deploy/docker-compose.infra.yml`.
-- Build tooling: `python3-pip`, Python headers, Git LFS e Corepack instalados/habilitados.
-- Git local: `/opt/agent-smith` inicializado em `main`, com `origin/main` publicado em `Negritin/agent-smith-csm`.
-- Upstream original: `LionLabsCommunity/Agent-SmithV6` configurado apenas para fetch e ainda aguardando permissao.
-- Import upstream: `scripts/import-upstream.sh` criado; quando o upstream liberar acesso, importa snapshot para `app/agent-smith-v6`.
+- GitHub CLI: autenticado como `Negritin` com escopo `repo`.
+- Repo destino: `/opt/agent-smith` publicado em `Negritin/agent-smith-csm`.
+- Upstream original: `LionLabsCommunity/Agent-SmithV6` acessivel.
+- Import upstream: concluido em `app/agent-smith-v6`.
+- Frontend Next.js: dependencias instaladas, typecheck passou e suite de testes
+  passou localmente.
+- Imagens Docker: backend, worker, beat, docling-api e docling-worker foram
+  buildadas com sucesso.
+- Docling real do projeto: `docling-api` e `docling-worker` estao rodando na rede
+  interna e `/health` respondeu `{"status":"ok","service":"docling","workers":1}`.
+- Backend FastAPI, Celery worker e Celery beat: prontos para subir, aguardando
+  envs externos reais.
 
-## Infra local criada
+## Arquitetura real encontrada
+
+- Frontend: Next.js/React em `app/agent-smith-v6`.
+- Backend: FastAPI em `app/agent-smith-v6/backend`.
+- Worker: `celery -A app.workers.celery_app worker --loglevel=info -Q attendance,billing,sanitization,celery`.
+- Beat: `celery -A app.workers.celery_app beat --loglevel=info`.
+- Docling: microservico proprio em `app/agent-smith-v6/docling-service`.
+- Docling API: `uvicorn app.main:app --host 0.0.0.0 --port 8001 --workers 2`.
+- Docling worker: `celery -A app.celery_app worker -Q docling -c 2 --loglevel=info`.
+
+## Infra local validada
 
 Compose:
 
 ```bash
-docker compose --env-file /opt/agent-smith/.env.infra -f /opt/agent-smith/deploy/docker-compose.infra.yml up -d
+docker compose --env-file /opt/agent-smith/.env.infra -f /opt/agent-smith/deploy/docker-compose.infra.yml up -d --remove-orphans
 ```
 
 Servicos internos:
@@ -28,29 +42,26 @@ Servicos internos:
 | Servico | Host interno | Status validado |
 | --- | --- | --- |
 | Redis | `redis:6379` | `redis-cli ping` retornou `PONG` |
-| Qdrant | `http://qdrant:6333` | `/healthz` retornou `healthz check passed`; `/collections` retornou status `ok` |
-| MinIO | `http://minio:9000` | bucket `agent-smith` criado |
-| Docling Serve | `http://docling:5001` | `/health` retornou `{"status":"ok"}`; `/docs` e `/openapi.json` retornaram HTTP 200 |
+| Qdrant | `http://qdrant:6333` | `/healthz` retornou `healthz check passed` |
+| MinIO | `http://minio:9000` | bucket configurado em `MINIO_BUCKET` |
+| Docling API | `http://docling-api:8001` | `/health` retornou status ok |
 
-Todos os servicos estao na rede Docker interna `agent_smith_internal`, sem portas publicas expostas.
-O servico systemd `/etc/systemd/system/agent-smith-infra.service` executa o
-`docker compose up -d` no boot.
-O restart do systemd foi validado depois da mudanca para o compose em `deploy/`;
-Redis, Qdrant, MinIO e Docling responderam aos health checks internos.
+Todos os servicos ficam na rede Docker interna `agent_smith_internal`. O backend
+sera exposto pela rede `easypanel`/Traefik usando `AGENT_SMITH_API_HOST`.
 
 ## Arquivos
 
+- `/opt/agent-smith/app/agent-smith-v6`
 - `/opt/agent-smith/deploy/docker-compose.infra.yml`
 - `/opt/agent-smith/deploy/docker-compose.app.template.yml`
 - `/opt/agent-smith/.env.infra` com permissao `600`
-- `/opt/agent-smith/.env.app` criado com placeholders e permissao `600`
-- `/opt/agent-smith/.env.vercel` criado com placeholders e permissao `600`
+- `/opt/agent-smith/.env.app` com permissao `600`
+- `/opt/agent-smith/.env.vercel` com permissao `600`
 - `/opt/agent-smith/deploy/.env.app.example`
 - `/opt/agent-smith/deploy/vercel.env.example`
 - `/opt/agent-smith/deploy/ENV_REQUIRED.preflight.md`
 - `/opt/agent-smith/scripts/import-upstream.sh`
 - `/opt/agent-smith/scripts/check-ready.sh`
-- `/opt/agent-smith/scripts/lib/git-auth.sh`
 - `/opt/agent-smith/scripts/analyze-upstream.sh`
 - `/opt/agent-smith/scripts/validate-env.sh`
 - `/opt/agent-smith/scripts/deploy-app.sh`
@@ -59,70 +70,70 @@ Redis, Qdrant, MinIO e Docling responderam aos health checks internos.
 
 ## Env interno ja definido
 
+Os valores reais ficam em `/opt/agent-smith/.env.infra` e nao devem ser
+impressos. Variaveis internas validadas:
+
 ```env
 REDIS_URL=redis://redis:6379/0
 CELERY_BROKER_URL=redis://redis:6379/0
 CELERY_RESULT_BACKEND=redis://redis:6379/1
+QDRANT_HOST=qdrant
+QDRANT_PORT=6333
 QDRANT_URL=http://qdrant:6333
 QDRANT_COLLECTION=agent_smith
-S3_ENDPOINT_URL=http://minio:9000
-S3_BUCKET=agent-smith
-S3_REGION=us-east-1
-S3_FORCE_PATH_STYLE=true
-DOCLING_BASE_URL=http://docling:5001
+MINIO_ENDPOINT=minio:9000
+MINIO_SECURE=false
+MINIO_BUCKET=documents
+DOCLING_SERVICE_URL=http://docling-api:8001
 ```
 
-## Bloqueios
+## Pendencias para deploy completo
 
-Para continuar com clone, estudo do projeto e subida real do backend/frontend:
+Preencher `/opt/agent-smith/.env.app`:
 
-1. Adicionar a deploy key abaixo no GitHub repo `LionLabsCommunity/Agent-SmithV6` com acesso de leitura, ou fornecer `GITHUB_TOKEN`/`GH_TOKEN`/PAT com acesso ao repo privado.
+- `AGENT_SMITH_API_HOST`
+- `FRONTEND_URL`
+- `APP_URL`
+- `ALLOWED_ORIGINS`
+- `SUPABASE_URL`
+- `SUPABASE_KEY`
+- `SUPABASE_DB_URL`
+- `DATABASE_URL`
+- `OPENAI_API_KEY`
+- `ANTHROPIC_API_KEY`
+- `OPENROUTER_API_KEY`
+- `TAVILY_API_KEY`
+- `COHERE_API_KEY`
+- `GROQ_API_KEY`
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
 
-```text
-ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOSiN1cepl3R/7A+uGcNR5pxwH6dmbXqewwnWz1W5d5Y agent-smith-vps-5.161.73.5-2026-07-04
-```
+Preencher `/opt/agent-smith/.env.vercel`:
 
-2. Fornecer login/token da Vercel:
+- `VERCEL_TOKEN`
+- `VERCEL_ORG_ID`
+- `VERCEL_PROJECT_ID`
+- `APP_URL`
+- `NEXT_PUBLIC_BACKEND_URL`
+- `NEXT_PUBLIC_API_URL`
+- `NEXT_PUBLIC_BASE_URL`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
 
-```env
-VERCEL_TOKEN=
-VERCEL_ORG_ID=
-VERCEL_PROJECT_ID=
-```
-
-3. Definir dominio/API publica do backend para Traefik/Easypanel.
+Tambem e necessario aplicar as migrations/seeds do Supabase indicadas em
+`deploy/ENV_REQUIRED.preflight.md`.
 
 ## Comandos uteis
 
 ```bash
-docker compose --env-file /opt/agent-smith/.env.infra -f /opt/agent-smith/deploy/docker-compose.infra.yml ps
-docker compose --env-file /opt/agent-smith/.env.infra -f /opt/agent-smith/deploy/docker-compose.infra.yml logs -f
-docker compose --env-file /opt/agent-smith/.env.infra -f /opt/agent-smith/deploy/docker-compose.infra.yml down
-systemctl status agent-smith-infra.service --no-pager
-git ls-remote git@github.com:LionLabsCommunity/Agent-SmithV6.git
+cd /opt/agent-smith
 scripts/check-ready.sh
-GITHUB_TOKEN=<token-com-acesso-ao-repo> scripts/check-ready.sh
-scripts/import-upstream.sh
-GITHUB_TOKEN=<token-com-acesso-ao-repo> scripts/import-upstream.sh
 scripts/analyze-upstream.sh
 scripts/validate-env.sh infra
 scripts/validate-env.sh app
+scripts/validate-env.sh vercel
 scripts/deploy-app.sh
-scripts/find-frontend.sh
-VERCEL_TOKEN=<token> VERCEL_ORG_ID=<org> VERCEL_PROJECT_ID=<project> scripts/deploy-frontend-vercel.sh
-```
-
-## Repo local
-
-```bash
-cd /opt/agent-smith
-git status --short --branch --ignored
-git remote -v
-```
-
-Repo destino configurado:
-
-```bash
-git remote -v
-git push
+scripts/deploy-frontend-vercel.sh
+docker compose --env-file /opt/agent-smith/.env.infra --env-file /opt/agent-smith/.env.app -f deploy/docker-compose.app.template.yml ps
 ```

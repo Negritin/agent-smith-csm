@@ -39,16 +39,22 @@ check_infra() {
     -fsS http://qdrant:6333/healthz | grep -q 'healthz check passed'
   pass "qdrant"
 
-  docker run --rm --network agent_smith_internal curlimages/curl:8.11.1 \
-    -fsS http://docling:5001/health | grep -q '"status":"ok"'
-  pass "docling"
-
   docker run --rm --network agent_smith_internal \
     --env-file /opt/agent-smith/.env.infra \
     --entrypoint /bin/sh quay.io/minio/mc:latest \
-    -c 'mc alias set smith http://minio:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" >/dev/null && mc ls smith' |
-    grep -q 'agent-smith/'
+    -c 'mc alias set smith http://minio:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" >/dev/null && mc ls "smith/$MINIO_BUCKET"' >/dev/null
   pass "minio"
+}
+
+check_imported_app() {
+  if [ -d "$REPO_ROOT/app/agent-smith-v6/backend" ] &&
+     [ -d "$REPO_ROOT/app/agent-smith-v6/docling-service" ] &&
+     [ -f "$REPO_ROOT/app/agent-smith-v6/package.json" ]; then
+    pass "upstream imported"
+  else
+    fail "upstream app not imported"
+    return 1
+  fi
 }
 
 main() {
@@ -57,9 +63,10 @@ main() {
   check_git_origin || failed=1
   check_git_upstream || failed=1
   check_infra || failed=1
+  check_imported_app || failed=1
 
   if [ "$failed" -eq 0 ]; then
-    pass "ready for upstream import and app deployment work"
+    pass "ready for env validation and app deployment work"
   else
     fail "not fully ready"
   fi

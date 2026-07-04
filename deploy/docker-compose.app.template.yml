@@ -3,13 +3,19 @@ name: agent-smith-app
 services:
   backend:
     build:
-      context: ${AGENT_SMITH_APP_CONTEXT:?set AGENT_SMITH_APP_CONTEXT}
+      context: ${AGENT_SMITH_BACKEND_CONTEXT:-/opt/agent-smith/app/agent-smith-v6/backend}
       dockerfile: ${BACKEND_DOCKERFILE:-Dockerfile}
     restart: unless-stopped
     env_file:
       - /opt/agent-smith/.env.infra
       - /opt/agent-smith/.env.app
-    command: ${BACKEND_COMMAND:-uvicorn app.main:app --host 0.0.0.0 --port 8000}
+    environment:
+      ENV: ${ENV:-production}
+      HOST: 0.0.0.0
+      PORT: ${BACKEND_PORT:-8000}
+      WEB_CONCURRENCY: ${WEB_CONCURRENCY:-1}
+      RUN_BUFFER_SCHEDULER: ${RUN_BUFFER_SCHEDULER:-true}
+      USE_CELERY: ${USE_CELERY:-true}
     expose:
       - "${BACKEND_PORT:-8000}"
     networks:
@@ -26,25 +32,80 @@ services:
 
   worker:
     build:
-      context: ${AGENT_SMITH_APP_CONTEXT:?set AGENT_SMITH_APP_CONTEXT}
+      context: ${AGENT_SMITH_BACKEND_CONTEXT:-/opt/agent-smith/app/agent-smith-v6/backend}
       dockerfile: ${BACKEND_DOCKERFILE:-Dockerfile}
     restart: unless-stopped
     env_file:
       - /opt/agent-smith/.env.infra
       - /opt/agent-smith/.env.app
-    command: ${WORKER_COMMAND:-celery -A app.celery_app worker --loglevel=info}
+    command:
+      - celery
+      - -A
+      - app.workers.celery_app
+      - worker
+      - --loglevel=info
+      - -Q
+      - attendance,billing,sanitization,celery
     networks:
       - agent_smith_internal
 
   beat:
     build:
-      context: ${AGENT_SMITH_APP_CONTEXT:?set AGENT_SMITH_APP_CONTEXT}
+      context: ${AGENT_SMITH_BACKEND_CONTEXT:-/opt/agent-smith/app/agent-smith-v6/backend}
       dockerfile: ${BACKEND_DOCKERFILE:-Dockerfile}
     restart: unless-stopped
     env_file:
       - /opt/agent-smith/.env.infra
       - /opt/agent-smith/.env.app
-    command: ${BEAT_COMMAND:-celery -A app.celery_app beat --loglevel=info}
+    command:
+      - celery
+      - -A
+      - app.workers.celery_app
+      - beat
+      - --loglevel=info
+    networks:
+      - agent_smith_internal
+
+  docling-api:
+    build:
+      context: ${AGENT_SMITH_DOCLING_CONTEXT:-/opt/agent-smith/app/agent-smith-v6/docling-service}
+      dockerfile: ${DOCLING_DOCKERFILE:-Dockerfile}
+    restart: unless-stopped
+    env_file:
+      - /opt/agent-smith/.env.infra
+      - /opt/agent-smith/.env.app
+    environment:
+      SERVICE_KEY: ${DOCLING_SERVICE_KEY:?set DOCLING_SERVICE_KEY}
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:?set MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:?set MINIO_ROOT_PASSWORD}
+      PORT: 8001
+    expose:
+      - "8001"
+    networks:
+      - agent_smith_internal
+
+  docling-worker:
+    build:
+      context: ${AGENT_SMITH_DOCLING_CONTEXT:-/opt/agent-smith/app/agent-smith-v6/docling-service}
+      dockerfile: ${DOCLING_DOCKERFILE:-Dockerfile}
+    restart: unless-stopped
+    env_file:
+      - /opt/agent-smith/.env.infra
+      - /opt/agent-smith/.env.app
+    environment:
+      SERVICE_KEY: ${DOCLING_SERVICE_KEY:?set DOCLING_SERVICE_KEY}
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:?set MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:?set MINIO_ROOT_PASSWORD}
+    command:
+      - celery
+      - -A
+      - app.celery_app
+      - worker
+      - -Q
+      - docling
+      - -c
+      - "${DOCLING_WORKER_CONCURRENCY:-2}"
+      - --loglevel=info
     networks:
       - agent_smith_internal
 

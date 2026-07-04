@@ -2,6 +2,14 @@
 set -Eeuo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+VERCEL_ENV_FILE="${VERCEL_ENV_FILE:-/opt/agent-smith/.env.vercel}"
+
+if [ -f "$VERCEL_ENV_FILE" ]; then
+  set -a
+  # shellcheck disable=SC1090
+  source "$VERCEL_ENV_FILE"
+  set +a
+fi
 
 : "${VERCEL_TOKEN:?set VERCEL_TOKEN}"
 
