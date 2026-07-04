@@ -19,6 +19,7 @@ Para reduzir erro manual, preencha um unico arquivo fora do Git:
 cd /opt/agent-smith
 cp deploy/external.env.example /opt/agent-smith/.env.external
 nano /opt/agent-smith/.env.external
+scripts/env-report.sh
 scripts/apply-external-envs.sh
 ```
 
@@ -219,6 +220,7 @@ SENTRY_AUTH_TOKEN=
 ```bash
 cd /opt/agent-smith
 scripts/check-ready.sh
+scripts/env-report.sh
 scripts/validate-env.sh infra
 scripts/validate-env.sh app-core
 scripts/validate-env.sh app
@@ -233,6 +235,7 @@ preenchidos.
 Depois dos envs preenchidos, a subida completa pode ser feita por:
 
 ```bash
+scripts/env-report.sh
 scripts/apply-external-envs.sh
 CONFIRM=1 CREATE_ADMIN=1 scripts/deploy-production.sh
 ```

@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-04 15:00 UTC.
+Atualizado em 2026-07-04 15:03 UTC.
 
 ## Estado atual
 
@@ -35,6 +35,8 @@ Atualizado em 2026-07-04 15:00 UTC.
 - Env externo: `deploy/external.env.example` e `scripts/apply-external-envs.sh`
   preparados para aplicar as chaves reais em `.env.app`/`.env.vercel` sem
   imprimir valores, validando `app` completo + Vercel por padrao.
+- Env report: `scripts/env-report.sh` mostra arquivos e chaves obrigatorias
+  faltantes sem imprimir valores sensiveis.
 - Imagens Docker: backend, worker, beat, docling-api e docling-worker foram
   buildadas com sucesso.
 - Backend smoke: `scripts/smoke-backend.sh` passou, validando compose, build da
@@ -104,6 +106,7 @@ para esse IP.
 - `/opt/agent-smith/scripts/create-admin.sh`
 - `/opt/agent-smith/scripts/analyze-upstream.sh`
 - `/opt/agent-smith/scripts/validate-env.sh`
+- `/opt/agent-smith/scripts/env-report.sh`
 - `/opt/agent-smith/scripts/apply-external-envs.sh`
 - `/opt/agent-smith/scripts/deploy-app.sh`
 - `/opt/agent-smith/scripts/deploy-production.sh`
@@ -202,6 +205,7 @@ codigo atual.
 cd /opt/agent-smith
 scripts/check-ready.sh
 scripts/analyze-upstream.sh
+scripts/env-report.sh
 scripts/validate-env.sh infra
 scripts/apply-external-envs.sh
 scripts/validate-env.sh app-core

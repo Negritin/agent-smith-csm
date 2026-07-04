@@ -63,6 +63,8 @@ scripts/check-ready.sh
 - `scripts/create-admin.sh`: roda o criador interativo do primeiro admin master
   dentro da imagem Docker do backend.
 - `scripts/validate-env.sh`: valida envs locais sem imprimir valores sensiveis.
+- `scripts/env-report.sh`: mostra os envs obrigatorios/pendentes sem imprimir
+  valores, cobrindo entrada externa, app e Vercel.
 - `scripts/apply-external-envs.sh`: aplica `/opt/agent-smith/.env.external` em
   `.env.app` e `.env.vercel`, sincroniza valores compartilhados e valida `app`
   completo + Vercel.
@@ -104,6 +106,7 @@ Para preencher tudo sem editar varios arquivos manualmente:
 cd /opt/agent-smith
 cp deploy/external.env.example /opt/agent-smith/.env.external
 nano /opt/agent-smith/.env.external
+scripts/env-report.sh
 scripts/apply-external-envs.sh
 ```
 
@@ -112,6 +115,7 @@ scripts/apply-external-envs.sh
 ```bash
 cd /opt/agent-smith
 scripts/check-ready.sh
+scripts/env-report.sh
 scripts/validate-env.sh infra
 scripts/validate-env.sh app-core
 scripts/smoke-backend.sh
@@ -132,6 +136,7 @@ Depois de preencher `/opt/agent-smith/.env.external` e aplicar:
 
 ```bash
 cd /opt/agent-smith
+scripts/env-report.sh
 scripts/apply-external-envs.sh
 CONFIRM=1 CREATE_ADMIN=1 scripts/deploy-production.sh
 ```
