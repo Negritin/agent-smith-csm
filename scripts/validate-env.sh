@@ -192,7 +192,6 @@ check_app() {
     GOOGLE_OAUTH_CLIENT_SECRET
     SHOPIFY_AGENT_CLIENT_ID
     SHOPIFY_AGENT_CLIENT_SECRET
-    META_WHATSAPP_TOKEN
   )
 
   for key in "${optional_keys[@]}"; do

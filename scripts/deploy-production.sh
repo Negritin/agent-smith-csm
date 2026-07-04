@@ -8,6 +8,7 @@ RUN_SUPABASE="${RUN_SUPABASE:-1}"
 CREATE_ADMIN="${CREATE_ADMIN:-0}"
 SUPABASE_MODE="${SUPABASE_MODE:-fresh}"
 SMOKE_ONLY="${SMOKE_ONLY:-0}"
+APP_VALIDATE_SCOPE="${APP_VALIDATE_SCOPE:-app}"
 
 cd "$REPO_ROOT"
 
@@ -15,15 +16,27 @@ step() {
   printf '\n==> %s\n' "$1"
 }
 
+validate_app_scope() {
+  case "$APP_VALIDATE_SCOPE" in
+    app|app-core) ;;
+    *)
+      echo "error: APP_VALIDATE_SCOPE must be app or app-core" >&2
+      exit 2
+      ;;
+  esac
+}
+
 run_required_preflight() {
+  validate_app_scope
+
   step "Checking base readiness"
   scripts/check-ready.sh
 
   step "Validating infrastructure env"
   scripts/validate-env.sh infra
 
-  step "Validating backend core env"
-  scripts/validate-env.sh app-core
+  step "Validating application env ($APP_VALIDATE_SCOPE)"
+  scripts/validate-env.sh "$APP_VALIDATE_SCOPE"
 
   if [ "$RUN_FRONTEND" = "1" ]; then
     step "Synchronizing local app env into Vercel env file"

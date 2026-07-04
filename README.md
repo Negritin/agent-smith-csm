@@ -64,7 +64,8 @@ scripts/check-ready.sh
   dentro da imagem Docker do backend.
 - `scripts/validate-env.sh`: valida envs locais sem imprimir valores sensiveis.
 - `scripts/apply-external-envs.sh`: aplica `/opt/agent-smith/.env.external` em
-  `.env.app` e `.env.vercel`, sincroniza valores compartilhados e valida.
+  `.env.app` e `.env.vercel`, sincroniza valores compartilhados e valida `app`
+  completo + Vercel.
 - `scripts/deploy-app.sh`: sobe backend, workers e Docling depois dos envs reais.
 - `scripts/deploy-production.sh`: orquestra a subida completa com gates,
   smoke tests, Supabase, backend/workers, Vercel e validacao publica.
@@ -120,9 +121,10 @@ scripts/validate-env.sh app
 scripts/validate-env.sh vercel
 ```
 
-`infra` e `check-ready` devem passar. `app-core` e o gate usado para subir o
-backend. `app` e `vercel` so passam quando todos os envs externos reais forem
-preenchidos.
+`infra` e `check-ready` devem passar. `app-core` e o gate minimo para backend.
+`app` e `vercel` sao os gates usados pelo fluxo de producao e so passam quando
+os envs externos reais forem preenchidos. Para um teste minimo consciente, use
+`APP_VALIDATE_SCOPE=app-core`; o deploy padrao usa `app`.
 
 ## Deploy
 

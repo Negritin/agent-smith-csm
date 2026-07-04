@@ -7,6 +7,7 @@ APP_ENV_FILE="${APP_ENV_FILE:-/opt/agent-smith/.env.app}"
 VERCEL_ENV_FILE="${VERCEL_ENV_FILE:-/opt/agent-smith/.env.vercel}"
 DRY_RUN="${DRY_RUN:-0}"
 RUN_VALIDATE="${RUN_VALIDATE:-1}"
+APP_VALIDATE_SCOPE="${APP_VALIDATE_SCOPE:-app}"
 
 value_for() {
   local file="$1"
@@ -153,6 +154,14 @@ apply_defaults() {
 main() {
   ensure_env_files
 
+  case "$APP_VALIDATE_SCOPE" in
+    app|app-core) ;;
+    *)
+      echo "error: APP_VALIDATE_SCOPE must be app or app-core" >&2
+      exit 2
+      ;;
+  esac
+
   local app_keys=(
     AGENT_SMITH_API_HOST
     PUBLIC_SERVER_IP
@@ -173,13 +182,16 @@ main() {
     STRIPE_WEBHOOK_SECRET
     SENDGRID_API_KEY
     SENDGRID_FROM_EMAIL
-    META_WHATSAPP_TOKEN
     GOOGLE_API_KEY
     GOOGLE_OAUTH_CLIENT_ID
     GOOGLE_OAUTH_CLIENT_SECRET
     SHOPIFY_AGENT_CLIENT_ID
     SHOPIFY_AGENT_CLIENT_SECRET
     CATALOG_ID
+    ZAPI_MEDIA_HOST_ALLOWLIST
+    UAZAPI_MEDIA_HOST_ALLOWLIST
+    EVOLUTION_MEDIA_HOST_ALLOWLIST
+    TRUSTED_PROXY_HOSTS
     SENTRY_DSN
     LANGCHAIN_API_KEY
     LANGSMITH_WORKSPACE_ID
@@ -224,7 +236,7 @@ main() {
   fi
 
   if [ "$RUN_VALIDATE" = "1" ]; then
-    "$REPO_ROOT/scripts/validate-env.sh" app-core
+    "$REPO_ROOT/scripts/validate-env.sh" "$APP_VALIDATE_SCOPE"
     "$REPO_ROOT/scripts/validate-env.sh" vercel
   fi
 

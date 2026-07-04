@@ -24,7 +24,8 @@ scripts/apply-external-envs.sh
 
 O helper aplica as chaves externas em `/opt/agent-smith/.env.app`, sincroniza
 os valores compartilhados em `/opt/agent-smith/.env.vercel` e roda as validacoes
-`app-core` e `vercel` sem imprimir valores sensiveis.
+`app` e `vercel` sem imprimir valores sensiveis. Para teste minimo de backend,
+rode com `APP_VALIDATE_SCOPE=app-core`.
 
 ## Dominios publicos
 
@@ -140,12 +141,14 @@ Recomendado/opcional conforme uso:
 ```env
 SENDGRID_API_KEY=
 SENDGRID_FROM_EMAIL=
-META_WHATSAPP_TOKEN=
-META_WHATSAPP_PHONE_NUMBER_ID=
-META_WHATSAPP_BUSINESS_ACCOUNT_ID=
-META_WEBHOOK_VERIFY_TOKEN=
-META_APP_SECRET=
 ```
+
+WhatsApp nao usa segredo global por env nesta versao. As credenciais ficam em
+`public.integrations` por tenant/provedor (`z-api`, `uazapi`, `evolution`) e o
+webhook usa token por integracao (`/api/v1/webhook/{provider}/{token}`).
+Opcionalmente configure `ZAPI_MEDIA_HOST_ALLOWLIST`,
+`UAZAPI_MEDIA_HOST_ALLOWLIST` e `EVOLUTION_MEDIA_HOST_ALLOWLIST` para endurecer
+downloads de midia inbound.
 
 ## Redis, Qdrant, MinIO e Docling internos
 
@@ -221,8 +224,9 @@ scripts/validate-env.sh vercel
 ```
 
 `infra` ja deve passar. `app-core` passa quando o backend tem o minimo para
-subir. `app` e `vercel` passam quando os dominios, Supabase, provedores
-externos, Stripe e credenciais da Vercel forem preenchidos.
+subir. `app` e `vercel` sao os gates do deploy de producao e passam quando os
+dominios, Supabase, provedores externos, Stripe e credenciais da Vercel forem
+preenchidos.
 
 Depois dos envs preenchidos, a subida completa pode ser feita por:
 

@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-04 14:44 UTC.
+Atualizado em 2026-07-04 14:49 UTC.
 
 ## Estado atual
 
@@ -19,13 +19,15 @@ Atualizado em 2026-07-04 14:44 UTC.
   testes e build Next.js com envs dummy.
 - Deploy orquestrado: `SMOKE_ONLY=1 scripts/deploy-production.sh` passou,
   cobrindo backend, Docling e frontend pelo fluxo unificado.
+- Gate de producao: `scripts/deploy-production.sh` valida `app` completo por
+  padrao; `APP_VALIDATE_SCOPE=app-core` fica reservado para teste minimo.
 - Vercel: projeto `agent-smith-csm` criado/linkado na conta logada da CLI.
 - Env local: `scripts/sync-local-envs.sh` sincronizou segredos compartilhados de
   `.env.app` para `.env.vercel`; ainda falta `NEXT_PUBLIC_SUPABASE_ANON_KEY` e
   as URLs publicas reais.
 - Env externo: `deploy/external.env.example` e `scripts/apply-external-envs.sh`
   preparados para aplicar as chaves reais em `.env.app`/`.env.vercel` sem
-  imprimir valores.
+  imprimir valores, validando `app` completo + Vercel por padrao.
 - Imagens Docker: backend, worker, beat, docling-api e docling-worker foram
   buildadas com sucesso.
 - Backend smoke: `scripts/smoke-backend.sh` passou, validando compose, build da
@@ -181,6 +183,9 @@ Preencher `/opt/agent-smith/.env.vercel`:
 
 Tambem e necessario aplicar as migrations/seeds do Supabase indicadas em
 `deploy/ENV_REQUIRED.preflight.md`.
+WhatsApp e configurado por integracao (`z-api`, `uazapi`, `evolution`) no banco,
+com token de webhook por tenant; nao ha `META_WHATSAPP_TOKEN` global lido pelo
+codigo atual.
 
 ## Comandos uteis
 
