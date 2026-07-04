@@ -57,6 +57,8 @@ scripts/check-ready.sh
   frontend Next.js, nao o backend FastAPI/Docling.
 - `scripts/analyze-upstream.sh`: varre o codigo importado e mostra docs, envs e
   comandos detectados.
+- `scripts/update-upstream.sh`: mostra o commit upstream importado e, com
+  `APPLY=1`, atualiza o subtree em `app/agent-smith-v6`.
 - `scripts/check-public-access.sh`: valida DNS e acesso HTTPS depois do deploy.
 - `scripts/check-supabase.sh`: valida tabelas/seeds/buckets essenciais no
   Supabase apos migrations.

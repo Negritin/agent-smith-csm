@@ -8,6 +8,8 @@ SUPABASE_DIR="$BACKEND_DIR/supabase"
 APP_ENV_FILE="${APP_ENV_FILE:-/opt/agent-smith/.env.app}"
 MODE="${1:-fresh}"
 
+source "$REPO_ROOT/scripts/lib/psql.sh"
+
 if [ -f "$APP_ENV_FILE" ]; then
   set -a
   # shellcheck disable=SC1090
@@ -42,16 +44,7 @@ run_psql() {
   local rel="${file#$SUPABASE_DIR/}"
 
   printf 'psql: %s\n' "$rel"
-
-  if command -v psql >/dev/null 2>&1; then
-    psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f "$file"
-    return
-  fi
-
-  docker run --rm \
-    -v "$SUPABASE_DIR:/supabase:ro" \
-    postgres:16-alpine \
-    psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f "/supabase/$rel"
+  run_psql_file "$SUPABASE_DB_URL" "$file" "$SUPABASE_DIR"
 }
 
 fresh_files=(

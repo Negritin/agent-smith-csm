@@ -2,6 +2,13 @@
 
 Atualizado apos importar e validar o codigo real de
 `LionLabsCommunity/Agent-SmithV6` em `app/agent-smith-v6`.
+O snapshot importado atual veio do upstream `5538a377581f9e525ba63704b7249fd90349c01b`.
+Para conferir ou atualizar depois:
+
+```bash
+scripts/update-upstream.sh
+APPLY=1 scripts/update-upstream.sh
+```
 
 ## Onde preencher
 

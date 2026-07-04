@@ -3,6 +3,9 @@ set -Eeuo pipefail
 
 APP_ENV_FILE="${APP_ENV_FILE:-/opt/agent-smith/.env.app}"
 FAILED=0
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+source "$REPO_ROOT/scripts/lib/psql.sh"
 
 if [ -f "$APP_ENV_FILE" ]; then
   set -a
@@ -42,7 +45,7 @@ is_placeholder() {
 }
 
 scalar() {
-  psql "$SUPABASE_DB_URL" -X -v ON_ERROR_STOP=1 -Atc "$1"
+  run_psql_scalar "$SUPABASE_DB_URL" "$1"
 }
 
 require_table() {
@@ -77,8 +80,8 @@ main() {
     return "$FAILED"
   fi
 
-  if ! command -v psql >/dev/null 2>&1; then
-    fail "psql is unavailable"
+  if ! command -v psql >/dev/null 2>&1 && ! command -v docker >/dev/null 2>&1; then
+    fail "psql is unavailable and docker fallback is unavailable"
     return "$FAILED"
   fi
 

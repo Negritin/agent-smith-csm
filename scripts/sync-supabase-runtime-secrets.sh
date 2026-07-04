@@ -2,6 +2,9 @@
 set -Eeuo pipefail
 
 APP_ENV_FILE="${APP_ENV_FILE:-/opt/agent-smith/.env.app}"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+source "$REPO_ROOT/scripts/lib/psql.sh"
 
 if [ -f "$APP_ENV_FILE" ]; then
   set -a
@@ -37,10 +40,7 @@ if is_placeholder "${WIDGET_HMAC_SECRET:-}"; then
   exit 1
 fi
 
-psql "$SUPABASE_DB_URL" \
-  -X \
-  -v ON_ERROR_STOP=1 \
-  -v widget_secret="$WIDGET_HMAC_SECRET" <<'SQL'
+run_psql_stdin "$SUPABASE_DB_URL" -v widget_secret="$WIDGET_HMAC_SECRET" <<'SQL'
 insert into private.app_runtime_secrets (name, secret)
 values ('widget_hmac_secret', :'widget_secret')
 on conflict (name) do update
