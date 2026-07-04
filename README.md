@@ -39,8 +39,11 @@ GITHUB_TOKEN=<token-com-acesso-ao-repo> scripts/check-ready.sh
 - `deploy/docker-compose.app.template.yml`: template para backend FastAPI, Celery worker e Celery beat depois do import.
 - `deploy/.env.infra.example`: template seguro do env interno.
 - `deploy/.env.app.example`: template de env da aplicacao e integrações externas.
+- `deploy/vercel.env.example`: template das credenciais e envs publicos da Vercel.
 - `deploy/ENV_REQUIRED.preflight.md`: lista preliminar de envs externos.
 - `scripts/analyze-upstream.sh`: varre o código importado e mostra docs, envs e comandos prováveis.
+- `scripts/find-frontend.sh`: localiza o pacote Next.js depois do import.
+- `scripts/deploy-frontend-vercel.sh`: faz deploy Vercel não interativo quando `VERCEL_TOKEN`/IDs estiverem definidos.
 - `STATUS.md`: estado operacional da VPS.
 
 ## Segredos
@@ -59,4 +62,4 @@ import. Ambos estao protegidos pelo `.gitignore`.
 5. Ajustar `/opt/agent-smith/.env.app` a partir de `deploy/.env.app.example`.
 6. Conectar backend/workers aos serviços internos.
 7. Expor backend por Traefik/Easypanel.
-8. Fazer deploy do frontend Next.js na Vercel.
+8. Fazer deploy do frontend Next.js na Vercel com `scripts/deploy-frontend-vercel.sh`.

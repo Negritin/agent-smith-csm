@@ -5,6 +5,7 @@
 
 node_modules/
 .next/
+.vercel/
 dist/
 build/
 .venv/
@@ -14,4 +15,3 @@ __pycache__/
 
 .DS_Store
 *.log
-
