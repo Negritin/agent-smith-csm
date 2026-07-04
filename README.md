@@ -42,6 +42,8 @@ GITHUB_TOKEN=<token-com-acesso-ao-repo> scripts/check-ready.sh
 - `deploy/vercel.env.example`: template das credenciais e envs publicos da Vercel.
 - `deploy/ENV_REQUIRED.preflight.md`: lista preliminar de envs externos.
 - `scripts/analyze-upstream.sh`: varre o código importado e mostra docs, envs e comandos prováveis.
+- `scripts/validate-env.sh`: valida envs locais sem imprimir valores sensíveis.
+- `scripts/deploy-app.sh`: sobe backend, worker e beat depois do import e dos envs reais.
 - `scripts/find-frontend.sh`: localiza o pacote Next.js depois do import.
 - `scripts/deploy-frontend-vercel.sh`: faz deploy Vercel não interativo quando `VERCEL_TOKEN`/IDs estiverem definidos.
 - `STATUS.md`: estado operacional da VPS.
@@ -51,7 +53,8 @@ GITHUB_TOKEN=<token-com-acesso-ao-repo> scripts/check-ready.sh
 O arquivo real `/opt/agent-smith/.env.infra` existe na VPS e nao deve ser
 commitado. O arquivo `/opt/agent-smith/.env.app` tambem existe localmente a
 partir de `deploy/.env.app.example` e deve receber os segredos reais depois do
-import. Ambos estao protegidos pelo `.gitignore`.
+import. O arquivo `/opt/agent-smith/.env.vercel` tambem existe localmente a
+partir de `deploy/vercel.env.example`. Todos estao protegidos pelo `.gitignore`.
 
 ## Proximos passos
 
@@ -60,6 +63,6 @@ import. Ambos estao protegidos pelo `.gitignore`.
 3. Rodar `scripts/import-upstream.sh` para importar o código real em `app/agent-smith-v6`.
 4. Rodar `scripts/analyze-upstream.sh` para localizar docs, envs, Dockerfiles e comandos reais.
 5. Ajustar `/opt/agent-smith/.env.app` a partir de `deploy/.env.app.example`.
-6. Conectar backend/workers aos serviços internos.
-7. Expor backend por Traefik/Easypanel.
+6. Rodar `scripts/validate-env.sh app` e ajustar comandos/domínios.
+7. Conectar backend/workers aos serviços internos com `scripts/deploy-app.sh`.
 8. Fazer deploy do frontend Next.js na Vercel com `scripts/deploy-frontend-vercel.sh`.

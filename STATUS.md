@@ -44,6 +44,7 @@ Redis, Qdrant, MinIO e Docling responderam aos health checks internos.
 - `/opt/agent-smith/deploy/docker-compose.app.template.yml`
 - `/opt/agent-smith/.env.infra` com permissao `600`
 - `/opt/agent-smith/.env.app` criado com placeholders e permissao `600`
+- `/opt/agent-smith/.env.vercel` criado com placeholders e permissao `600`
 - `/opt/agent-smith/deploy/.env.app.example`
 - `/opt/agent-smith/deploy/vercel.env.example`
 - `/opt/agent-smith/deploy/ENV_REQUIRED.preflight.md`
@@ -51,6 +52,8 @@ Redis, Qdrant, MinIO e Docling responderam aos health checks internos.
 - `/opt/agent-smith/scripts/check-ready.sh`
 - `/opt/agent-smith/scripts/lib/git-auth.sh`
 - `/opt/agent-smith/scripts/analyze-upstream.sh`
+- `/opt/agent-smith/scripts/validate-env.sh`
+- `/opt/agent-smith/scripts/deploy-app.sh`
 - `/opt/agent-smith/scripts/find-frontend.sh`
 - `/opt/agent-smith/scripts/deploy-frontend-vercel.sh`
 
@@ -102,6 +105,9 @@ GITHUB_TOKEN=<token-com-acesso-ao-repo> scripts/check-ready.sh
 scripts/import-upstream.sh
 GITHUB_TOKEN=<token-com-acesso-ao-repo> scripts/import-upstream.sh
 scripts/analyze-upstream.sh
+scripts/validate-env.sh infra
+scripts/validate-env.sh app
+scripts/deploy-app.sh
 scripts/find-frontend.sh
 VERCEL_TOKEN=<token> VERCEL_ORG_ID=<org> VERCEL_PROJECT_ID=<project> scripts/deploy-frontend-vercel.sh
 ```
