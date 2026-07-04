@@ -11,6 +11,7 @@ Atualizado em 2026-07-04 01:42 UTC.
 - Repo privado: ainda bloqueado por `Permission denied (publickey)`.
 - Systemd: `agent-smith-infra.service` habilitado no boot e validado com `status=0/SUCCESS`.
 - Build tooling: `python3-pip`, Python headers, Git LFS e Corepack instalados/habilitados.
+- Git local: `/opt/agent-smith` inicializado em `main`, commit `6b72ada`, com `upstream` apontando para o repo original apenas para fetch.
 
 ## Infra local criada
 
@@ -82,4 +83,19 @@ docker compose --env-file /opt/agent-smith/.env.infra -f /opt/agent-smith/docker
 docker compose --env-file /opt/agent-smith/.env.infra -f /opt/agent-smith/docker-compose.infra.yml down
 systemctl status agent-smith-infra.service --no-pager
 git ls-remote git@github.com:LionLabsCommunity/Agent-SmithV6.git
+```
+
+## Repo local
+
+```bash
+cd /opt/agent-smith
+git status --short --branch --ignored
+git remote -v
+```
+
+Quando houver um repo novo no GitHub para este projeto, configurar:
+
+```bash
+git remote add origin <url-do-nosso-repo>
+git push -u origin main
 ```
