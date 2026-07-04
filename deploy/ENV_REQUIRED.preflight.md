@@ -166,6 +166,12 @@ WIDGET_HMAC_SECRET=
 ADMIN_API_KEY=
 ```
 
+Depois de preencher `/opt/agent-smith/.env.vercel`, sincronizar no projeto:
+
+```bash
+scripts/sync-vercel-env.sh production
+```
+
 Opcional/recomendado para runtime serverless:
 
 ```env

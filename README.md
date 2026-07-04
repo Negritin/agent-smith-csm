@@ -58,6 +58,8 @@ scripts/check-ready.sh
 - `scripts/validate-env.sh`: valida envs locais sem imprimir valores sensiveis.
 - `scripts/deploy-app.sh`: sobe backend, workers e Docling depois dos envs reais.
 - `scripts/find-frontend.sh`: localiza o pacote Next.js.
+- `scripts/sync-vercel-env.sh`: sincroniza `/opt/agent-smith/.env.vercel`
+  com as envs do projeto Vercel sem imprimir valores.
 - `scripts/deploy-frontend-vercel.sh`: faz deploy Vercel nao interativo.
 - `scripts/setup-supabase.sh`: aplica schema/seeds do Supabase em modo `fresh`
   ou migrations em modo `upgrade`.
@@ -101,5 +103,6 @@ Depois de preencher `/opt/agent-smith/.env.vercel`:
 
 ```bash
 cd /opt/agent-smith
+scripts/sync-vercel-env.sh production
 scripts/deploy-frontend-vercel.sh
 ```

@@ -69,6 +69,7 @@ sera exposto pela rede `easypanel`/Traefik usando `AGENT_SMITH_API_HOST`.
 - `/opt/agent-smith/scripts/validate-env.sh`
 - `/opt/agent-smith/scripts/deploy-app.sh`
 - `/opt/agent-smith/scripts/find-frontend.sh`
+- `/opt/agent-smith/scripts/sync-vercel-env.sh`
 - `/opt/agent-smith/scripts/deploy-frontend-vercel.sh`
 - `/opt/agent-smith/scripts/setup-supabase.sh`
 

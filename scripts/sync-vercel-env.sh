@@ -3,6 +3,7 @@ set -Eeuo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VERCEL_ENV_FILE="${VERCEL_ENV_FILE:-/opt/agent-smith/.env.vercel}"
+TARGET="${1:-production}"
 
 if [ -f "$VERCEL_ENV_FILE" ]; then
   set -a
@@ -40,10 +41,6 @@ fi
 
 "$REPO_ROOT/scripts/validate-env.sh" vercel
 
-if [ "${SYNC_VERCEL_ENV:-1}" = "1" ]; then
-  "$REPO_ROOT/scripts/sync-vercel-env.sh" production
-fi
-
 vercel_env_keys=(
   APP_URL
   NEXT_PUBLIC_BACKEND_URL
@@ -74,20 +71,29 @@ vercel_env_keys=(
   SENTRY_AUTH_TOKEN
 )
 
-vercel pull --yes --environment=production "${vercel_auth_args[@]}"
+case "$TARGET" in
+  production|preview|development) ;;
+  *)
+    echo "usage: $0 [production|preview|development]" >&2
+    exit 2
+    ;;
+esac
 
-mkdir -p .vercel
-env_file=".vercel/.env.production.local"
-: > "$env_file"
-
-deploy_args=(deploy --prebuilt --prod --yes)
 for key in "${vercel_env_keys[@]}"; do
   value="${!key:-}"
   if [ -n "$value" ]; then
-    printf '%s=%s\n' "$key" "$value" >> "$env_file"
-    deploy_args+=(--env "$key=$value")
+    printf 'sync: %s -> %s\n' "$key" "$TARGET"
+    env_args=(env add "$key" "$TARGET" --force --yes)
+    case "$key" in
+      NEXT_PUBLIC_*|APP_URL|DOLLAR_RATE|WIDGET_HMAC_REQUIRED|STRICT_URL_VALIDATION|USE_JWT_DB_CLIENT)
+        env_args+=(--no-sensitive)
+        ;;
+      *)
+        env_args+=(--sensitive)
+        ;;
+    esac
+    printf '%s' "$value" | vercel "${env_args[@]}" "${vercel_auth_args[@]}" >/dev/null
   fi
 done
 
-vercel build --prod "${vercel_auth_args[@]}"
-vercel "${deploy_args[@]}" "${vercel_auth_args[@]}"
+echo "Vercel env sync complete."
