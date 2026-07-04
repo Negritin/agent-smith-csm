@@ -19,7 +19,7 @@ Atualizado em 2026-07-04 01:50 UTC.
 Compose:
 
 ```bash
-docker compose --env-file /opt/agent-smith/.env.infra -f /opt/agent-smith/docker-compose.infra.yml up -d
+docker compose --env-file /opt/agent-smith/.env.infra -f /opt/agent-smith/deploy/docker-compose.infra.yml up -d
 ```
 
 Servicos internos:
@@ -37,9 +37,9 @@ O servico systemd `/etc/systemd/system/agent-smith-infra.service` executa o
 
 ## Arquivos
 
-- `/opt/agent-smith/docker-compose.infra.yml`
+- `/opt/agent-smith/deploy/docker-compose.infra.yml`
 - `/opt/agent-smith/.env.infra` com permissao `600`
-- `/opt/agent-smith/ENV_REQUIRED.preflight.md`
+- `/opt/agent-smith/deploy/ENV_REQUIRED.preflight.md`
 
 ## Env interno ja definido
 
@@ -79,11 +79,12 @@ VERCEL_PROJECT_ID=
 ## Comandos uteis
 
 ```bash
-docker compose --env-file /opt/agent-smith/.env.infra -f /opt/agent-smith/docker-compose.infra.yml ps
-docker compose --env-file /opt/agent-smith/.env.infra -f /opt/agent-smith/docker-compose.infra.yml logs -f
-docker compose --env-file /opt/agent-smith/.env.infra -f /opt/agent-smith/docker-compose.infra.yml down
+docker compose --env-file /opt/agent-smith/.env.infra -f /opt/agent-smith/deploy/docker-compose.infra.yml ps
+docker compose --env-file /opt/agent-smith/.env.infra -f /opt/agent-smith/deploy/docker-compose.infra.yml logs -f
+docker compose --env-file /opt/agent-smith/.env.infra -f /opt/agent-smith/deploy/docker-compose.infra.yml down
 systemctl status agent-smith-infra.service --no-pager
 git ls-remote git@github.com:LionLabsCommunity/Agent-SmithV6.git
+scripts/import-upstream.sh
 ```
 
 ## Repo local

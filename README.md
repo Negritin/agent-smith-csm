@@ -20,21 +20,21 @@ Serviços internos já previstos:
 Subir:
 
 ```bash
-docker compose --env-file /opt/agent-smith/.env.infra -f /opt/agent-smith/docker-compose.infra.yml up -d
+docker compose --env-file /opt/agent-smith/.env.infra -f /opt/agent-smith/deploy/docker-compose.infra.yml up -d
 ```
 
 Ver status:
 
 ```bash
-docker compose --env-file /opt/agent-smith/.env.infra -f /opt/agent-smith/docker-compose.infra.yml ps
+docker compose --env-file /opt/agent-smith/.env.infra -f /opt/agent-smith/deploy/docker-compose.infra.yml ps
 systemctl status agent-smith-infra.service --no-pager
 ```
 
 ## Arquivos importantes
 
-- `docker-compose.infra.yml`: Redis, Qdrant, MinIO e Docling em rede interna.
-- `.env.infra.example`: template seguro do env interno.
-- `ENV_REQUIRED.preflight.md`: lista preliminar de envs externos.
+- `deploy/docker-compose.infra.yml`: Redis, Qdrant, MinIO e Docling em rede interna.
+- `deploy/.env.infra.example`: template seguro do env interno.
+- `deploy/ENV_REQUIRED.preflight.md`: lista preliminar de envs externos.
 - `STATUS.md`: estado operacional da VPS.
 
 ## Segredos
@@ -45,7 +45,7 @@ commitado. Ele está protegido pelo `.gitignore`.
 ## Proximos passos
 
 1. Autorizar a deploy key da VPS no repo `LionLabsCommunity/Agent-SmithV6`.
-2. Clonar o código real dentro deste workspace.
+2. Rodar `scripts/import-upstream.sh` para importar o código real em `app/agent-smith-v6`.
 3. Conferir docs, `.env.example`, compose/Dockerfiles e scripts reais do app.
 4. Conectar backend/workers aos serviços internos.
 5. Expor backend por Traefik/Easypanel.

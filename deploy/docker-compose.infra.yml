@@ -35,7 +35,7 @@ services:
     depends_on:
       - minio
     env_file:
-      - .env.infra
+      - /opt/agent-smith/.env.infra
     entrypoint:
       - /bin/sh
       - -c
