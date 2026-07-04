@@ -1,0 +1,9 @@
+[lint]
+# E402: Module level import not at top of file
+extend-ignore = ["E402"]
+
+[lint.per-file-ignores]
+# Ignora E402 apenas onde é necessário (estrutura do FastAPI, evitamento de ciclo)
+"app/main.py" = ["E402"]
+"app/services/memory_service.py" = ["E402"]
+"app/workers/billing_tasks.py" = ["E402"]

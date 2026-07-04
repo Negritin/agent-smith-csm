@@ -1,0 +1,57 @@
+{
+  "$comment": [
+    "FIXTURE CANÔNICO ÚNICO de paridade SSRF (MEDIO-007).",
+    "Fonte de verdade compartilhada entre os dois validadores de URL externa:",
+    "  - TS:     lib/security/url-validator.ts        (CIDRs manuais)",
+    "  - Python: backend/app/core/security/url_validator.py (módulo ipaddress)",
+    "Os runtimes são distintos (code-share impossível), então a paridade é travada",
+    "por testes que consomem ESTE arquivo nos dois lados:",
+    "  - TS:     lib/security/url-validator.parity.test.ts",
+    "  - Python: backend/tests/security/test_ssrf_parity.py",
+    "Ambos rodam no CI (.github/workflows/ssrf-parity.yml). Qualquer divergência",
+    "futura entre as implementações quebra o CI.",
+    "",
+    "Cada caso é um IP literal (a entrada vira https://<ip>/, com IPv6 em colchetes)",
+    "e o veredito esperado de validateExternalUrl / validate_external_url:",
+    "  blocked=true  => a validação DEVE rejeitar (ExternalUrlValidationError).",
+    "  blocked=false => a validação DEVE aceitar (IP público roteável).",
+    "Inclua apenas casos em que AMBAS as implementações concordam hoje; um novo",
+    "caso que divirja é exatamente o drift que este fixture existe para pegar."
+  ],
+  "cases": [
+    { "ip": "0.0.0.0", "blocked": true, "note": "IPv4 unspecified / 0.0.0.0/8" },
+    { "ip": "127.0.0.1", "blocked": true, "note": "IPv4 loopback 127.0.0.0/8" },
+    { "ip": "127.255.255.254", "blocked": true, "note": "IPv4 loopback range superior" },
+    { "ip": "10.0.0.1", "blocked": true, "note": "IPv4 privado 10.0.0.0/8" },
+    { "ip": "172.16.0.1", "blocked": true, "note": "IPv4 privado 172.16.0.0/12" },
+    { "ip": "172.31.255.254", "blocked": true, "note": "IPv4 privado borda 172.16.0.0/12" },
+    { "ip": "192.168.1.1", "blocked": true, "note": "IPv4 privado 192.168.0.0/16" },
+    { "ip": "169.254.169.254", "blocked": true, "note": "IPv4 link-local / metadata cloud 169.254.0.0/16" },
+    { "ip": "100.64.0.1", "blocked": true, "note": "IPv4 CGNAT/shared 100.64.0.0/10" },
+    { "ip": "192.0.0.1", "blocked": true, "note": "IPv4 IETF protocol assignments 192.0.0.0/24" },
+    { "ip": "192.0.2.1", "blocked": true, "note": "IPv4 TEST-NET-1 192.0.2.0/24" },
+    { "ip": "198.51.100.1", "blocked": true, "note": "IPv4 TEST-NET-2 198.51.100.0/24" },
+    { "ip": "203.0.113.1", "blocked": true, "note": "IPv4 TEST-NET-3 203.0.113.0/24" },
+    { "ip": "198.18.0.1", "blocked": true, "note": "IPv4 benchmarking 198.18.0.0/15" },
+    { "ip": "224.0.0.1", "blocked": true, "note": "IPv4 multicast 224.0.0.0/4" },
+    { "ip": "240.0.0.1", "blocked": true, "note": "IPv4 reservado/future 240.0.0.0/4" },
+
+    { "ip": "8.8.8.8", "blocked": false, "note": "IPv4 público (Google DNS)" },
+    { "ip": "1.1.1.1", "blocked": false, "note": "IPv4 público (Cloudflare DNS)" },
+    { "ip": "93.184.216.34", "blocked": false, "note": "IPv4 público (example.com)" },
+    { "ip": "142.250.80.46", "blocked": false, "note": "IPv4 público (Google)" },
+
+    { "ip": "::", "blocked": true, "note": "IPv6 unspecified ::/128" },
+    { "ip": "::1", "blocked": true, "note": "IPv6 loopback ::1/128" },
+    { "ip": "fc00::1", "blocked": true, "note": "IPv6 unique-local fc00::/7" },
+    { "ip": "fd00::1", "blocked": true, "note": "IPv6 unique-local (fd) fc00::/7" },
+    { "ip": "fe80::1", "blocked": true, "note": "IPv6 link-local fe80::/10" },
+    { "ip": "ff00::1", "blocked": true, "note": "IPv6 multicast ff00::/8" },
+    { "ip": "::ffff:127.0.0.1", "blocked": true, "note": "IPv6 ipv4-mapped ::ffff:0:0/96 (loopback embutido)" },
+    { "ip": "::ffff:169.254.169.254", "blocked": true, "note": "IPv6 ipv4-mapped de metadata cloud" },
+    { "ip": "2001:db8::1", "blocked": true, "note": "IPv6 documentation 2001:db8::/32" },
+
+    { "ip": "2606:4700:4700::1111", "blocked": false, "note": "IPv6 público (Cloudflare DNS)" },
+    { "ip": "2001:4860:4860::8888", "blocked": false, "note": "IPv6 público (Google DNS)" }
+  ]
+}

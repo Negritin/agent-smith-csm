@@ -1,0 +1,113 @@
+-- ============================================================================
+-- Sprint S11 — Atendimento/SLA/Handoff — revoke_anon_attendance (FASE FINAL)
+-- SPEC-atendimento-sla-handoff-full.md §17 (itens 1-3, 7-8), §19 Fase 6, §24.
+--
+-- SANEAMENTO FINAL DO `anon`: revoga a leitura ampla de `anon` em
+-- `conversations`/`messages` e remove a policy de realtime anônima de `messages`.
+--
+-- ----------------------------------------------------------------------------
+-- FORMATO DO PREFIXO / ORDEM (runner-format)
+-- ----------------------------------------------------------------------------
+-- Todas as migrations deste repo usam prefixo YYYYMMDD_ (8 dígitos) em vez do
+-- timestamp de 14 dígitos (YYYYMMDDHHMMSS_). Versões recentes do Supabase CLI
+-- registram a "version" pelo prefixo numérico e podem validar o padrão de 14
+-- dígitos. A ordenação lexicográfica entre os arquivos do atendimento AINDA é
+-- correta com 8 dígitos (este 20260624_* roda por último; 20260622 < 20260623 <
+-- 20260624). ANTES de aplicar em produção, CONFIRMAR em staging que o runner real
+-- aceita o prefixo de 8 dígitos e aplica na ordem esperada:
+--     supabase migration list
+--     supabase migration up   # (em staging)
+-- Se a versão do CLI recusar/ignorar o prefixo de 8 dígitos, renomear os arquivos
+-- para o padrão de 14 dígitos PRESERVANDO a ordem relativa (e atualizar as
+-- referências de teste). Decisão a ser registrada no runbook de deploy.
+--
+-- ----------------------------------------------------------------------------
+-- POR QUE É SEGURO AGORA (pré-condição BLOQUEANTE — §17.7 / §24 risco crítico)
+-- ----------------------------------------------------------------------------
+-- O chat ao vivo (admin E widget) JÁ migrou para POLLING autenticado/RPC
+-- escopada no Sprint S9, removendo a dependência da subscription realtime
+-- `anon` de `conversations`/`messages`:
+--   * Admin: a lista e o card lateral atualizam via polling autenticado
+--     (hooks/use-conversation-polling.ts -> GET /api/admin/conversations + /details,
+--     que rodam sob service_role + escopo company_id).
+--   * Widget do cliente: as mensagens chegam via polling sobre a RPC ESCOPADA
+--     `get_widget_messages_scoped` (hooks/use-widget-polling.ts), NÃO mais via
+--     subscription realtime `anon` em `messages`.
+-- Esta é a ÚNICA etapa que poderia quebrar o tempo-real; por isso é a ÚLTIMA,
+-- atrás do polling. Há um ROLLBACK simétrico documentado em
+-- `../rollbacks/20260624_revoke_anon_attendance_ROLLBACK.sql` para reversão
+-- imediata.
+--
+-- IMPORTANTE: o ROLLBACK NÃO vive em `migrations/` de propósito — ele NÃO pode
+-- ser aplicado automaticamente pelo runner (Supabase CLI aplica TODOS os `.sql`
+-- de `migrations/` em ordem; se o rollback estivesse aqui, ordenaria logo após
+-- este REVOKE e DESFARIA o saneamento no mesmo deploy). É um passo MANUAL de
+-- incidente: rodar `psql -f backend/supabase/rollbacks/20260624_revoke_anon_attendance_ROLLBACK.sql`
+-- apenas se o tempo-real quebrar após o REVOKE.
+--
+-- ----------------------------------------------------------------------------
+-- O QUE É REVOGADO
+-- ----------------------------------------------------------------------------
+--   * REVOKE ALL ON public.conversations FROM anon   (schema_completo.sql:3781)
+--   * REVOKE ALL ON public.messages      FROM anon   (schema_completo.sql:3880)
+--   * DROP POLICY "Allow realtime subscriptions on messages" ON public.messages
+--                                                    (schema_completo.sql:3007)
+--
+-- ----------------------------------------------------------------------------
+-- O QUE É PRESERVADO — CRÍTICO: NÃO QUEBRAR O WIDGET
+-- ----------------------------------------------------------------------------
+-- O caminho do widget depende de RPCs SECURITY DEFINER concedidas a `anon` no
+-- nível de FUNÇÃO (GRANT EXECUTE), NÃO de grants de TABELA. Esta migration
+-- mira APENAS os grants amplos de tabela e a policy de realtime aberta; NÃO
+-- toca nenhum GRANT EXECUTE de RPC. Permanecem intactos (verificado no código):
+--   * public.get_widget_messages_scoped(text, uuid, uuid, text, bigint, text)
+--       GRANT EXECUTE ... TO anon em:
+--         20260528_widget_messages_scoped_rpc.sql:239
+--         20260528_widget_hmac_private_secret_hotfix.sql:192 (redefine+reconcede)
+--   * public.get_widget_agent_public(uuid)
+--       GRANT EXECUTE ... TO anon em:
+--         20260528_widget_messages_scoped_rpc.sql:238
+-- Ambas são SECURITY DEFINER e validam internamente o BFF proof (HMAC). Como
+-- REVOKE de tabela e DROP POLICY não afetam grants de função, o widget continua
+-- executando essas RPCs como `anon` após esta migration.
+--
+-- ----------------------------------------------------------------------------
+-- IDEMPOTÊNCIA
+-- ----------------------------------------------------------------------------
+-- `REVOKE` é naturalmente idempotente (re-revogar um grant ausente é no-op, não
+-- erro). `DROP POLICY IF EXISTS` é idempotente por construção.
+--
+-- ----------------------------------------------------------------------------
+-- TRANSAÇÃO
+-- ----------------------------------------------------------------------------
+-- REVOKE + DROP POLICY são transação-safe e rodam atomicamente sob a transação
+-- que o runner já fornece (o Supabase SQL Editor envolve o script; o CLI aplica
+-- por arquivo). NÃO é preciso BEGIN/COMMIT explícito (por isso foi removido — no
+-- SQL Editor um BEGIN aninhado só gera warning). Os demais arquivos do atendimento
+-- agora usam CREATE INDEX SIMPLES (não CONCURRENTLY), então também rodam em
+-- qualquer runner — não há mais passo de autocommit especial.
+--
+-- ----------------------------------------------------------------------------
+-- CHECKLIST DE VALIDAÇÃO E2E (§19 Fase 6 / §20) — RODAR APÓS APLICAR
+-- ----------------------------------------------------------------------------
+--   (a) ADMIN atualiza via polling: abrir /admin/conversations, gerar/fechar um
+--       atendimento e confirmar que a lista e o card lateral atualizam SEM a
+--       subscription `anon` (polling autenticado é a fonte).
+--   (b) WIDGET do cliente continua recebendo mensagens via RPC escopada: abrir o
+--       widget embed, trocar mensagens e confirmar que novas mensagens aparecem
+--       (get_widget_messages_scoped via anon segue executável).
+--   (c) NENHUM cliente anônimo lê messages/conversations diretamente: como
+--       `anon`, `SELECT * FROM public.messages` e `... FROM public.conversations`
+--       devem FALHAR (permission denied); `pg_policies` não deve listar a policy
+--       "Allow realtime subscriptions on messages"; `information_schema.role_table_grants`
+--       não deve listar grants de `anon` em conversations/messages.
+-- ============================================================================
+
+-- (1) Revogar a leitura/escrita ampla de `anon` nas tabelas de atendimento.
+REVOKE ALL ON public.conversations FROM anon;
+REVOKE ALL ON public.messages FROM anon;
+
+-- (2) Remover a policy de realtime anônima de `messages` (substituída pelo polling).
+DROP POLICY IF EXISTS "Allow realtime subscriptions on messages" ON public.messages;
+
+-- NOTA: nenhum GRANT EXECUTE de RPC do widget é tocado aqui (ver header).

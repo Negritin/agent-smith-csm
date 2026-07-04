@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Environment
+# Ignora qualquer .env* (inclui .env, .env.local, .env.prod, etc.) — nenhum
+# segredo de infraestrutura pode ser versionado. O template .env.example é a
+# ÚNICA exceção rastreada.
+.env*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

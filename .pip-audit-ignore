@@ -1,0 +1,26 @@
+# .pip-audit-ignore — advisories suprimidas no workflow dependency-audit.
+#
+# Formato: um id (CVE / GHSA / PYSEC) por linha. '#' inicia comentário.
+# Cada entrada PRECISA de justificativa. Re-revisar a cada bump do pacote afetado.
+#
+# 2026-06 — o upgrade de currency LangChain/LangGraph FOI APLICADO
+# (langchain 1.3.4 / langchain-core 1.4.0 / langgraph 1.2.4 /
+#  langgraph-checkpoint 4.1.1 / langgraph-checkpoint-postgres 3.1.0 /
+#  langchain-openai 1.2.2 / langchain-text-splitters 1.1.2 / python-dotenv 1.2.2).
+# As 9 advisories de framework antes adiadas (finding F26) estão TODAS corrigidas
+# pelos pins novos — NENHUMA supressão ativa permanece.
+#
+# (fechadas pelo bump: CVE-2025-68664, CVE-2026-26013, CVE-2026-40087,
+#  CVE-2026-44843 [langchain-core]; PYSEC-2026-83 [langgraph];
+#  CVE-2026-27794 [langgraph-checkpoint]; PYSEC-2026-77 [langchain-text-splitters];
+#  PYSEC-2026-76 [langchain-openai]; CVE-2026-28684 [python-dotenv].)
+#
+# 2026-06-15 — torch (docling-service): aceite de risco, SEM fix disponivel.
+# torch entra como dependencia transitiva de docling/transformers/accelerate e e
+# instalado CPU-only (unpinned) pelo Dockerfile a partir do indice oficial PyTorch.
+# CVE-2025-3000: memory corruption em torch.jit.script. Severidade MEDIUM
+# (CVSS 3.1 = 5.3), vetor de ataque LOCAL e privilegio baixo. Nao ha versao
+# corrigida publicada (PyTorch ainda nao lancou patch). O servico docling usa
+# torch apenas para OCR/parsing server-side e nao expoe torch.jit.script a
+# entrada de atacante local. Re-revisar quando o PyTorch publicar correcao.
+CVE-2025-3000

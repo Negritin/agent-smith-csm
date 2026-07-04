@@ -1,0 +1,36 @@
+# =============================================================================
+# requirements.in — human-edited dependency ranges (source of truth)
+# =============================================================================
+# Edit THIS file, then recompile the fully-pinned, hash-locked requirements.txt.
+# Run from the REPO ROOT so the generated paths match the CI lock-drift gate:
+#
+#   uv pip compile docling-service/requirements.in -o docling-service/requirements.txt \
+#       --generate-hashes --python-version 3.11 --no-header \
+#       --no-emit-package torch --no-emit-package torchvision
+#
+# (or, with pip-tools: pip-compile --generate-hashes requirements.in)
+#
+# NOTE: PyTorch (torch / torchvision) is installed SEPARATELY in the Dockerfile
+# from the CPU-only extra index (https://download.pytorch.org/whl/cpu), BEFORE
+# this file. It is intentionally NOT compiled into this lock, because the CPU
+# wheels live on the PyTorch index (not PyPI) and are large platform-specific
+# artifacts. Keep that RUN step separate.
+#
+# The compiled requirements.txt is what Docker installs with --require-hashes.
+# Do NOT hand-edit requirements.txt.
+# =============================================================================
+
+# Web framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.18  # CVE-2024-53981 (DoS via malformed multipart) — patched floor
+
+# Task queue
+celery[redis]>=5.3.0
+redis>=5.0.0
+
+# Docling (document parsing)
+docling>=2.0.0
+
+# Object storage (file transfer between API and Worker)
+minio>=7.2.0
