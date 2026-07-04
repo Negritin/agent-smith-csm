@@ -9,6 +9,7 @@ CREATE_ADMIN="${CREATE_ADMIN:-0}"
 SUPABASE_MODE="${SUPABASE_MODE:-fresh}"
 SMOKE_ONLY="${SMOKE_ONLY:-0}"
 APP_VALIDATE_SCOPE="${APP_VALIDATE_SCOPE:-app}"
+RUN_EXTERNAL_CHECK="${RUN_EXTERNAL_CHECK:-1}"
 
 cd "$REPO_ROOT"
 
@@ -37,6 +38,16 @@ run_required_preflight() {
 
   step "Validating application env ($APP_VALIDATE_SCOPE)"
   scripts/validate-env.sh "$APP_VALIDATE_SCOPE"
+
+  if [ "$RUN_EXTERNAL_CHECK" = "1" ]; then
+    if [ "$APP_VALIDATE_SCOPE" = "app" ]; then
+      step "Checking external service credentials"
+      scripts/check-external-services.sh
+    else
+      step "Skipping external service credential check"
+      echo "APP_VALIDATE_SCOPE=$APP_VALIDATE_SCOPE only validates the minimum backend gate."
+    fi
+  fi
 
   if [ "$RUN_FRONTEND" = "1" ]; then
     step "Synchronizing local app env into Vercel env file"

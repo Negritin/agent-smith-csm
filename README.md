@@ -77,7 +77,8 @@ scripts/check-ready.sh
   completo + Vercel.
 - `scripts/deploy-app.sh`: sobe backend, workers e Docling depois dos envs reais.
 - `scripts/deploy-production.sh`: orquestra a subida completa com gates,
-  smoke tests, Supabase, backend/workers, Vercel e validacao publica.
+  smoke tests, check de provedores externos, Supabase, backend/workers,
+  Vercel e validacao publica.
 - `scripts/find-frontend.sh`: localiza o pacote Next.js.
 - `scripts/sync-local-envs.sh`: copia valores compartilhados de `.env.app` para
   `.env.vercel` sem imprimir segredos.
@@ -160,6 +161,10 @@ Para fazer dry-run sem aplicar nada:
 cd /opt/agent-smith
 scripts/deploy-production.sh
 ```
+
+O deploy padrao roda `scripts/check-external-services.sh` no gate `app`.
+Use `RUN_LIVE=1 scripts/deploy-production.sh` para validar autenticacao dos
+provedores antes de publicar, ou `RUN_EXTERNAL_CHECK=0` apenas para diagnostico.
 
 Enquanto os envs externos ainda nao estao preenchidos, os smoke tests podem ser
 rodados com:

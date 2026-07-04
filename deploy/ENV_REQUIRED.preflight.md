@@ -274,5 +274,8 @@ Para criar o admin no mesmo fluxo, use um terminal interativo:
 `CONFIRM=1 CREATE_ADMIN=1 scripts/deploy-production.sh`.
 
 Sem `CONFIRM=1`, o mesmo comando roda como dry-run com gates e smoke tests.
+O dry-run padrao tambem roda `scripts/check-external-services.sh`; use
+`RUN_LIVE=1` para validar autenticacao dos provedores ou `RUN_EXTERNAL_CHECK=0`
+apenas para diagnostico.
 Enquanto os envs externos ainda nao estao completos, use
 `SMOKE_ONLY=1 scripts/deploy-production.sh` para rodar apenas os smoke tests.
