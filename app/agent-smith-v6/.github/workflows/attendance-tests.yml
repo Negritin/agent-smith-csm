@@ -1,0 +1,126 @@
+name: attendance-tests
+
+# Gate de CI da suíte de atendimento/SLA/handoff (§18.1).
+#
+# PROBLEMA que este workflow fecha: até aqui só o job de INTEGRAÇÃO da RPC
+# (attendance-rpc-integration.yml) rodava em CI — exatamente 2 arquivos. O
+# resto da suíte §18.1 (SlaService, notification outbox, guard do WhatsApp
+# interno, timers/inactivity, handoff, end_attendance, e o DETECTOR anti-fake
+# test_attendance_workers.py) NUNCA executava em PR, então uma regressão nesses
+# testes passava batido. Aqui rodamos:
+#
+#   (a) BACKEND  — a suíte de atendimento (tests/services + tests/workers +
+#       tests/agents) contra as deps reais pinadas (requirements.txt). Inclui o
+#       detector anti-fake test_attendance_workers.py e os testes §18.1.
+#   (b) FRONTEND — vitest (npm test) + typecheck (tsc --noEmit) sobre os testes
+#       de rota/lógica/render de atendimento em __tests__/.
+#
+# O objetivo é que uma regressão em QUALQUER um desses testes BLOQUEIE o PR. A
+# infra (versões, ações, padrão de instalação) reaproveita os workflows
+# existentes (attendance-rpc-integration.yml, dependency-audit.yml).
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # ------------------------------------------------------------------------- #
+  # (a) BACKEND — pytest da suíte de atendimento contra as deps reais.
+  # ------------------------------------------------------------------------- #
+  backend-tests:
+    name: Backend (pytest — attendance suite)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: attendance_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      CI: "true"
+      # tests/services inclui test_attendance_rpc_integration.py + o GATE anti-skip
+      # (test_rpc_integration_suite_is_not_silently_skipped_in_ci), que FALHA quando
+      # CI está setado mas a DSN não — então a suíte de integração precisa rodar de
+      # verdade AQUI também (não auto-skipar). Postgres efêmero + esta DSN garantem.
+      ATTENDANCE_TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/attendance_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          # Chaveia o cache do pip pelo lockfile de runtime: uma mudança em
+          # requirements.txt invalida o cache (evita instalar com cache stale) e
+          # PRs que não mexem nas deps reaproveitam o cache (install mais
+          # leve/rápido do lockfile completo). Não altera QUAIS pacotes são
+          # instalados — só reduz a fragilidade/custo do install pesado.
+          cache-dependency-path: backend/requirements.txt
+
+      # As deps de runtime pinadas trazem tudo que os imports de app/* exigem
+      # (openai, anthropic, pydantic-settings, psycopg, supabase, celery, ...).
+      # pytest é dev-only (não está no requirements de runtime) — instalado à
+      # parte, como no attendance-rpc-integration.yml. Os conftests de
+      # tests/services e tests/workers semeiam as env vars mínimas em import-time,
+      # e os testes async usam asyncio.run() (sem pytest-asyncio).
+      - name: Install runtime deps + pytest
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install "pytest==8.*"
+
+      - name: Run attendance test suite (services + workers + agents)
+        working-directory: backend
+        run: |
+          python -m pytest \
+            tests/services \
+            tests/workers \
+            tests/agents \
+            -v -ra
+
+  # ------------------------------------------------------------------------- #
+  # (b) FRONTEND — vitest + typecheck dos testes de atendimento em __tests__/.
+  # ------------------------------------------------------------------------- #
+  frontend-tests:
+    name: Frontend (vitest + typecheck)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies (locked)
+        run: npm ci
+
+      # vitest run: roda __tests__/**/*.test.ts(x) + lib/**/*.test.ts (rotas
+      # legadas, mapStatusToAction, render de componentes/hooks de atendimento).
+      - name: Run vitest
+        run: npm test
+
+      # tsc --noEmit: uma regressão de tipos (inclusive nos próprios testes,
+      # que importam os módulos reais via alias @/) também bloqueia o PR.
+      - name: Typecheck
+        run: npm run typecheck

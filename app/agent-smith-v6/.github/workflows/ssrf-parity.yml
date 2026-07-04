@@ -1,0 +1,76 @@
+name: ssrf-parity
+
+# Gate de CI da paridade SSRF (MEDIO-007).
+#
+# A política SSRF é mantida em DOIS runtimes distintos (code-share impossível):
+#   - TS:     lib/security/url-validator.ts            (CIDRs manuais)
+#   - Python: backend/app/core/security/url_validator.py (módulo ipaddress)
+#
+# Ambos consomem o MESMO fixture canônico (test-fixtures/ssrf-parity-cases.json).
+# Este workflow roda os dois testes de paridade; se as implementações divergirem
+# (uma passa a bloquear/permitir um IP de forma diferente da outra), o lado
+# afetado falha e BLOQUEIA o PR. A infra reaproveita o padrão de
+# attendance-tests.yml.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # ------------------------------------------------------------------------- #
+  # Lado Python — pytest do teste de paridade contra o validador real.
+  # ------------------------------------------------------------------------- #
+  python-parity:
+    name: Python (pytest — SSRF parity)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
+
+      # Importar app.core.security.url_validator executa app/core/__init__.py, que
+      # por sua vez importa .config (pydantic_settings) e .database (supabase) — ou
+      # seja, a suíte precisa de TODAS as deps de runtime, não só pytest. Sem elas a
+      # coleta quebra com ModuleNotFoundError e o job falha. (Mesmo padrão de install
+      # de attendance-tests.yml / attendance-rpc-integration.yml.)
+      - name: Install runtime deps + pytest
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install "pytest==8.*"
+
+      - name: Run SSRF parity test
+        working-directory: backend
+        run: python -m pytest tests/security/test_ssrf_parity.py -v -ra
+
+  # ------------------------------------------------------------------------- #
+  # Lado TS — vitest do teste de paridade contra o validador real.
+  # ------------------------------------------------------------------------- #
+  ts-parity:
+    name: TS (vitest — SSRF parity)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies (locked)
+        run: npm ci
+
+      - name: Run SSRF parity test
+        run: npx vitest run lib/security/url-validator.parity.test.ts

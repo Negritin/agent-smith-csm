@@ -1,0 +1,81 @@
+-- ============================================================================
+-- Sprint "RLS e REVOKE em tabelas sensiveis" — ALTO-002
+-- Deny-by-default em public.platform_settings (config GLOBAL: system_base_prompt).
+--
+-- CONTEXTO DO ACHADO (Security20260624_003200.md §ALTO-002):
+-- A tabela foi criada em 20260530_platform_settings.sql:5-13 SEM
+-- `ENABLE ROW LEVEL SECURITY` e SEM `REVOKE` de anon/authenticated. Em Supabase,
+-- toda tabela em `public` fica exposta via PostgREST aos papeis `anon` e
+-- `authenticated`; como esta tabela guarda config GLOBAL da plataforma
+-- (system_base_prompt — prompt de governanca de TODOS os agentes), qualquer
+-- cliente com a anon key poderia ler/sobrescrever o prompt. Esta migration
+-- fecha o vazamento: liga RLS (deny-by-default) e revoga os grants amplos,
+-- preservando o acesso de service_role (backend/BFF/workers).
+--
+-- ----------------------------------------------------------------------------
+-- AUDITORIA DE CALL SITES (pre-requisito da convencao do projeto)
+-- ----------------------------------------------------------------------------
+-- Antes de revogar, auditamos TODO acesso a `platform_settings`:
+--   * backend/app/services/platform_settings_service.py:37,52,133 — usa
+--     get_supabase_client() (core/database.py:145-146 => settings.SUPABASE_KEY,
+--     a SERVICE ROLE KEY). Logo, leitura/escrita ocorrem como service_role.
+--   * backend/app/api/admin_system_prompt.py — endpoints GET/PUT
+--     /api/admin/system-prompt protegidos por require_master_admin (JWT interno
+--     HMAC), que chamam o service acima (service_role). A UI do master admin
+--     NUNCA toca a tabela direto: passa pela API FastAPI.
+--   * Frontend (TS/JS): grep por "platform_settings" em **/*.{ts,tsx,js,jsx}
+--     => NENHUM resultado. Nao ha leitura via Supabase JS / PostgREST por
+--     anon/authenticated.
+-- CONCLUSAO: nenhum caminho legitimo usa anon/authenticated. O REVOKE e seguro
+-- e NAO quebra o caminho do master admin (que e service_role via backend).
+--
+-- ----------------------------------------------------------------------------
+-- POLICY DE master_admin: NAO CRIADA (criterio de aceite condicional)
+-- ----------------------------------------------------------------------------
+-- O criterio de aceite pede a policy SELECT restrita a
+-- (auth.jwt() ->> 'role') = 'master_admin' APENAS SE a auditoria constatar
+-- leitura via PostgREST. A auditoria acima constatou o OPOSTO: toda leitura
+-- passa pelo backend como service_role (que faz BYPASS de RLS). Portanto NAO
+-- criamos policy para authenticated — seria superficie de acesso sem
+-- consumidor. Se no futuro a UI passar a ler via PostgREST com JWT Supabase
+-- carregando o claim `role`, adicionar entao:
+--   CREATE POLICY platform_settings_master_admin_read ON public.platform_settings
+--     FOR SELECT TO authenticated
+--     USING ((auth.jwt() ->> 'role') = 'master_admin');
+--
+-- ----------------------------------------------------------------------------
+-- IDEMPOTENCIA
+-- ----------------------------------------------------------------------------
+-- ENABLE ROW LEVEL SECURITY, REVOKE e GRANT sao idempotentes por natureza
+-- (re-aplicar e no-op, nao erro). Seguro re-rodar a migration.
+--
+-- ----------------------------------------------------------------------------
+-- ROLLBACK
+-- ----------------------------------------------------------------------------
+-- Passo manual de incidente documentado em
+--   backend/supabase/rollbacks/20260624_platform_settings_rls_ROLLBACK.sql
+-- (NAO vive em migrations/ de proposito — o runner aplicaria em ordem e
+--  desfaria o saneamento no mesmo deploy).
+--
+-- ----------------------------------------------------------------------------
+-- VALIDACAO POS-DEPLOY (rodar em staging antes de producao)
+-- ----------------------------------------------------------------------------
+--   (a) Como anon e como authenticated:
+--         SELECT * FROM public.platform_settings;  -- deve dar permission denied
+--         INSERT/UPDATE/DELETE ...                  -- permission denied
+--   (b) Como service_role: SELECT/UPSERT continuam funcionando.
+--   (c) GET/PUT /api/admin/system-prompt (master admin) continuam respondendo.
+--   (d) Monitorar logs por "permission denied for table platform_settings"
+--       no pos-deploy (sinal de algum caller anon/authenticated nao mapeado).
+-- ============================================================================
+
+-- (1) Deny-by-default: liga RLS. Sem policy => nenhuma linha visivel/gravavel
+--     por papeis que nao sejam BYPASS RLS (service_role/owner).
+ALTER TABLE public.platform_settings ENABLE ROW LEVEL SECURITY;
+
+-- (2) Revoga os grants amplos de tabela que o PostgREST expoe a anon/authenticated.
+REVOKE ALL ON public.platform_settings FROM anon, authenticated;
+
+-- (3) Garante acesso total ao backend/BFF/workers (service_role ja faz BYPASS de
+--     RLS; o GRANT explicito segue a convencao do repo — 20260621_99).
+GRANT ALL ON public.platform_settings TO service_role;

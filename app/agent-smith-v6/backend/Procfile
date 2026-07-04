@@ -1,0 +1,16 @@
+# Process manifest VERSIONADO para PaaS estilo Heroku/Render/Railway.
+#
+# CRÍTICO (-Q é obrigatório no worker): as tasks de billing/sanitization e de
+# ATENDIMENTO (check_sla, process_inactivity_timers, process_notifications) são
+# roteadas para filas DEDICADAS (task_routes em app/workers/celery_app.py). Um
+# worker iniciado sem -Q consome só a fila default 'celery' e NUNCA executa
+# essas tasks -> o ciclo de SLA, auto-close e drain do outbox fica silenciosamente
+# morto em produção, mesmo com todo o código correto. Por isso o start command do
+# worker é versionado aqui (com 'attendance' à frente), em vez de depender de
+# configuração manual do operador.
+#
+# 'beat' é o agendador (singleton): exatamente UMA réplica, senão os ticks
+# periódicos duplicam.
+web: gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w ${WEB_CONCURRENCY:-2} -b 0.0.0.0:${PORT:-8000} --timeout 120
+worker: celery -A app.workers.celery_app worker --loglevel=info -Q attendance,billing,sanitization,celery
+beat: celery -A app.workers.celery_app beat --loglevel=info

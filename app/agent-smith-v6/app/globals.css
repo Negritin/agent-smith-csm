@@ -1,0 +1,482 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+
+    --background: 209 100% 98%;
+    --foreground: 220 52% 13%;
+
+    --card: 210 42% 99%;
+    --card-foreground: 220 52% 13%;
+
+    --popover: 210 42% 99%;
+    --popover-foreground: 220 52% 13%;
+
+    --primary: 214 88% 45%;
+    --primary-foreground: 214 56% 98%;
+
+    /* Bubble da mensagem do usuário (chat): azul mais escuro + texto branco.
+       Definido só aqui (sem override no .dark) para ficar idêntico nos dois
+       temas, como o Claude. */
+    --chat-user-bubble: 217 80% 24%;
+    --chat-user-bubble-foreground: 0 0% 100%;
+
+    /* Bubbles do AGENTE e do ATENDENTE HUMANO (chat): fundo escuro + texto
+       branco. Definidos só aqui (sem override no .dark) para ficarem idênticos
+       nos dois temas — garante que o texto branco fique legível também no light.
+       Espelham o padrão de --chat-user-bubble*. A bolha USER (azul) é separada. */
+    --chat-agent-bubble: 220 28% 21%;
+    --chat-agent-bubble-foreground: 0 0% 100%;
+    --chat-human-bubble: 218 24% 27%;
+    --chat-human-bubble-foreground: 0 0% 100%;
+
+    --secondary: 209 64% 94%;
+    --secondary-foreground: 220 42% 22%;
+
+    --muted: 209 66% 95%;
+    --muted-foreground: 218 20% 42%;
+
+    --accent: 207 100% 94%;
+    --accent-foreground: 217 75% 32%;
+
+    --destructive: 354 72% 52%;
+    --destructive-foreground: 214 56% 98%;
+
+    --border: 210 48% 88%;
+    --input: 210 48% 88%;
+    --ring: 214 88% 45%;
+
+    --brand: 214 88% 45%;
+    --brand-foreground: 214 56% 98%;
+    --brand-muted: 207 100% 94%;
+    --brand-subtle: 207 100% 97%;
+
+    --surface-app: 209 100% 98%;
+    --surface-sidebar: 209 100% 97%;
+    --surface-panel: 210 42% 99%;
+    --surface-raised: 210 40% 100%;
+    --surface-overlay: 208 100% 97%;
+
+    --canvas-background: 208 100% 98%;
+    --canvas-grid: 207 88% 88%;
+    --nav-active: 207 100% 92%;
+    --nav-active-border: 207 88% 82%;
+    --nav-hover: 208 90% 95%;
+
+    --text-primary: 220 52% 13%;
+    --text-secondary: 218 26% 32%;
+    --text-muted: 218 20% 42%;
+    --text-disabled: 218 17% 66%;
+
+    --success: 151 66% 36%;
+    --success-foreground: 150 35% 97%;
+    --warning: 36 92% 46%;
+    --warning-foreground: 42 40% 13%;
+    --danger: 354 72% 52%;
+    --danger-foreground: 0 0% 100%;
+    --info: 204 82% 43%;
+    --info-foreground: 204 48% 98%;
+    --neutral: 218 18% 42%;
+    --neutral-foreground: 214 40% 98%;
+
+    --chart-1: 214 88% 45%;
+    --chart-2: 190 82% 42%;
+    --chart-3: 198 82% 43%;
+    --chart-4: 151 66% 36%;
+    --chart-5: 36 92% 46%;
+
+    --radius: 0.5rem;
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --space-page-x: clamp(1rem, 2vw, 2rem);
+    --space-page-y: clamp(1rem, 2vw, 1.75rem);
+    --shell-sidebar-width: 16rem;
+    --motion-fast: 140ms;
+    --motion-base: 200ms;
+    --motion-slow: 280ms;
+    --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
+    --shadow-border: 0 0 0 1px hsl(var(--border) / 0.72);
+    --shadow-raised: 0 1px 2px hsl(220 43% 11% / 0.04), 0 4px 12px hsl(220 43% 11% / 0.05);
+    --shadow-overlay: 0 20px 60px hsl(220 43% 11% / 0.16);
+
+    --color-dark: hsl(220 52% 13%);
+    --color-dark-2: hsl(218 26% 32%);
+    --color-dark-3: hsl(218 20% 42%);
+    --color-accent-blue: hsl(198 82% 43%);
+    --color-accent-strong: hsl(210 92% 38%);
+  }
+
+  .dark {
+    color-scheme: dark;
+
+    --background: 220 44% 8%;
+    --foreground: 214 40% 96%;
+
+    --card: 220 36% 11%;
+    --card-foreground: 214 40% 96%;
+
+    --popover: 220 36% 11%;
+    --popover-foreground: 214 40% 96%;
+
+    --primary: 209 92% 62%;
+    --primary-foreground: 220 44% 8%;
+
+    --secondary: 220 28% 18%;
+    --secondary-foreground: 214 40% 96%;
+
+    --muted: 220 28% 18%;
+    --muted-foreground: 218 16% 66%;
+
+    --accent: 215 36% 18%;
+    --accent-foreground: 211 95% 92%;
+
+    --destructive: 354 78% 58%;
+    --destructive-foreground: 214 40% 98%;
+
+    --border: 220 24% 20%;
+    --input: 220 24% 20%;
+    --ring: 209 92% 62%;
+    --shadow-raised: 0 1px 2px hsl(220 60% 2% / 0.30), 0 4px 12px hsl(220 60% 2% / 0.24);
+
+    --brand: 209 92% 62%;
+    --brand-foreground: 220 44% 8%;
+    --brand-muted: 212 48% 16%;
+    --brand-subtle: 214 40% 12%;
+
+    --surface-app: 220 44% 8%;
+    --surface-sidebar: 220 40% 9%;
+    --surface-panel: 220 36% 11%;
+    --surface-raised: 220 32% 13%;
+    --surface-overlay: 220 28% 16%;
+
+    --canvas-background: 220 34% 10%;
+    --canvas-grid: 213 28% 24%;
+    --nav-active: 214 42% 18%;
+    --nav-active-border: 210 58% 34%;
+    --nav-hover: 220 30% 15%;
+
+    --text-primary: 214 40% 96%;
+    --text-secondary: 216 24% 82%;
+    --text-muted: 218 16% 66%;
+    --text-disabled: 218 12% 48%;
+
+    --success: 151 58% 48%;
+    --success-foreground: 150 38% 8%;
+    --warning: 39 92% 58%;
+    --warning-foreground: 42 40% 12%;
+    --danger: 354 78% 58%;
+    --danger-foreground: 0 0% 100%;
+    --info: 204 82% 58%;
+    --info-foreground: 204 48% 8%;
+    --neutral: 218 16% 66%;
+    --neutral-foreground: 220 44% 8%;
+
+    --chart-1: 209 92% 62%;
+    --chart-2: 190 78% 58%;
+    --chart-3: 198 78% 58%;
+    --chart-4: 151 58% 48%;
+    --chart-5: 39 92% 58%;
+
+    --color-dark: hsl(var(--background));
+    --color-dark-2: hsl(var(--surface-overlay));
+    --color-dark-3: hsl(var(--text-muted));
+    --color-accent-blue: hsl(var(--info));
+    --color-accent-strong: hsl(var(--primary));
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--text-disabled) / 0.45) transparent;
+  }
+
+  html {
+    /* Compacta a UI inteira (Tailwind usa rem) — visual mais denso, menos
+       "zoom", cabe mais conteúdo na tela. Baixe para 13px se quiser ainda
+       mais compacto; suba para 15px se ficar pequeno demais. */
+    font-size: 14px;
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    min-height: 100vh;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: hsl(var(--foreground));
+  }
+}
+
+@layer utilities {
+  .gradient-primary {
+    background: linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--info)) 100%);
+  }
+
+  .gradient-button {
+    background: linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--info)) 100%);
+  }
+
+  .bg-dark {
+    background-color: var(--color-dark);
+  }
+
+  .bg-dark-2 {
+    background-color: var(--color-dark-2);
+  }
+
+  .text-dark-3 {
+    color: var(--color-dark-3);
+  }
+
+  .border-gradient {
+    border: 1px solid transparent;
+    background:
+      linear-gradient(hsl(var(--surface-panel)), hsl(var(--surface-panel))) padding-box,
+      linear-gradient(90deg, hsl(var(--primary)), hsl(var(--info))) border-box;
+  }
+
+  .lab-bg::before {
+    overflow: hidden;
+    max-width: 100vw;
+    max-height: 100vh;
+    box-sizing: border-box;
+  }
+
+  .smith-page {
+    background: linear-gradient(
+      180deg,
+      hsl(var(--background)) 0%,
+      hsl(var(--surface-overlay) / 0.55) 100%
+    );
+    color: hsl(var(--foreground));
+  }
+
+  .smith-panel {
+    background: hsl(var(--surface-panel));
+    border: 1px solid hsl(var(--border));
+    box-shadow: var(--shadow-border);
+  }
+
+  .smith-raised {
+    background: hsl(var(--surface-raised));
+    border: 1px solid hsl(var(--border));
+    box-shadow: var(--shadow-raised);
+  }
+
+  .smith-focus {
+    outline: 2px solid hsl(var(--ring) / 0.28);
+    outline-offset: 2px;
+  }
+
+  .smith-canvas-grid {
+    background-color: hsl(var(--canvas-background));
+  }
+
+  .smith-canvas-grid .react-flow__background {
+    opacity: 0.42;
+  }
+
+  /* Controles de zoom (+/-/fit) do ReactFlow: o CSS padrão é branco com ícone
+     escuro, que fica feio no dark mode. Reescrevemos usando os tokens do tema
+     para ficar correto em light E dark. */
+  .react-flow__controls {
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-raised);
+  }
+
+  .react-flow__controls-button {
+    background-color: hsl(var(--surface-panel));
+    border-bottom: 1px solid hsl(var(--border));
+    color: hsl(var(--foreground));
+  }
+
+  .react-flow__controls-button:hover {
+    background-color: hsl(var(--nav-hover));
+  }
+
+  .react-flow__controls-button svg {
+    fill: hsl(var(--foreground));
+  }
+
+  .smith-nav-item {
+    border: 1px solid transparent;
+  }
+
+  .smith-nav-item:hover {
+    background: hsl(var(--nav-hover));
+  }
+
+  .smith-nav-active {
+    background: hsl(var(--nav-active));
+    border-color: hsl(var(--nav-active-border) / 0.72);
+    color: hsl(var(--primary));
+  }
+
+  .chat-bubble-user {
+    background-color: hsl(var(--chat-user-bubble));
+    color: hsl(var(--chat-user-bubble-foreground));
+  }
+
+  /* Bolha do AGENTE: fundo escuro sólido + texto branco. Padding/rounded
+     espelham a bolha do usuário (rounded-2xl ≈ 1rem; canto inferior esquerdo
+     reto via rounded-bl-sm na própria classe utilitária do componente). */
+  .chat-bubble-agent {
+    background-color: hsl(var(--chat-agent-bubble));
+    color: hsl(var(--chat-agent-bubble-foreground));
+    border-radius: 1.125rem;
+    border-bottom-left-radius: 0.375rem;
+    padding: 0.8125rem 1.0625rem;
+    box-shadow: var(--shadow-raised);
+    border: 1px solid hsl(0 0% 100% / 0.06);
+  }
+
+  /* Bolha do ATENDENTE HUMANO: fundo escuro sólido + texto branco. */
+  .chat-bubble-human {
+    background-color: hsl(var(--chat-human-bubble));
+    color: hsl(var(--chat-human-bubble-foreground));
+    border-radius: 1.125rem;
+    border-bottom-left-radius: 0.375rem;
+    padding: 0.8125rem 1.0625rem;
+    box-shadow: var(--shadow-raised);
+    border: 1px solid hsl(0 0% 100% / 0.06);
+  }
+
+  /* Code inline/bloco dentro das bolhas escuras: rede de segurança p/ contraste
+     (fundo translúcido claro sobre o fundo escuro + texto branco). As bolhas
+     também aplicam isso via utilitárias prose (prose-code/prose-pre) no
+     componente; estas regras cobrem qualquer caso em que o tema prose tentaria
+     injetar cores escuras. */
+  .chat-bubble-agent code,
+  .chat-bubble-human code,
+  .chat-bubble-agent pre,
+  .chat-bubble-human pre {
+    background-color: hsl(0 0% 100% / 0.12);
+    color: hsl(0 0% 100%);
+  }
+
+  .chat-bubble-agent pre,
+  .chat-bubble-human pre {
+    border: 1px solid hsl(0 0% 100% / 0.18);
+  }
+
+  /* Balão "ENVIADO" padrão do sistema (lado azul: agente IA / atendente humano,
+     ex.: admin Conversas). No LIGHT mode segue com bg-primary (já legível). No
+     DARK mode --primary é azul CLARO demais (62%) e o texto branco fica difícil
+     de ler — então escurece o fundo só no dark. Mesmo @layer utilities do
+     bg-primary: `.dark .chat-bubble-sent` vence por especificidade. */
+  .dark .chat-bubble-sent {
+    background-color: hsl(214 80% 40%);
+  }
+
+  /* Bolha do agente/atendente no admin (Conversas): o balão usa bg-primary
+     (azul) mas --primary-foreground vira QUASE PRETO no dark mode (8%),
+     deixando o texto e os labels bold pretos. Esta regra força branco nos 2
+     modos — inclusive o <strong> que o plugin prose pinta de cinza-escuro via
+     --tw-prose-bold. Aplicada só na div de texto (markdown), NÃO no balão
+     inteiro, pra não afetar os cards UCP (carrossel/produto). */
+  .chat-admin-bubble-text,
+  .chat-admin-bubble-text * {
+    color: #ffffff !important;
+  }
+
+  .landing-legacy-theme {
+    color-scheme: dark;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+
+    --background: 222 84% 5%;
+    --foreground: 0 0% 100%;
+
+    --card: 222 84% 5%;
+    --card-foreground: 0 0% 100%;
+
+    --popover: 222 84% 5%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 221 88% 64%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 16% 65%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 221.2 83.2% 53.3%;
+
+    --color-dark: #020817;
+    --color-dark-2: #495270;
+    --color-dark-3: #94a3b8;
+    --color-accent-blue: #2cd9ff;
+    --color-accent-strong: #487bff;
+  }
+}
+
+/* =============================================
+   CUSTOM SCROLLBAR - Estilo discreto
+   ============================================= */
+
+/* Webkit (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--text-disabled) / 0.45);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--text-muted) / 0.65);
+}
+
+/* Esconder scrollbar quando não está em hover/scroll */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--text-disabled) / 0.45) transparent;
+}
+
+/* Textarea específico - scrollbar ainda mais discreta */
+textarea::-webkit-scrollbar {
+  width: 4px;
+}
+
+textarea::-webkit-scrollbar-thumb {
+  background: hsl(var(--text-disabled) / 0.35);
+  border-radius: 2px;
+}
+
+textarea::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--text-muted) / 0.55);
+}

@@ -1,0 +1,72 @@
+-- ============================================================================
+-- Sprint "RLS e REVOKE em tabelas sensiveis" — MEDIO-005
+-- Deny-by-default em public.mcp_oauth_clients (segredos OAuth DCR da PLATAFORMA).
+--
+-- CONTEXTO DO ACHADO (Security20260624_003200.md §MEDIO-005):
+-- A tabela foi criada em 20260612_mcp_remote_servers.sql:69-89 SEM
+-- `ENABLE ROW LEVEL SECURITY` e SEM `REVOKE` de anon/authenticated (o comentario
+-- da migration original assumia "mesmo padrao de mcp_servers / acesso apenas via
+-- service role", mas o REVOKE nunca foi escrito). A tabela guarda
+-- client_secret e registration_access_token (criptografados em repouso pelo
+-- encryption_service) do registro DCR (RFC 7591) do Agent Smith junto a cada MCP
+-- remoto. Em Supabase, sem RLS/REVOKE, qualquer cliente com anon key alcanca
+-- esses segredos via PostgREST. Esta migration liga RLS (deny-by-default) e
+-- revoga os grants amplos, preservando o acesso de service_role.
+--
+-- ----------------------------------------------------------------------------
+-- AUDITORIA DE CALL SITES (pre-requisito da convencao do projeto)
+-- ----------------------------------------------------------------------------
+-- Antes de revogar, auditamos TODO acesso a `mcp_oauth_clients`:
+--   * backend/app/services/mcp_remote_oauth.py:197,284,409 — usa self.supabase,
+--     resolvido em __init__ via get_supabase_client().client
+--     (mcp_remote_oauth.py:144-146 => core/database.py:145-146 =>
+--     settings.SUPABASE_KEY, a SERVICE ROLE KEY). Todo o fluxo OAuth/DCR roda
+--     como service_role.
+--   * Frontend (TS/JS): grep por "mcp_oauth_clients" em **/*.{ts,tsx,js,jsx}
+--     => NENHUM resultado. A UI da secao Ferramentas consome dados NAO sensiveis
+--     (connection_metadata em agent_mcp_connections), nunca esta tabela.
+-- CONCLUSAO: acesso EXCLUSIVAMENTE backend/service_role. O REVOKE e seguro.
+--
+-- ----------------------------------------------------------------------------
+-- POLICY PARA authenticated: NAO CRIADA (criterio de aceite)
+-- ----------------------------------------------------------------------------
+-- O acesso e exclusivamente backend (service_role faz BYPASS de RLS). Como
+-- pede o criterio de aceite, NENHUMA policy para `authenticated` e criada:
+-- esses segredos jamais devem ser legiveis por um JWT de usuario final. RLS
+-- ligada + REVOKE + ausencia de policy = deny-by-default total para
+-- anon/authenticated.
+--
+-- ----------------------------------------------------------------------------
+-- IDEMPOTENCIA
+-- ----------------------------------------------------------------------------
+-- ENABLE ROW LEVEL SECURITY, REVOKE e GRANT sao idempotentes por natureza
+-- (re-aplicar e no-op, nao erro). Seguro re-rodar a migration.
+--
+-- ----------------------------------------------------------------------------
+-- ROLLBACK
+-- ----------------------------------------------------------------------------
+-- Passo manual de incidente documentado em
+--   backend/supabase/rollbacks/20260624_mcp_oauth_clients_rls_ROLLBACK.sql
+--
+-- ----------------------------------------------------------------------------
+-- VALIDACAO POS-DEPLOY (rodar em staging antes de producao)
+-- ----------------------------------------------------------------------------
+--   (a) Como anon e como authenticated:
+--         SELECT * FROM public.mcp_oauth_clients;  -- deve dar permission denied
+--         INSERT/UPDATE/DELETE ...                 -- permission denied
+--   (b) Como service_role: fluxo DCR/OAuth (discover_auth_metadata, ensure_client,
+--       refresh) continua funcionando.
+--   (c) Conectar/usar um MCP remoto oficial end-to-end em staging.
+--   (d) Monitorar logs por "permission denied for table mcp_oauth_clients".
+-- ============================================================================
+
+-- (1) Deny-by-default: liga RLS. Sem policy => segredos invisiveis a qualquer
+--     papel que nao seja BYPASS RLS (service_role/owner).
+ALTER TABLE public.mcp_oauth_clients ENABLE ROW LEVEL SECURITY;
+
+-- (2) Revoga os grants amplos de tabela expostos a anon/authenticated.
+REVOKE ALL ON public.mcp_oauth_clients FROM anon, authenticated;
+
+-- (3) Garante acesso total ao backend/workers (service_role ja faz BYPASS de
+--     RLS; GRANT explicito segue a convencao do repo — 20260621_99).
+GRANT ALL ON public.mcp_oauth_clients TO service_role;

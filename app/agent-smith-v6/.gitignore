@@ -1,0 +1,101 @@
+# See https://help.github.com/articles/ignoring-files/
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+*.docx
+~$*
+*.tmp
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env*
+!.env.example
+!.env.local.example
+!**/.env.example
+!**/.env.local.example
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# Backend
+backend/.env
+backend/venv/
+**/__pycache__/
+
+# Python venv in root
+venv/
+
+# Misc
+nul
+CONTEXTO_*.md
+
+# Stress test
+backend/scripts/stress_test.py
+backend/scripts/.env
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# Supabase CLI temp files
+supabase/.temp/
+
+# Graphify (graph/AST cache output) — geração local, não versionar
+graphify-out/
+
+# LionClaw pipeline artifacts (geração local, não versionar)
+.lionclaw/
+
+# Understand Anything (knowledge graph + dashboard) — geração local, não versionar
+.understand-anything/
+
+# Teste de carga — LOCAL-ONLY: nunca versionar / nunca subir a produção.
+backend/scripts/loadtest_*.py
+loadtest_results_*.md
+**/loadtest_results_*.md
+loadtest_billing_*.json
+**/loadtest_billing_*.json
+loadtest_recon_*.md
+**/loadtest_recon_*.md
+
+# Editores / IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs (qualquer pasta)
+*.log
+
+# Caches Python (qualquer pasta)
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+**/.venv/
+**/venv/
+
+# Spec pessoal (fora do escopo da comunidade — nunca versionar aqui)
+SPEC_360dialog.md

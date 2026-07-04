@@ -1,0 +1,104 @@
+name: dependency-audit
+
+# Supply-chain audit: scans pinned Python + npm dependencies for known
+# advisories and fails the job on HIGH/CRITICAL. Also verifies the Python
+# lockfiles are still in sync with their requirements.in (lock-drift gate).
+#
+# Runs on every PR and on a weekly schedule so newly-disclosed CVEs against
+# already-pinned versions are caught even with no code change.
+
+on:
+  pull_request:
+  schedule:
+    # Mondays at 06:00 UTC
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backend-audit:
+    name: Backend (pip-audit + lock drift)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install pip-audit and uv
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-audit uv
+
+      # ---- Lock-drift gate (F28): recompiling must not change the lockfile ----
+      - name: Verify backend lockfile is in sync with requirements.in
+        run: |
+          uv pip compile backend/requirements.in \
+            -o backend/requirements.txt \
+            --generate-hashes --python-version 3.11 --no-header
+          git diff --exit-code -- backend/requirements.txt \
+            || (echo "::error::backend/requirements.txt is out of date. Run: uv pip compile backend/requirements.in -o backend/requirements.txt --generate-hashes --python-version 3.11 --no-header" && exit 1)
+
+      - name: Verify docling-service lockfile is in sync with requirements.in
+        run: |
+          uv pip compile docling-service/requirements.in \
+            -o docling-service/requirements.txt \
+            --generate-hashes --python-version 3.11 --no-header \
+            --no-emit-package torch --no-emit-package torchvision
+          git diff --exit-code -- docling-service/requirements.txt \
+            || (echo "::error::docling-service/requirements.txt is out of date. Run: uv pip compile docling-service/requirements.in -o docling-service/requirements.txt --generate-hashes --python-version 3.11 --no-header --no-emit-package torch --no-emit-package torchvision" && exit 1)
+
+      # ---- Vulnerability audit (F29): fail on any known advisory ----
+      # pip-audit exits non-zero when a pinned dependency has a known advisory
+      # (e.g. python-multipart==0.0.6 -> CVE-2024-53981 goes red).
+      #
+      # We audit the EXACT pinned versions from the compiled lockfiles. The hash
+      # blocks are stripped first because (a) hash-locked files force pip into
+      # --require-hashes resolution, and (b) docling-service deliberately omits
+      # torch/torchvision from its lock (installed CPU-only in its Dockerfile),
+      # which would otherwise break that resolution. --no-deps audits only the
+      # explicit pins (the lock is already the full transitive set).
+      #
+      # .pip-audit-ignore documents advisories with no in-scope fix yet
+      # (one GHSA/CVE/PYSEC id per line, '#' comments allowed).
+      - name: pip-audit (backend + docling-service)
+        run: |
+          set -euo pipefail
+          IGNORE_ARGS=""
+          if [ -f .pip-audit-ignore ]; then
+            while read -r id; do
+              [ -z "$id" ] && continue
+              case "$id" in \#*) continue ;; esac
+              IGNORE_ARGS="$IGNORE_ARGS --ignore-vuln $id"
+            done < .pip-audit-ignore
+          fi
+          for lock in backend/requirements.txt docling-service/requirements.txt; do
+            echo "::group::pip-audit $lock"
+            grep -E '^[A-Za-z0-9._-]+(\[[a-z,]+\])?==' "$lock" | sed 's/ *\\$//' > /tmp/pins.txt
+            pip-audit --strict --no-deps -r /tmp/pins.txt $IGNORE_ARGS
+            echo "::endgroup::"
+          done
+
+  frontend-audit:
+    name: Frontend (npm audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies (locked)
+        run: npm ci
+
+      # Fail on HIGH/CRITICAL production advisories. Dev-only deps are excluded
+      # with --omit=dev so build-tooling noise does not block merges.
+      - name: npm audit (production, high+)
+        run: npm audit --omit=dev --audit-level=high
