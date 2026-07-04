@@ -172,6 +172,53 @@ require_supabase_public_key() {
   esac
 }
 
+supabase_project_ref() {
+  local url="$1"
+  local host
+
+  host="${url#https://}"
+  host="${host#http://}"
+  host="${host%%/*}"
+
+  if [[ "$host" =~ ^([a-z0-9-]+)\.supabase\.co$ ]]; then
+    printf '%s\n' "${BASH_REMATCH[1]}"
+  fi
+}
+
+require_supabase_db_url() {
+  local key="$1"
+  local value supabase_url project_ref
+
+  value="$(value_for_key "$key")"
+  if is_placeholder "$value"; then
+    fail "Supabase missing or placeholder: $key"
+    return
+  fi
+
+  if [[ "$value" == https://*.supabase.co* ]]; then
+    fail "Supabase $key must be a Postgres connection string, not the HTTPS project URL"
+    return
+  fi
+
+  if [[ "$value" =~ ^postgres(ql)?://.+ ]]; then
+    pass "Supabase Postgres URL format: $key"
+  else
+    fail "Supabase $key must start with postgres:// or postgresql://"
+    return
+  fi
+
+  supabase_url="$(value_for_key SUPABASE_URL)"
+  project_ref="$(supabase_project_ref "$supabase_url")"
+  if [ -n "$project_ref" ] && [[ "$value" != *"$project_ref"* ]]; then
+    fail "Supabase $key does not reference project ref from SUPABASE_URL"
+    return
+  fi
+
+  if [[ "$value" != *sslmode=require* ]]; then
+    warn "Supabase $key should include sslmode=require"
+  fi
+}
+
 curl_status() {
   local url="$1"
   shift
@@ -270,7 +317,7 @@ main() {
 
   require_pattern SUPABASE_URL '^https://[^/]+\.supabase\.co/?$' "Supabase"
   require_supabase_server_key SUPABASE_KEY
-  require_pattern SUPABASE_DB_URL '^postgres(ql)?://.+' "Supabase"
+  require_supabase_db_url SUPABASE_DB_URL
   require_supabase_public_key NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   require_pattern OPENAI_API_KEY '^sk-.+' "OpenAI"

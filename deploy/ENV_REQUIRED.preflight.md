@@ -82,6 +82,19 @@ SUPABASE_DB_URL=              # Postgres direto/SQLAlchemy
 DATABASE_URL=                 # Postgres direto/SQLAlchemy
 ```
 
+`SUPABASE_DB_URL`/`DATABASE_URL` nao sao a URL HTTPS do projeto. Use a connection
+string Postgres do Supabase em **Settings -> Database -> Connection string**,
+preferencialmente pooler, com o mesmo project ref de `SUPABASE_URL`:
+
+```env
+SUPABASE_URL=https://qexsnkmoibvreaxdnace.supabase.co
+SUPABASE_DB_URL=postgresql://postgres.qexsnkmoibvreaxdnace:<DB_PASSWORD>@aws-0-<region>.pooler.supabase.com:6543/postgres?sslmode=require
+DATABASE_URL=postgresql://postgres.qexsnkmoibvreaxdnace:<DB_PASSWORD>@aws-0-<region>.pooler.supabase.com:6543/postgres?sslmode=require
+```
+
+Os preflights rejeitam `https://*.supabase.co` nesse campo e tambem rejeitam uma
+connection string que nao referencie o mesmo project ref de `SUPABASE_URL`.
+
 Frontend/Vercel:
 
 ```env

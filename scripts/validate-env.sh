@@ -174,6 +174,55 @@ require_supabase_public_key() {
   esac
 }
 
+supabase_project_ref() {
+  local url="$1"
+  local host
+
+  host="${url#https://}"
+  host="${host#http://}"
+  host="${host%%/*}"
+
+  if [[ "$host" =~ ^([a-z0-9-]+)\.supabase\.co$ ]]; then
+    printf '%s\n' "${BASH_REMATCH[1]}"
+  fi
+}
+
+require_supabase_db_url() {
+  local file="$1"
+  local key="$2"
+  local label="$3"
+  local value supabase_url project_ref
+
+  require_key "$file" "$key" "$label"
+  value="$(value_for "$file" "$key")"
+  if is_placeholder "$value"; then
+    return
+  fi
+
+  if [[ "$value" == https://*.supabase.co* ]]; then
+    fail "$label $key must be a Postgres connection string, not the HTTPS project URL"
+    return
+  fi
+
+  if [[ "$value" =~ ^postgres(ql)?://.+ ]]; then
+    pass "$label Postgres URL format: $key"
+  else
+    fail "$label $key must start with postgres:// or postgresql://"
+    return
+  fi
+
+  supabase_url="$(value_for "$file" SUPABASE_URL)"
+  project_ref="$(supabase_project_ref "$supabase_url")"
+  if [ -n "$project_ref" ] && [[ "$value" != *"$project_ref"* ]]; then
+    fail "$label $key does not reference project ref from SUPABASE_URL"
+    return
+  fi
+
+  if [[ "$value" != *sslmode=require* ]]; then
+    warn "$label $key should include sslmode=require"
+  fi
+}
+
 check_infra() {
   require_file "$INFRA_ENV" "infra"
 
@@ -208,7 +257,6 @@ check_app_core() {
     APP_URL
     ALLOWED_ORIGINS
     SUPABASE_URL
-    SUPABASE_DB_URL
     OPENAI_API_KEY
     ENCRYPTION_KEY
     APP_SECRET
@@ -223,6 +271,7 @@ check_app_core() {
   for key in "${keys[@]}"; do
     require_key "$APP_ENV_FILE" "$key" "app-core"
   done
+  require_supabase_db_url "$APP_ENV_FILE" SUPABASE_DB_URL "app-core"
   require_supabase_server_key "$APP_ENV_FILE" SUPABASE_KEY "app-core"
 }
 
@@ -230,7 +279,6 @@ check_app() {
   check_app_core
 
   local keys=(
-    DATABASE_URL
     ANTHROPIC_API_KEY
     OPENROUTER_API_KEY
     TAVILY_API_KEY
@@ -245,6 +293,7 @@ check_app() {
   for key in "${keys[@]}"; do
     require_key "$APP_ENV_FILE" "$key" "app"
   done
+  require_supabase_db_url "$APP_ENV_FILE" DATABASE_URL "app"
 
   local optional_keys=(
     SENDGRID_API_KEY
