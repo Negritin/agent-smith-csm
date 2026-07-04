@@ -67,6 +67,9 @@ scripts/check-ready.sh
 - `scripts/validate-env.sh`: valida envs locais sem imprimir valores sensiveis.
 - `scripts/env-report.sh`: mostra os envs obrigatorios/pendentes sem imprimir
   valores, cobrindo entrada externa, app e Vercel.
+- `scripts/check-external-services.sh`: valida presença/formato dos envs de
+  provedores externos e, com `RUN_LIVE=1`, testa autenticação sem imprimir
+  segredos.
 - `scripts/prefill-public-envs.sh`: preenche somente URLs publicas nao secretas
   em `/opt/agent-smith/.env.external` usando `sslip.io` e o projeto Vercel.
 - `scripts/apply-external-envs.sh`: aplica `/opt/agent-smith/.env.external` em
@@ -142,6 +145,7 @@ Depois de preencher `/opt/agent-smith/.env.external` e aplicar:
 cd /opt/agent-smith
 scripts/env-report.sh
 scripts/prefill-public-envs.sh
+scripts/check-external-services.sh
 scripts/apply-external-envs.sh
 CONFIRM=1 scripts/deploy-production.sh
 scripts/create-admin.sh

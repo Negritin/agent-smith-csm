@@ -28,6 +28,7 @@ cp deploy/external.env.example /opt/agent-smith/.env.external
 nano /opt/agent-smith/.env.external
 scripts/env-report.sh
 scripts/prefill-public-envs.sh
+scripts/check-external-services.sh
 scripts/apply-external-envs.sh
 ```
 
@@ -254,10 +255,20 @@ Depois dos envs preenchidos, a subida completa pode ser feita por:
 ```bash
 scripts/env-report.sh
 scripts/prefill-public-envs.sh
+scripts/check-external-services.sh
 scripts/apply-external-envs.sh
 CONFIRM=1 scripts/deploy-production.sh
 scripts/create-admin.sh
 ```
+
+Para testar autenticacao dos provedores antes do deploy, use:
+
+```bash
+RUN_LIVE=1 scripts/check-external-services.sh
+```
+
+Esse comando nao imprime valores de segredo. Tavily/Cohere ficam em checagem de
+formato por padrao para evitar chamadas metered de busca/rerank.
 
 Para criar o admin no mesmo fluxo, use um terminal interativo:
 `CONFIRM=1 CREATE_ADMIN=1 scripts/deploy-production.sh`.
