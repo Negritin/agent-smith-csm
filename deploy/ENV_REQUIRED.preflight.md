@@ -85,7 +85,8 @@ Configurar no Supabase antes da subida completa:
 - `scripts/setup-supabase.sh` tambem sincroniza `WIDGET_HMAC_SECRET` em
   `private.app_runtime_secrets` e roda `scripts/check-supabase.sh`.
 - Criar o usuario master/admin com `app/agent-smith-v6/backend/scripts/create_admin.py`.
-  Na VPS, use o wrapper `scripts/create-admin.sh`.
+  Na VPS, use o wrapper `scripts/create-admin.sh`; ele e interativo, exige TTY
+  e usa `APP_URL`/`FRONTEND_URL` para mostrar o login publico.
 
 ## Modelos, busca e guardrails
 
@@ -237,8 +238,12 @@ Depois dos envs preenchidos, a subida completa pode ser feita por:
 ```bash
 scripts/env-report.sh
 scripts/apply-external-envs.sh
-CONFIRM=1 CREATE_ADMIN=1 scripts/deploy-production.sh
+CONFIRM=1 scripts/deploy-production.sh
+scripts/create-admin.sh
 ```
+
+Para criar o admin no mesmo fluxo, use um terminal interativo:
+`CONFIRM=1 CREATE_ADMIN=1 scripts/deploy-production.sh`.
 
 Sem `CONFIRM=1`, o mesmo comando roda como dry-run com gates e smoke tests.
 Enquanto os envs externos ainda nao estao completos, use

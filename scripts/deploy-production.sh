@@ -73,7 +73,7 @@ run_apply_steps() {
   fi
 
   if [ "$CREATE_ADMIN" = "1" ]; then
-    step "Creating master admin"
+    step "Creating master admin (interactive)"
     scripts/create-admin.sh
   fi
 

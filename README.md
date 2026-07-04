@@ -61,7 +61,7 @@ scripts/check-ready.sh
 - `scripts/check-supabase.sh`: valida tabelas/seeds/buckets essenciais no
   Supabase apos migrations.
 - `scripts/create-admin.sh`: roda o criador interativo do primeiro admin master
-  dentro da imagem Docker do backend.
+  dentro da imagem Docker do backend. Requer TTY e envs reais de Supabase.
 - `scripts/validate-env.sh`: valida envs locais sem imprimir valores sensiveis.
 - `scripts/env-report.sh`: mostra os envs obrigatorios/pendentes sem imprimir
   valores, cobrindo entrada externa, app e Vercel.
@@ -138,8 +138,12 @@ Depois de preencher `/opt/agent-smith/.env.external` e aplicar:
 cd /opt/agent-smith
 scripts/env-report.sh
 scripts/apply-external-envs.sh
-CONFIRM=1 CREATE_ADMIN=1 scripts/deploy-production.sh
+CONFIRM=1 scripts/deploy-production.sh
+scripts/create-admin.sh
 ```
+
+Se quiser criar o admin no mesmo fluxo, rode de um terminal interativo com
+`CONFIRM=1 CREATE_ADMIN=1 scripts/deploy-production.sh`.
 
 Para fazer dry-run sem aplicar nada:
 

@@ -17,7 +17,7 @@ section() {
 }
 
 section "project files"
-find . -maxdepth 3 -type f \( \
+find . -maxdepth 3 \( -path './node_modules' -o -path './.next' \) -prune -o -type f \( \
   -iname 'README*' -o \
   -iname '*.md' -o \
   -name '.env.example' -o \
@@ -38,11 +38,13 @@ if command -v rg >/dev/null 2>&1; then
   rg -n -i \
     'fastapi|uvicorn|celery|redis|qdrant|minio|s3|docling|supabase|stripe|sendgrid|whatsapp|meta|tavily|cohere|openai|openrouter|anthropic|vercel' \
     -g '*.md' -g '*.py' -g '*.ts' -g '*.tsx' -g '*.js' -g '*.json' -g '*.toml' -g '*.yml' -g '*.yaml' \
+    -g '!node_modules/**' -g '!.next/**' \
     . | head -n 240 || true
 
   section "probable env names"
   rg -No '\b[A-Z][A-Z0-9_]{2,}\b' \
     -g '*.md' -g '*.py' -g '*.ts' -g '*.tsx' -g '*.js' -g '*.json' -g '*.toml' -g '*.yml' -g '*.yaml' \
+    -g '!node_modules/**' -g '!.next/**' \
     . | sed 's/.*://' | sort -u | \
     rg '(_URL|_URI|_KEY|_SECRET|_TOKEN|_ID|DATABASE|REDIS|CELERY|QDRANT|SUPABASE|STRIPE|SENDGRID|OPENAI|ANTHROPIC|OPENROUTER|COHERE|TAVILY|WHATSAPP|META|MINIO|S3|DOCLING)' || true
 else
