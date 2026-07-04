@@ -1,0 +1,6 @@
+backend/**
+docling-service/**
+docker-compose*.yml
+Dockerfile
+**/__pycache__/**
+**/.pytest_cache/**

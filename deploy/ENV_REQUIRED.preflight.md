@@ -53,11 +53,10 @@ SUPABASE_SERVICE_ROLE_KEY=
 
 Configurar no Supabase antes da subida completa:
 
-- Rodar `app/agent-smith-v6/backend/supabase/migrations/schema_completo_v7.0.sql`.
-- Rodar `app/agent-smith-v6/backend/supabase/migrations/storage_buckets.sql`.
-- Carregar precos LLM com `app/agent-smith-v6/backend/supabase/seed_llm_pricing.sql`
-  ou `python scripts/seed_pricing.py` dentro do backend.
-- Carregar `app/agent-smith-v6/backend/supabase/seed_platform_settings.sql`.
+- Para instalacao nova: `CONFIRM=1 scripts/setup-supabase.sh fresh`.
+- Para upgrade v6.2 -> v7.0: `CONFIRM=1 scripts/setup-supabase.sh upgrade`.
+- O modo `fresh` aplica `schema_completo_v7.0.sql`, `storage_buckets.sql`,
+  `seed_llm_pricing.sql` e `seed_platform_settings.sql`.
 - Criar o usuario master/admin com `app/agent-smith-v6/backend/scripts/create_admin.py`.
 
 ## Modelos, busca e guardrails
@@ -152,9 +151,9 @@ com `docling-api` e `docling-worker`.
 ## Vercel
 
 ```env
-VERCEL_TOKEN=
-VERCEL_ORG_ID=
-VERCEL_PROJECT_ID=
+VERCEL_TOKEN=                  # opcional se a CLI ja estiver logada
+VERCEL_ORG_ID=                 # opcional se o projeto ja estiver linkado
+VERCEL_PROJECT_ID=             # opcional se o projeto ja estiver linkado
 FRONTEND_DIR=/opt/agent-smith/app/agent-smith-v6
 ```
 

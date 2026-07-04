@@ -7,11 +7,13 @@ Atualizado em 2026-07-04 13:40 UTC.
 - VPS: Ubuntu 24.04, Docker/Compose ativos.
 - Frontend tooling: Node.js `v22.23.1`, npm `10.9.8`, Vercel CLI `54.20.1`.
 - GitHub CLI: autenticado como `Negritin` com escopo `repo`.
+- Vercel CLI: autenticada localmente; `VERCEL_TOKEN` e opcional nesse modo.
 - Repo destino: `/opt/agent-smith` publicado em `Negritin/agent-smith-csm`.
 - Upstream original: `LionLabsCommunity/Agent-SmithV6` acessivel.
 - Import upstream: concluido em `app/agent-smith-v6`.
 - Frontend Next.js: dependencias instaladas, typecheck passou e suite de testes
-  passou localmente.
+  passou localmente. Build de producao Next.js tambem passou com envs dummy.
+- Vercel: projeto `agent-smith-csm` criado/linkado na conta logada da CLI.
 - Imagens Docker: backend, worker, beat, docling-api e docling-worker foram
   buildadas com sucesso.
 - Docling real do projeto: `docling-api` e `docling-worker` estao rodando na rede
@@ -52,6 +54,7 @@ sera exposto pela rede `easypanel`/Traefik usando `AGENT_SMITH_API_HOST`.
 ## Arquivos
 
 - `/opt/agent-smith/app/agent-smith-v6`
+- `/opt/agent-smith/app/agent-smith-v6/.vercelignore`
 - `/opt/agent-smith/deploy/docker-compose.infra.yml`
 - `/opt/agent-smith/deploy/docker-compose.app.template.yml`
 - `/opt/agent-smith/.env.infra` com permissao `600`
@@ -67,6 +70,7 @@ sera exposto pela rede `easypanel`/Traefik usando `AGENT_SMITH_API_HOST`.
 - `/opt/agent-smith/scripts/deploy-app.sh`
 - `/opt/agent-smith/scripts/find-frontend.sh`
 - `/opt/agent-smith/scripts/deploy-frontend-vercel.sh`
+- `/opt/agent-smith/scripts/setup-supabase.sh`
 
 ## Env interno ja definido
 
@@ -110,9 +114,9 @@ Preencher `/opt/agent-smith/.env.app`:
 
 Preencher `/opt/agent-smith/.env.vercel`:
 
-- `VERCEL_TOKEN`
-- `VERCEL_ORG_ID`
-- `VERCEL_PROJECT_ID`
+- `VERCEL_TOKEN` se nao for usar login local da CLI
+- `VERCEL_ORG_ID` se o projeto ainda nao estiver linkado
+- `VERCEL_PROJECT_ID` se o projeto ainda nao estiver linkado
 - `APP_URL`
 - `NEXT_PUBLIC_BACKEND_URL`
 - `NEXT_PUBLIC_API_URL`

@@ -51,12 +51,16 @@ scripts/check-ready.sh
 - `deploy/vercel.env.example`: template das credenciais e envs publicos da Vercel.
 - `deploy/ENV_REQUIRED.preflight.md`: lista objetiva dos envs que ainda precisam
   vir de Supabase/Vercel/provedores externos.
+- `app/agent-smith-v6/.vercelignore`: garante que a Vercel publique apenas o
+  frontend Next.js, nao o backend FastAPI/Docling.
 - `scripts/analyze-upstream.sh`: varre o codigo importado e mostra docs, envs e
   comandos detectados.
 - `scripts/validate-env.sh`: valida envs locais sem imprimir valores sensiveis.
 - `scripts/deploy-app.sh`: sobe backend, workers e Docling depois dos envs reais.
 - `scripts/find-frontend.sh`: localiza o pacote Next.js.
 - `scripts/deploy-frontend-vercel.sh`: faz deploy Vercel nao interativo.
+- `scripts/setup-supabase.sh`: aplica schema/seeds do Supabase em modo `fresh`
+  ou migrations em modo `upgrade`.
 - `STATUS.md`: estado operacional da VPS.
 
 ## Segredos
@@ -89,6 +93,7 @@ Depois de preencher `/opt/agent-smith/.env.app`:
 
 ```bash
 cd /opt/agent-smith
+CONFIRM=1 scripts/setup-supabase.sh fresh
 scripts/deploy-app.sh
 ```
 

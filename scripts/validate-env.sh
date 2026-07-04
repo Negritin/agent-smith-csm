@@ -188,10 +188,31 @@ check_app() {
 check_vercel() {
   require_file "$VERCEL_ENV_FILE" "vercel"
 
+  local vercel_token frontend_dir
+  vercel_token="$(value_for "$VERCEL_ENV_FILE" VERCEL_TOKEN)"
+  if is_placeholder "$vercel_token"; then
+    if command -v vercel >/dev/null 2>&1 && vercel whoami >/dev/null 2>&1; then
+      pass "vercel: CLI auth"
+    else
+      fail "vercel missing or placeholder: VERCEL_TOKEN"
+    fi
+  else
+    pass "vercel: VERCEL_TOKEN"
+  fi
+
+  frontend_dir="$(value_for "$VERCEL_ENV_FILE" FRONTEND_DIR)"
+  if is_placeholder "$frontend_dir"; then
+    frontend_dir="/opt/agent-smith/app/agent-smith-v6"
+  fi
+
+  if [ -f "$frontend_dir/.vercel/project.json" ]; then
+    pass "vercel: linked project"
+  else
+    require_key "$VERCEL_ENV_FILE" VERCEL_ORG_ID "vercel"
+    require_key "$VERCEL_ENV_FILE" VERCEL_PROJECT_ID "vercel"
+  fi
+
   local keys=(
-    VERCEL_TOKEN
-    VERCEL_ORG_ID
-    VERCEL_PROJECT_ID
     APP_URL
     NEXT_PUBLIC_BACKEND_URL
     NEXT_PUBLIC_API_URL

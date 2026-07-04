@@ -11,8 +11,6 @@ if [ -f "$VERCEL_ENV_FILE" ]; then
   set +a
 fi
 
-: "${VERCEL_TOKEN:?set VERCEL_TOKEN}"
-
 FRONTEND_DIR="${FRONTEND_DIR:-$("$REPO_ROOT/scripts/find-frontend.sh")}"
 
 if [ ! -f "$FRONTEND_DIR/package.json" ]; then
@@ -22,14 +20,70 @@ fi
 
 cd "$FRONTEND_DIR"
 
-if [ ! -f .vercel/project.json ]; then
-  : "${VERCEL_ORG_ID:?set VERCEL_ORG_ID or run vercel link manually in $FRONTEND_DIR}"
-  : "${VERCEL_PROJECT_ID:?set VERCEL_PROJECT_ID or run vercel link manually in $FRONTEND_DIR}"
-  mkdir -p .vercel
-  printf '{"orgId":"%s","projectId":"%s"}\n' "$VERCEL_ORG_ID" "$VERCEL_PROJECT_ID" > .vercel/project.json
+vercel_auth_args=()
+if [ -n "${VERCEL_TOKEN:-}" ]; then
+  vercel_auth_args+=(--token "$VERCEL_TOKEN")
+else
+  vercel whoami >/dev/null 2>&1
 fi
 
-vercel whoami --token "$VERCEL_TOKEN" >/dev/null
-vercel pull --yes --environment=production --token "$VERCEL_TOKEN"
-vercel build --prod --token "$VERCEL_TOKEN"
-vercel deploy --prebuilt --prod --token "$VERCEL_TOKEN"
+if [ ! -f .vercel/project.json ]; then
+  link_args=(link --yes)
+  if [ -n "${VERCEL_PROJECT_ID:-}" ]; then
+    link_args+=(--project "$VERCEL_PROJECT_ID")
+  fi
+  if [ -n "${VERCEL_ORG_ID:-}" ]; then
+    link_args+=(--team "$VERCEL_ORG_ID")
+  fi
+  vercel "${link_args[@]}" "${vercel_auth_args[@]}"
+fi
+
+"$REPO_ROOT/scripts/validate-env.sh" vercel
+
+vercel_env_keys=(
+  APP_URL
+  NEXT_PUBLIC_BACKEND_URL
+  NEXT_PUBLIC_API_URL
+  NEXT_PUBLIC_BASE_URL
+  NEXT_PUBLIC_SUPPORT_EMAIL
+  NEXT_PUBLIC_SUPABASE_URL
+  NEXT_PUBLIC_SUPABASE_ANON_KEY
+  SUPABASE_SERVICE_ROLE_KEY
+  UPSTASH_REDIS_REST_URL
+  UPSTASH_REDIS_REST_TOKEN
+  INTERNAL_JWT_SECRET
+  SESSION_SECRET
+  WIDGET_HMAC_SECRET
+  WIDGET_HMAC_REQUIRED
+  STRICT_URL_VALIDATION
+  USE_JWT_DB_CLIENT
+  ADMIN_API_KEY
+  DOLLAR_RATE
+  NEXT_PUBLIC_DOLLAR_RATE
+  STRIPE_SECRET_KEY
+  SENDGRID_API_KEY
+  SENDGRID_FROM_EMAIL
+  SENTRY_DSN
+  NEXT_PUBLIC_SENTRY_DSN
+  SENTRY_ORG
+  SENTRY_PROJECT
+  SENTRY_AUTH_TOKEN
+)
+
+vercel pull --yes --environment=production "${vercel_auth_args[@]}"
+
+mkdir -p .vercel
+env_file=".vercel/.env.production.local"
+: > "$env_file"
+
+deploy_args=(deploy --prebuilt --prod --yes)
+for key in "${vercel_env_keys[@]}"; do
+  value="${!key:-}"
+  if [ -n "$value" ]; then
+    printf '%s=%s\n' "$key" "$value" >> "$env_file"
+    deploy_args+=(--env "$key=$value")
+  fi
+done
+
+vercel build --prod "${vercel_auth_args[@]}"
+vercel "${deploy_args[@]}" "${vercel_auth_args[@]}"
