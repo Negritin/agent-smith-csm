@@ -29,6 +29,8 @@ Ver status:
 docker compose --env-file /opt/agent-smith/.env.infra -f /opt/agent-smith/deploy/docker-compose.infra.yml ps
 systemctl status agent-smith-infra.service --no-pager
 scripts/check-ready.sh
+# ou, se o acesso vier por token/PAT:
+GITHUB_TOKEN=<token-com-acesso-ao-repo> scripts/check-ready.sh
 ```
 
 ## Arquivos importantes
@@ -46,7 +48,7 @@ commitado. Ele está protegido pelo `.gitignore`.
 ## Proximos passos
 
 1. Autorizar a deploy key da VPS no repo `LionLabsCommunity/Agent-SmithV6`.
-2. Rodar `scripts/check-ready.sh` para confirmar acesso ao upstream e infra local.
+2. Rodar `scripts/check-ready.sh` para confirmar acesso ao upstream e infra local. Se preferir token/PAT, usar `GITHUB_TOKEN=... scripts/check-ready.sh`.
 3. Rodar `scripts/import-upstream.sh` para importar o código real em `app/agent-smith-v6`.
 4. Conferir docs, `.env.example`, compose/Dockerfiles e scripts reais do app.
 5. Conectar backend/workers aos serviços internos.

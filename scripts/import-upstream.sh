@@ -2,11 +2,15 @@
 set -Eeuo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-UPSTREAM_URL="${UPSTREAM_URL:-git@github.com:LionLabsCommunity/Agent-SmithV6.git}"
+source "$REPO_ROOT/scripts/lib/git-auth.sh"
+
+UPSTREAM_URL="$(resolve_agent_smith_upstream_url)"
 PREFIX="${PREFIX:-app/agent-smith-v6}"
 PUSH_AFTER_IMPORT="${PUSH_AFTER_IMPORT:-0}"
 
 cd "$REPO_ROOT"
+setup_github_https_auth "$UPSTREAM_URL"
+trap cleanup_github_https_auth EXIT
 
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   echo "error: not inside a git repository" >&2
@@ -30,7 +34,8 @@ if ! SYMREF_OUTPUT="$(git ls-remote --symref "$UPSTREAM_URL" HEAD 2>&1)"; then
   cat >&2 <<'MSG'
 
 Could not access upstream.
-Add this VPS deploy key to LionLabsCommunity/Agent-SmithV6 with read access:
+Add this VPS deploy key to LionLabsCommunity/Agent-SmithV6 with read access,
+or rerun this script with GITHUB_TOKEN/GH_TOKEN containing repo read access.
 
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOSiN1cepl3R/7A+uGcNR5pxwH6dmbXqewwnWz1W5d5Y agent-smith-vps-5.161.73.5-2026-07-04
 MSG

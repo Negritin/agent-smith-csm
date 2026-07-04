@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-04 01:56 UTC.
+Atualizado em 2026-07-04 02:05 UTC.
 
 ## Estado atual
 
@@ -45,6 +45,7 @@ Redis, Qdrant, MinIO e Docling responderam aos health checks internos.
 - `/opt/agent-smith/deploy/ENV_REQUIRED.preflight.md`
 - `/opt/agent-smith/scripts/import-upstream.sh`
 - `/opt/agent-smith/scripts/check-ready.sh`
+- `/opt/agent-smith/scripts/lib/git-auth.sh`
 
 ## Env interno ja definido
 
@@ -65,7 +66,7 @@ DOCLING_BASE_URL=http://docling:5001
 
 Para continuar com clone, estudo do projeto e subida real do backend/frontend:
 
-1. Adicionar a deploy key abaixo no GitHub repo `LionLabsCommunity/Agent-SmithV6` com acesso de leitura, ou fornecer um `GH_TOKEN`/PAT com acesso ao repo privado.
+1. Adicionar a deploy key abaixo no GitHub repo `LionLabsCommunity/Agent-SmithV6` com acesso de leitura, ou fornecer `GITHUB_TOKEN`/`GH_TOKEN`/PAT com acesso ao repo privado.
 
 ```text
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOSiN1cepl3R/7A+uGcNR5pxwH6dmbXqewwnWz1W5d5Y agent-smith-vps-5.161.73.5-2026-07-04
@@ -90,7 +91,9 @@ docker compose --env-file /opt/agent-smith/.env.infra -f /opt/agent-smith/deploy
 systemctl status agent-smith-infra.service --no-pager
 git ls-remote git@github.com:LionLabsCommunity/Agent-SmithV6.git
 scripts/check-ready.sh
+GITHUB_TOKEN=<token-com-acesso-ao-repo> scripts/check-ready.sh
 scripts/import-upstream.sh
+GITHUB_TOKEN=<token-com-acesso-ao-repo> scripts/import-upstream.sh
 ```
 
 ## Repo local

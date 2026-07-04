@@ -2,7 +2,12 @@
 set -Eeuo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+source "$REPO_ROOT/scripts/lib/git-auth.sh"
+
+UPSTREAM_URL="$(resolve_agent_smith_upstream_url)"
 cd "$REPO_ROOT"
+setup_github_https_auth "$UPSTREAM_URL"
+trap cleanup_github_https_auth EXIT
 
 pass() {
   printf 'ok: %s\n' "$1"
@@ -18,7 +23,7 @@ check_git_origin() {
 }
 
 check_git_upstream() {
-  if git ls-remote upstream HEAD >/dev/null 2>&1; then
+  if git ls-remote "$UPSTREAM_URL" HEAD >/dev/null 2>&1; then
     pass "upstream reachable"
   else
     fail "upstream unavailable: add the Agent-SmithV6 deploy key or provide a GitHub token"
