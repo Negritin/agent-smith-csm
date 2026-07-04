@@ -200,7 +200,14 @@ VERCEL_TOKEN=                  # opcional se a CLI ja estiver logada
 VERCEL_ORG_ID=                 # opcional se o projeto ja estiver linkado
 VERCEL_PROJECT_ID=             # opcional se o projeto ja estiver linkado
 FRONTEND_DIR=/opt/agent-smith/app/agent-smith-v6
+VERCEL_PROJECT_DIR=/opt/agent-smith
 ```
+
+Como o repo e monorepo, a Vercel deve ficar conectada ao GitHub
+`Negritin/agent-smith-csm` com branch de producao `main`, `Root Directory`
+`app/agent-smith-v6`, framework `Next.js`, install command `npm install` e build
+command `npm run build`. A CLI local deve rodar a partir de `VERCEL_PROJECT_DIR`,
+na raiz do repo, para respeitar esse `Root Directory`.
 
 Tambem manter na Vercel os mesmos valores de:
 

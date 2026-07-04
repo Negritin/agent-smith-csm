@@ -73,7 +73,7 @@ check_public_edge() {
 }
 
 check_vercel() {
-  local frontend_dir project_json remote_root remote_framework remote_install remote_build
+  local frontend_dir vercel_project_dir project_json remote_root remote_framework remote_install remote_build
 
   if ! command -v vercel >/dev/null 2>&1; then
     fail "vercel CLI unavailable"
@@ -83,13 +83,14 @@ check_vercel() {
   pass "vercel auth"
 
   frontend_dir="$("$REPO_ROOT/scripts/find-frontend.sh")"
-  if [ -f "$frontend_dir/.vercel/project.json" ]; then
+  vercel_project_dir="${VERCEL_PROJECT_DIR:-$REPO_ROOT}"
+  if [ -f "$vercel_project_dir/.vercel/project.json" ]; then
     pass "vercel project linked"
   else
-    fail "vercel project not linked in $frontend_dir"
+    fail "vercel project not linked in $vercel_project_dir"
     return 1
   fi
-  project_json="$frontend_dir/.vercel/project.json"
+  project_json="$vercel_project_dir/.vercel/project.json"
 
   if ! command -v jq >/dev/null 2>&1; then
     fail "jq unavailable for Vercel project settings check"

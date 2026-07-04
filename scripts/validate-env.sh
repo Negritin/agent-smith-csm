@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 INFRA_ENV="${INFRA_ENV:-/opt/agent-smith/.env.infra}"
 APP_ENV_FILE="${APP_ENV_FILE:-/opt/agent-smith/.env.app}"
 VERCEL_ENV_FILE="${VERCEL_ENV_FILE:-/opt/agent-smith/.env.vercel}"
@@ -202,7 +203,7 @@ check_app() {
 check_vercel() {
   require_file "$VERCEL_ENV_FILE" "vercel"
 
-  local vercel_token frontend_dir
+  local vercel_token frontend_dir vercel_project_dir project_json remote_root remote_framework remote_install remote_build
   vercel_token="$(value_for "$VERCEL_ENV_FILE" VERCEL_TOKEN)"
   if is_placeholder "$vercel_token"; then
     if command -v vercel >/dev/null 2>&1 && vercel whoami >/dev/null 2>&1; then
@@ -219,11 +220,36 @@ check_vercel() {
     frontend_dir="/opt/agent-smith/app/agent-smith-v6"
   fi
 
-  if [ -f "$frontend_dir/.vercel/project.json" ]; then
+  vercel_project_dir="$(value_for "$VERCEL_ENV_FILE" VERCEL_PROJECT_DIR)"
+  if is_placeholder "$vercel_project_dir"; then
+    vercel_project_dir="$REPO_ROOT"
+  fi
+
+  if [ -f "$vercel_project_dir/.vercel/project.json" ]; then
     pass "vercel: linked project"
   else
     require_key "$VERCEL_ENV_FILE" VERCEL_ORG_ID "vercel"
     require_key "$VERCEL_ENV_FILE" VERCEL_PROJECT_ID "vercel"
+  fi
+
+  project_json="$vercel_project_dir/.vercel/project.json"
+  if [ -f "$project_json" ]; then
+    if command -v jq >/dev/null 2>&1; then
+      remote_root="$(jq -r '.settings.rootDirectory // ""' "$project_json")"
+      remote_framework="$(jq -r '.settings.framework // ""' "$project_json")"
+      remote_install="$(jq -r '.settings.installCommand // ""' "$project_json")"
+      remote_build="$(jq -r '.settings.buildCommand // ""' "$project_json")"
+      if [ "$remote_root" = "app/agent-smith-v6" ] &&
+         [ "$remote_framework" = "nextjs" ] &&
+         [ "$remote_install" = "npm install" ] &&
+         [ "$remote_build" = "npm run build" ]; then
+        pass "vercel: monorepo project settings"
+      else
+        fail "vercel settings mismatch in $project_json"
+      fi
+    else
+      warn "jq unavailable; skipping Vercel monorepo project settings check"
+    fi
   fi
 
   local keys=(

@@ -92,7 +92,7 @@ set_key() {
 }
 
 sync_from_app_to_vercel() {
-  local api_host app_url frontend_url supabase_url supabase_key dollar_rate frontend_dir
+  local api_host app_url frontend_url supabase_url supabase_key dollar_rate frontend_dir vercel_project_dir
 
   [ -f "$APP_ENV_FILE" ] || {
     echo "error: missing app env file: $APP_ENV_FILE" >&2
@@ -104,7 +104,9 @@ sync_from_app_to_vercel() {
   }
 
   frontend_dir="$("$REPO_ROOT/scripts/find-frontend.sh")"
+  vercel_project_dir="$REPO_ROOT"
   set_key "$VERCEL_ENV_FILE" FRONTEND_DIR "$frontend_dir"
+  set_key "$VERCEL_ENV_FILE" VERCEL_PROJECT_DIR "$vercel_project_dir"
 
   app_url="$(value_for "$APP_ENV_FILE" APP_URL)"
   frontend_url="$(value_for "$APP_ENV_FILE" FRONTEND_URL)"

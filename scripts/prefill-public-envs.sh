@@ -4,6 +4,7 @@ set -Eeuo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 EXTERNAL_ENV_FILE="${EXTERNAL_ENV_FILE:-/opt/agent-smith/.env.external}"
 FRONTEND_DIR="${FRONTEND_DIR:-$("$REPO_ROOT/scripts/find-frontend.sh")}"
+VERCEL_PROJECT_DIR="${VERCEL_PROJECT_DIR:-$REPO_ROOT}"
 FORCE="${FORCE:-0}"
 
 value_for() {
@@ -62,7 +63,7 @@ public_ip() {
 }
 
 project_name() {
-  local project_json="$FRONTEND_DIR/.vercel/project.json"
+  local project_json="$VERCEL_PROJECT_DIR/.vercel/project.json"
 
   if [ -f "$project_json" ]; then
     sed -n 's/.*"projectName"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$project_json" | head -1

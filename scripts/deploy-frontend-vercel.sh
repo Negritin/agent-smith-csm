@@ -12,13 +12,14 @@ if [ -f "$VERCEL_ENV_FILE" ]; then
 fi
 
 FRONTEND_DIR="${FRONTEND_DIR:-$("$REPO_ROOT/scripts/find-frontend.sh")}"
+VERCEL_PROJECT_DIR="${VERCEL_PROJECT_DIR:-$REPO_ROOT}"
 
 if [ ! -f "$FRONTEND_DIR/package.json" ]; then
   echo "error: package.json not found in frontend dir: $FRONTEND_DIR" >&2
   exit 1
 fi
 
-cd "$FRONTEND_DIR"
+cd "$VERCEL_PROJECT_DIR"
 
 vercel_auth_args=()
 if [ -n "${VERCEL_TOKEN:-}" ]; then

@@ -1,0 +1,15 @@
+.env
+.env.*
+.vercel
+node_modules
+**/node_modules
+**/.next
+**/tsconfig.tsbuildinfo
+**/__pycache__
+**/.pytest_cache
+app/agent-smith-v6/backend/**
+app/agent-smith-v6/docling-service/**
+app/agent-smith-v6/docker-compose*.yml
+app/agent-smith-v6/Dockerfile
+deploy/**
+scripts/**

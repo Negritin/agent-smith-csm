@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-04 16:03 UTC.
+Atualizado em 2026-07-04 16:13 UTC.
 
 ## Estado atual
 
@@ -27,8 +27,12 @@ Atualizado em 2026-07-04 16:03 UTC.
 - Vercel settings remotas: corrigidas para `Root Directory=app/agent-smith-v6`,
   `Framework=Next.js`, `Install Command=npm install`, `Build Command=npm run build`
   e Node.js `22.x`.
-- Vercel deployments: ainda nao ha deployment criado; os envs de producao da
-  Vercel continuam vazios.
+- Vercel local CLI: link criado tambem na raiz `/opt/agent-smith`, que e o
+  diretorio correto para operar este monorepo com `Root Directory=app/agent-smith-v6`.
+- Vercel deployments: push no `main` disparou deploy automatico de producao no
+  commit `11289cf`; terminou em erro porque o build Next.js nao tem Supabase
+  configurado (`supabaseUrl is required`). Isso confirma que a integracao Git
+  esta ativa, mas os envs de producao da Vercel continuam vazios.
 - Preflight base: `scripts/check-ready.sh` valida Git/origin/upstream, Redis,
   Qdrant, MinIO, app importado, rede `easypanel`, Traefik/80/443 e Vercel
   autenticada/linkada.
