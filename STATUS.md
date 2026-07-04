@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-04 01:50 UTC.
+Atualizado em 2026-07-04 01:56 UTC.
 
 ## Estado atual
 
@@ -9,10 +9,11 @@ Atualizado em 2026-07-04 01:50 UTC.
 - GitHub CLI: instalado, ainda sem login.
 - Vercel CLI: instalado, ainda sem credencial local.
 - Repo privado: ainda bloqueado por `Permission denied (publickey)`.
-- Systemd: `agent-smith-infra.service` habilitado no boot e validado com `status=0/SUCCESS`.
+- Systemd: `agent-smith-infra.service` habilitado no boot e validado com `status=0/SUCCESS` usando `deploy/docker-compose.infra.yml`.
 - Build tooling: `python3-pip`, Python headers, Git LFS e Corepack instalados/habilitados.
-- Git local: `/opt/agent-smith` inicializado em `main`, com `origin/main` publicado em `Negritin/agent-smith-csm` no commit `25150ab`.
+- Git local: `/opt/agent-smith` inicializado em `main`, com `origin/main` publicado em `Negritin/agent-smith-csm`.
 - Upstream original: `LionLabsCommunity/Agent-SmithV6` configurado apenas para fetch e ainda aguardando permissao.
+- Import upstream: `scripts/import-upstream.sh` criado; quando o upstream liberar acesso, importa snapshot para `app/agent-smith-v6`.
 
 ## Infra local criada
 
@@ -34,12 +35,15 @@ Servicos internos:
 Todos os servicos estao na rede Docker interna `agent_smith_internal`, sem portas publicas expostas.
 O servico systemd `/etc/systemd/system/agent-smith-infra.service` executa o
 `docker compose up -d` no boot.
+O restart do systemd foi validado depois da mudanca para o compose em `deploy/`;
+Redis, Qdrant, MinIO e Docling responderam aos health checks internos.
 
 ## Arquivos
 
 - `/opt/agent-smith/deploy/docker-compose.infra.yml`
 - `/opt/agent-smith/.env.infra` com permissao `600`
 - `/opt/agent-smith/deploy/ENV_REQUIRED.preflight.md`
+- `/opt/agent-smith/scripts/import-upstream.sh`
 
 ## Env interno ja definido
 
