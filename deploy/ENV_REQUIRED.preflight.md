@@ -95,6 +95,29 @@ DATABASE_URL=postgresql://postgres.qexsnkmoibvreaxdnace:<DB_PASSWORD>@aws-0-<reg
 Os preflights rejeitam `https://*.supabase.co` nesse campo e tambem rejeitam uma
 connection string que nao referencie o mesmo project ref de `SUPABASE_URL`.
 
+Se preferir montar a connection string sem colar a URL inteira, preencha no
+arquivo externo:
+
+```env
+SUPABASE_DB_PASSWORD=
+SUPABASE_DB_REGION=us-east-1
+```
+
+ou:
+
+```env
+SUPABASE_DB_PASSWORD=
+SUPABASE_DB_HOST=aws-0-us-east-1.pooler.supabase.com
+```
+
+Depois rode:
+
+```bash
+scripts/prefill-supabase-db-url.sh
+```
+
+O helper grava `SUPABASE_DB_URL` e `DATABASE_URL` sem imprimir a senha.
+
 Frontend/Vercel:
 
 ```env
