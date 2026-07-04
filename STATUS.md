@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-04 14:32 UTC.
+Atualizado em 2026-07-04 14:39 UTC.
 
 ## Estado atual
 
@@ -10,12 +10,15 @@ Atualizado em 2026-07-04 14:32 UTC.
 - GitHub CLI: autenticado como `Negritin` com escopo `repo`.
 - Vercel CLI: autenticada localmente; `VERCEL_TOKEN` e opcional nesse modo.
 - Repo destino: `/opt/agent-smith` publicado em `Negritin/agent-smith-csm`.
-- Upstream original: `LionLabsCommunity/Agent-SmithV6` acessivel.
+- Upstream original: `LionLabsCommunity/Agent-SmithV6` acessivel; `git ls-remote`
+  via SSH confirmou o `HEAD`.
 - Import upstream: concluido em `app/agent-smith-v6`.
 - Frontend Next.js: dependencias instaladas, typecheck passou e suite de testes
   passou localmente. Build de producao Next.js tambem passou com envs dummy.
 - Frontend smoke: `scripts/smoke-frontend.sh` passou, cobrindo typecheck, 246
   testes e build Next.js com envs dummy.
+- Deploy orquestrado: `SMOKE_ONLY=1 scripts/deploy-production.sh` passou,
+  cobrindo backend, Docling e frontend pelo fluxo unificado.
 - Vercel: projeto `agent-smith-csm` criado/linkado na conta logada da CLI.
 - Env local: `scripts/sync-local-envs.sh` sincronizou segredos compartilhados de
   `.env.app` para `.env.vercel`; ainda falta `NEXT_PUBLIC_SUPABASE_ANON_KEY` e
@@ -87,6 +90,7 @@ para esse IP.
 - `/opt/agent-smith/scripts/analyze-upstream.sh`
 - `/opt/agent-smith/scripts/validate-env.sh`
 - `/opt/agent-smith/scripts/deploy-app.sh`
+- `/opt/agent-smith/scripts/deploy-production.sh`
 - `/opt/agent-smith/scripts/find-frontend.sh`
 - `/opt/agent-smith/scripts/sync-local-envs.sh`
 - `/opt/agent-smith/scripts/smoke-frontend.sh`
@@ -181,6 +185,7 @@ scripts/check-supabase.sh
 scripts/validate-env.sh app
 scripts/validate-env.sh vercel
 scripts/check-public-access.sh
+scripts/deploy-production.sh
 scripts/deploy-app.sh
 scripts/deploy-frontend-vercel.sh
 docker compose --env-file /opt/agent-smith/.env.infra --env-file /opt/agent-smith/.env.app -f deploy/docker-compose.app.template.yml ps

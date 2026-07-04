@@ -62,6 +62,8 @@ scripts/check-ready.sh
   dentro da imagem Docker do backend.
 - `scripts/validate-env.sh`: valida envs locais sem imprimir valores sensiveis.
 - `scripts/deploy-app.sh`: sobe backend, workers e Docling depois dos envs reais.
+- `scripts/deploy-production.sh`: orquestra a subida completa com gates,
+  smoke tests, Supabase, backend/workers, Vercel e validacao publica.
 - `scripts/find-frontend.sh`: localiza o pacote Next.js.
 - `scripts/sync-local-envs.sh`: copia valores compartilhados de `.env.app` para
   `.env.vercel` sem imprimir segredos.
@@ -115,17 +117,19 @@ Depois de preencher `/opt/agent-smith/.env.app`:
 
 ```bash
 cd /opt/agent-smith
-CONFIRM=1 scripts/setup-supabase.sh fresh
-scripts/create-admin.sh
-scripts/deploy-app.sh
+CONFIRM=1 CREATE_ADMIN=1 scripts/deploy-production.sh
 ```
 
-Depois de preencher `/opt/agent-smith/.env.vercel`:
+Para fazer dry-run sem aplicar nada:
 
 ```bash
 cd /opt/agent-smith
-scripts/sync-local-envs.sh
-scripts/sync-vercel-env.sh production
-scripts/deploy-frontend-vercel.sh
-scripts/check-public-access.sh
+scripts/deploy-production.sh
+```
+
+Enquanto os envs externos ainda nao estao preenchidos, os smoke tests podem ser
+rodados com:
+
+```bash
+SMOKE_ONLY=1 scripts/deploy-production.sh
 ```

@@ -210,3 +210,13 @@ scripts/validate-env.sh vercel
 `infra` ja deve passar. `app-core` passa quando o backend tem o minimo para
 subir. `app` e `vercel` passam quando os dominios, Supabase, provedores
 externos, Stripe e credenciais da Vercel forem preenchidos.
+
+Depois dos envs preenchidos, a subida completa pode ser feita por:
+
+```bash
+CONFIRM=1 CREATE_ADMIN=1 scripts/deploy-production.sh
+```
+
+Sem `CONFIRM=1`, o mesmo comando roda como dry-run com gates e smoke tests.
+Enquanto os envs externos ainda nao estao completos, use
+`SMOKE_ONLY=1 scripts/deploy-production.sh` para rodar apenas os smoke tests.
