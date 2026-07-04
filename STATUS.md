@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-04 22:33 UTC.
+Atualizado em 2026-07-04 22:38 UTC.
 
 ## Estado atual
 
@@ -39,11 +39,9 @@ Atualizado em 2026-07-04 22:33 UTC.
   publica do frontend.
 - Vercel envs de producao: Supabase/URLs/segredos internos sincronizados. O
   build Next.js passou depois disso.
-- Frontend provisiorio: `https://agent-smith-lieuh0we6-csm-marketings-projects.vercel.app`
-  responde 200 em `/`, `/login` e `/admin/login`. O alias curto
-  `https://agent-smith-csm.vercel.app` ainda retorna 404 porque a Vercel marca
-  o deployment prebuilt como `BLOCKED` para alias/promote, apesar da URL gerada
-  estar publica.
+- Frontend Vercel: deploy Git do commit `7db90a3` ficou `READY` e recebeu alias
+  de producao. `https://agent-smith-csm.vercel.app` responde 200 em `/`,
+  `/login` e `/admin/login`.
 - Preflight base: `scripts/check-ready.sh` valida Git/origin/upstream, Redis,
   Qdrant, MinIO, app importado, rede `easypanel`, Traefik/80/443 e Vercel
   autenticada/linkada.

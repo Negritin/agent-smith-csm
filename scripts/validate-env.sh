@@ -111,6 +111,69 @@ optional_key() {
   fi
 }
 
+supabase_key_type() {
+  local value="$1"
+
+  case "$value" in
+    sb_secret_*) printf 'secret' ;;
+    sb_publishable_*) printf 'publishable' ;;
+    eyJ*)
+      TOKEN="$value" node -e '
+        const token = process.env.TOKEN || "";
+        try {
+          const payload = JSON.parse(Buffer.from(token.split(".")[1] || "", "base64url").toString("utf8"));
+          if (payload.role === "service_role") process.stdout.write("secret");
+          else if (payload.role === "anon") process.stdout.write("publishable");
+          else process.stdout.write("jwt");
+        } catch {
+          process.stdout.write("jwt");
+        }
+      ' 2>/dev/null || printf 'jwt'
+      ;;
+    *) printf 'unknown' ;;
+  esac
+}
+
+require_supabase_server_key() {
+  local file="$1"
+  local key="$2"
+  local label="$3"
+  local value kind
+
+  require_key "$file" "$key" "$label"
+  value="$(value_for "$file" "$key")"
+  if is_placeholder "$value"; then
+    return
+  fi
+
+  kind="$(supabase_key_type "$value")"
+  case "$kind" in
+    secret) pass "$label server key: $key" ;;
+    publishable) fail "$label server key is public/publishable: $key" ;;
+    *) fail "$label server key type not recognized: $key" ;;
+  esac
+}
+
+require_supabase_public_key() {
+  local file="$1"
+  local key="$2"
+  local label="$3"
+  local value kind
+
+  require_key "$file" "$key" "$label"
+  value="$(value_for "$file" "$key")"
+  if is_placeholder "$value"; then
+    return
+  fi
+
+  kind="$(supabase_key_type "$value")"
+  case "$kind" in
+    publishable) pass "$label public key: $key" ;;
+    secret) fail "$label secret key must not be exposed through $key" ;;
+    *) fail "$label public key type not recognized: $key" ;;
+  esac
+}
+
 check_infra() {
   require_file "$INFRA_ENV" "infra"
 
@@ -145,7 +208,6 @@ check_app_core() {
     APP_URL
     ALLOWED_ORIGINS
     SUPABASE_URL
-    SUPABASE_KEY
     SUPABASE_DB_URL
     OPENAI_API_KEY
     ENCRYPTION_KEY
@@ -161,6 +223,7 @@ check_app_core() {
   for key in "${keys[@]}"; do
     require_key "$APP_ENV_FILE" "$key" "app-core"
   done
+  require_supabase_server_key "$APP_ENV_FILE" SUPABASE_KEY "app-core"
 }
 
 check_app() {
@@ -260,8 +323,6 @@ check_vercel() {
     NEXT_PUBLIC_LANGCHAIN_API_URL
     NEXT_PUBLIC_BASE_URL
     NEXT_PUBLIC_SUPABASE_URL
-    NEXT_PUBLIC_SUPABASE_ANON_KEY
-    SUPABASE_SERVICE_ROLE_KEY
     INTERNAL_JWT_SECRET
     SESSION_SECRET
     WIDGET_HMAC_SECRET
@@ -272,6 +333,8 @@ check_vercel() {
   for key in "${keys[@]}"; do
     require_key "$VERCEL_ENV_FILE" "$key" "vercel"
   done
+  require_supabase_public_key "$VERCEL_ENV_FILE" NEXT_PUBLIC_SUPABASE_ANON_KEY "vercel"
+  require_supabase_server_key "$VERCEL_ENV_FILE" SUPABASE_SERVICE_ROLE_KEY "vercel"
 
   optional_key "$VERCEL_ENV_FILE" UPSTASH_REDIS_REST_URL "vercel"
   optional_key "$VERCEL_ENV_FILE" UPSTASH_REDIS_REST_TOKEN "vercel"

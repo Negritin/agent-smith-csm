@@ -113,6 +113,65 @@ optional_pattern() {
   fi
 }
 
+supabase_key_type() {
+  local value="$1"
+
+  case "$value" in
+    sb_secret_*) printf 'secret' ;;
+    sb_publishable_*) printf 'publishable' ;;
+    eyJ*)
+      TOKEN="$value" node -e '
+        const token = process.env.TOKEN || "";
+        try {
+          const payload = JSON.parse(Buffer.from(token.split(".")[1] || "", "base64url").toString("utf8"));
+          if (payload.role === "service_role") process.stdout.write("secret");
+          else if (payload.role === "anon") process.stdout.write("publishable");
+          else process.stdout.write("jwt");
+        } catch {
+          process.stdout.write("jwt");
+        }
+      ' 2>/dev/null || printf 'jwt'
+      ;;
+    *) printf 'unknown' ;;
+  esac
+}
+
+require_supabase_server_key() {
+  local key="$1"
+  local value kind
+
+  value="$(value_for_key "$key")"
+  if is_placeholder "$value"; then
+    fail "Supabase missing or placeholder: $key"
+    return
+  fi
+
+  kind="$(supabase_key_type "$value")"
+  case "$kind" in
+    secret) pass "Supabase server key: $key" ;;
+    publishable) fail "Supabase server key is public/publishable: $key" ;;
+    *) fail "Supabase server key type not recognized: $key" ;;
+  esac
+}
+
+require_supabase_public_key() {
+  local key="$1"
+  local value kind
+
+  value="$(value_for_key "$key")"
+  if is_placeholder "$value"; then
+    fail "Supabase missing or placeholder: $key"
+    return
+  fi
+
+  kind="$(supabase_key_type "$value")"
+  case "$kind" in
+    publishable) pass "Supabase public key: $key" ;;
+    secret) fail "Supabase secret key must not be exposed through $key" ;;
+    *) fail "Supabase public key type not recognized: $key" ;;
+  esac
+}
+
 curl_status() {
   local url="$1"
   shift
@@ -210,9 +269,9 @@ main() {
   [ -f "$APP_ENV_FILE" ] && pass "app env file exists" || warn "app env file missing: $APP_ENV_FILE"
 
   require_pattern SUPABASE_URL '^https://[^/]+\.supabase\.co/?$' "Supabase"
-  require_pattern SUPABASE_KEY '^.+$' "Supabase"
+  require_supabase_server_key SUPABASE_KEY
   require_pattern SUPABASE_DB_URL '^postgres(ql)?://.+' "Supabase"
-  require_pattern NEXT_PUBLIC_SUPABASE_ANON_KEY '^.+$' "Supabase"
+  require_supabase_public_key NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   require_pattern OPENAI_API_KEY '^sk-.+' "OpenAI"
   require_pattern ANTHROPIC_API_KEY '^sk-ant-.+' "Anthropic"
