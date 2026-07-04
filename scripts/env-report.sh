@@ -137,6 +137,7 @@ main() {
     STRIPE_WEBHOOK_SECRET
 
   print_optional_group "external optional input" "$EXTERNAL_ENV_FILE" \
+    PUBLIC_SERVER_IP \
     SENDGRID_API_KEY \
     SENDGRID_FROM_EMAIL \
     GOOGLE_API_KEY \

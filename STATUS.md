@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-04 15:03 UTC.
+Atualizado em 2026-07-04 15:06 UTC.
 
 ## Estado atual
 
@@ -37,6 +37,8 @@ Atualizado em 2026-07-04 15:03 UTC.
   imprimir valores, validando `app` completo + Vercel por padrao.
 - Env report: `scripts/env-report.sh` mostra arquivos e chaves obrigatorias
   faltantes sem imprimir valores sensiveis.
+- `/opt/agent-smith/.env.external`: criado com permissao `600`; `PUBLIC_SERVER_IP`
+  ja preenchido com `5.161.73.5`, faltando os dominios/chaves reais.
 - Imagens Docker: backend, worker, beat, docling-api e docling-worker foram
   buildadas com sucesso.
 - Backend smoke: `scripts/smoke-backend.sh` passou, validando compose, build da
