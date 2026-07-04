@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-04 01:42 UTC.
+Atualizado em 2026-07-04 01:46 UTC.
 
 ## Estado atual
 
@@ -11,7 +11,7 @@ Atualizado em 2026-07-04 01:42 UTC.
 - Repo privado: ainda bloqueado por `Permission denied (publickey)`.
 - Systemd: `agent-smith-infra.service` habilitado no boot e validado com `status=0/SUCCESS`.
 - Build tooling: `python3-pip`, Python headers, Git LFS e Corepack instalados/habilitados.
-- Git local: `/opt/agent-smith` inicializado em `main`, commit `6b72ada`, com `upstream` apontando para o repo original apenas para fetch.
+- Git local: `/opt/agent-smith` inicializado em `main`, com `origin` apontando para `Negritin/agent-smith-csm` e `upstream` apontando para o repo original apenas para fetch.
 
 ## Infra local criada
 
@@ -65,7 +65,13 @@ Para continuar com clone, estudo do projeto e subida real do backend/frontend:
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOSiN1cepl3R/7A+uGcNR5pxwH6dmbXqewwnWz1W5d5Y agent-smith-vps-5.161.73.5-2026-07-04
 ```
 
-2. Fornecer login/token da Vercel:
+2. Adicionar a deploy key abaixo no GitHub repo `Negritin/agent-smith-csm` com acesso de escrita para publicar este repo local.
+
+```text
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOiiqXsOD72uzihn9ujLmBEgDM4ylZ3rtSEPefVEMo7i negritin-agent-smith-csm-vps-5.161.73.5-2026-07-04
+```
+
+3. Fornecer login/token da Vercel:
 
 ```env
 VERCEL_TOKEN=
@@ -73,7 +79,7 @@ VERCEL_ORG_ID=
 VERCEL_PROJECT_ID=
 ```
 
-3. Definir dominio/API publica do backend para Traefik/Easypanel.
+4. Definir dominio/API publica do backend para Traefik/Easypanel.
 
 ## Comandos uteis
 
@@ -93,9 +99,9 @@ git status --short --branch --ignored
 git remote -v
 ```
 
-Quando houver um repo novo no GitHub para este projeto, configurar:
+Repo destino configurado:
 
 ```bash
-git remote add origin <url-do-nosso-repo>
+git remote -v
 git push -u origin main
 ```
