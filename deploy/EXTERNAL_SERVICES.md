@@ -126,6 +126,16 @@ https://agent-smith-api.5.161.73.5.sslip.io/api/v1/webhook/{provider}/{token}
 O token de webhook e por integracao. Ao regenerar, a URL antiga deixa de valer e
 deve ser recolada no painel do provider.
 
+O schema Supabase necessario para esse fluxo e validado por:
+
+```bash
+scripts/check-supabase.sh
+```
+
+Esse check cobre `public.integrations`, as colunas `webhook_token*`, os indices
+de lookup/exclusividade e garante que nao exista integracao WhatsApp ativa sem
+`webhook_token_hash`.
+
 Health checks publicos da borda WhatsApp:
 
 ```text

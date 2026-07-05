@@ -74,6 +74,51 @@ require_count_at_least() {
   fi
 }
 
+require_count_zero() {
+  local label="$1"
+  local query="$2"
+  local count
+
+  count="$(scalar "$query")"
+  if [ "$count" -eq 0 ]; then
+    pass "$label count 0"
+  else
+    fail "$label count $count"
+  fi
+}
+
+require_column() {
+  local schema="$1"
+  local table="$2"
+  local column="$3"
+  local exists
+
+  exists="$(scalar "select exists (
+    select 1
+      from information_schema.columns
+     where table_schema = '$schema'
+       and table_name = '$table'
+       and column_name = '$column'
+  );")"
+  if [ "$exists" = "t" ]; then
+    pass "column $schema.$table.$column"
+  else
+    fail "missing column $schema.$table.$column"
+  fi
+}
+
+require_index() {
+  local index="$1"
+  local exists
+
+  exists="$(scalar "select to_regclass('$index') is not null;")"
+  if [ "$exists" = "t" ]; then
+    pass "index $index"
+  else
+    fail "missing index $index"
+  fi
+}
+
 main() {
   if is_placeholder "${SUPABASE_DB_URL:-}"; then
     fail "SUPABASE_DB_URL is missing or placeholder"
@@ -89,9 +134,24 @@ main() {
   require_table public.admin_users
   require_table public.agents
   require_table public.documents
+  require_table public.integrations
   require_table public.llm_pricing
   require_table public.platform_settings
   require_table private.app_runtime_secrets
+
+  require_column public integrations provider
+  require_column public integrations identifier
+  require_column public integrations token
+  require_column public integrations client_token
+  require_column public integrations instance_id
+  require_column public integrations base_url
+  require_column public integrations agent_id
+  require_column public integrations webhook_token
+  require_column public integrations webhook_token_hash
+  require_column public integrations webhook_token_prefix
+  require_column public integrations webhook_token_rotated_at
+  require_index public.uniq_integrations_webhook_token_hash
+  require_index public.uniq_whatsapp_active_integration_per_agent
 
   require_count_at_least "llm_pricing" "select count(*) from public.llm_pricing;" 60
   require_count_at_least \
@@ -106,6 +166,19 @@ main() {
     "private.app_runtime_secrets.widget_hmac_secret" \
     "select count(*) from private.app_runtime_secrets where name = 'widget_hmac_secret';" \
     1
+  require_count_zero \
+    "active WhatsApp integrations without webhook token hash" \
+    "select count(*)
+       from public.integrations
+      where provider in ('z-api', 'uazapi', 'evolution')
+        and coalesce(is_active, false)
+        and webhook_token_hash is null;"
+  require_count_zero \
+    "active legacy WhatsApp provider rows" \
+    "select count(*)
+       from public.integrations
+      where provider in ('evolution-api', 'wppconnect', 'whatsapp', 'whatsapp-cloud', 'meta')
+        and coalesce(is_active, false);"
 
   local admin_count
   admin_count="$(scalar "select count(*) from public.admin_users where role = 'master_admin';")"
