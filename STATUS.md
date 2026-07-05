@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-04 23:25 UTC.
+Atualizado em 2026-07-05 00:06 UTC.
 
 ## Estado atual
 
@@ -56,13 +56,13 @@ Atualizado em 2026-07-04 23:25 UTC.
   vazias ou ainda com placeholder sem imprimir valores sensiveis.
 - `/opt/agent-smith/.env.external`: criado com permissao `600`; `PUBLIC_SERVER_IP`,
   URLs publicas, `SUPABASE_URL`, `SUPABASE_KEY`, `SUPABASE_DB_URL`,
-  `DATABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` estao preenchidos. Ainda
-  faltam providers LLM/busca e Stripe.
+  `DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` e `OPENAI_API_KEY` estao
+  preenchidos. Ainda faltam providers LLM/busca adicionais e Stripe.
 - Preparacao de producao: `scripts/prepare-production-envs.sh` passa nos checks
   base e no prefill publico, mas para corretamente em `scripts/check-external-services.sh`
   enquanto faltarem providers LLM/busca e Stripe.
 - Imagens Docker: backend, worker, beat, docling-api e docling-worker foram
-  buildadas com sucesso.
+  buildadas e estao rodando com sucesso.
 - Backend smoke: `scripts/smoke-backend.sh` passou, validando compose, build da
   imagem backend, `python -m compileall -q app` e import de `app.main` dentro do
   container.
@@ -70,8 +70,18 @@ Atualizado em 2026-07-04 23:25 UTC.
   interna e `/health` respondeu `{"status":"ok","service":"docling","workers":1}`.
 - Docling smoke: `scripts/smoke-docling.sh` passou, validando health, worker ativo,
   `/status/{task_id}` com chave correta e 401 com chave incorreta.
-- Backend FastAPI, Celery worker e Celery beat: prontos para subir, aguardando
-  envs externos reais.
+- Backend FastAPI, Celery worker e Celery beat: rodando na VPS.
+- API publica: `https://agent-smith-api.5.161.73.5.sslip.io` responde 200 em
+  `/` e `/health`; `scripts/check-public-access.sh` passa.
+- Backend health: `/health` retorna `status=healthy`,
+  `database_sync=connected`, `database_async=connected` e
+  `langchain=initialized`.
+- Worker/beat: Celery worker conecta no Redis, processa filas
+  `attendance,billing,sanitization,celery`, consulta Supabase com 200, e o beat
+  envia jobs periodicos.
+- Supabase client compat: backend/worker foram ajustados para aceitar chaves
+  Supabase novas `sb_secret_*` com a versao atual de `supabase-py`, evitando
+  duplicidade de header `apikey`.
 - Supabase setup: `CONFIRM=1 scripts/setup-supabase.sh fresh` aplicado com
   sucesso. Tabelas, buckets, seeds e `private.app_runtime_secrets` foram
   validados por `scripts/check-supabase.sh`.
@@ -199,7 +209,7 @@ Tambem ja preenchido/validado:
 
 Ainda obrigatorio para `scripts/deploy-app.sh` / `scripts/validate-env.sh app-core`:
 
-- `OPENAI_API_KEY`
+- Nada pendente; `scripts/validate-env.sh app-core` passa.
 
 `SUPABASE_DB_URL`/`DATABASE_URL` ja foram preenchidos e validados. Para refazer
 o DB URL sem colar a connection string completa:
@@ -223,8 +233,7 @@ Preencher `/opt/agent-smith/.env.vercel`:
 
 - Nada obrigatorio no momento; `scripts/validate-env.sh vercel` passa.
 
-Tambem e necessario aplicar as migrations/seeds do Supabase indicadas em
-`deploy/ENV_REQUIRED.preflight.md`.
+As migrations/seeds do Supabase ja foram aplicadas e validadas.
 WhatsApp e configurado por integracao (`z-api`, `uazapi`, `evolution`) no banco,
 com token de webhook por tenant; nao ha `META_WHATSAPP_TOKEN` global lido pelo
 codigo atual.

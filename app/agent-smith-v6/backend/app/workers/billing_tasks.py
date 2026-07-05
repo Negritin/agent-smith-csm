@@ -26,9 +26,10 @@ from typing import Any, Dict, List, Optional
 
 from celery import shared_task
 
-from supabase import Client, create_client
+from supabase import Client
 
 import app.db_pool_patch  # noqa: F401 — patcha o pool do PostgREST no boot do worker (BLOCKER-1)
+from app.core.database import create_compatible_supabase_client
 from app.db_retry import db_retry
 
 logger = logging.getLogger(__name__)
@@ -85,7 +86,7 @@ def get_supabase_client() -> Client:
             raise ValueError(
                 "SUPABASE_URL and SUPABASE_KEY environment variables are required"
             )
-        _supabase_client = create_client(url, key)
+        _supabase_client = create_compatible_supabase_client(url, key)
         logger.info("[Billing Worker] Supabase client initialized")
     return _supabase_client
 

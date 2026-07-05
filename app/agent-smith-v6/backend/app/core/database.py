@@ -11,7 +11,8 @@ from fastapi import Request
 from supabase._async.client import AsyncClient
 from supabase._async.client import create_client as acreate_client
 
-from supabase import Client, create_client
+from supabase import Client, create_client as create_sync_client
+from supabase.lib.client_options import ClientOptions
 
 import app.db_pool_patch  # noqa: F401,E402 — aplica o patch de pool no import (ANTES de qualquer create_client)
 
@@ -37,6 +38,73 @@ SERVICE_ROLE_CALLER_INVENTORY: Dict[str, str] = {
     "api.stripe_webhooks/api.webhook/workers": "system operations: external webhooks and background jobs cannot use a user JWT yet",
     "services.billing/sanitization/memory": "system operations or service methods that already require company_id; JWT-aware client remains Phase 2 backlog",
 }
+
+
+_SUPABASE_BOOTSTRAP_JWT = (
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9."
+    "eyJyb2xlIjoic2VydmljZV9yb2xlIn0."
+    "bootstrap"
+)
+
+
+def _opaque_key_headers(api_key: str) -> Dict[str, str]:
+    return {
+        "apiKey": api_key,
+        "Authorization": f"Bearer {api_key}",
+    }
+
+
+def _client_key_and_options(api_key: str) -> tuple[str, Optional[ClientOptions]]:
+    """Return supabase-py args compatible with legacy JWT and new sb_* keys.
+
+    The installed supabase-py validates the main key argument as a JWT, but
+    Supabase's newer secret/publishable keys are opaque strings prefixed with
+    ``sb_``. PostgREST accepts them through the ``apikey`` and ``Authorization``
+    headers, so for those keys we pass a syntactically valid bootstrap JWT only
+    to satisfy the library validator and pin the real key in headers.
+    """
+
+    if api_key.startswith("sb_"):
+        return (
+            _SUPABASE_BOOTSTRAP_JWT,
+            ClientOptions(headers=_opaque_key_headers(api_key)),
+        )
+
+    return api_key, None
+
+
+def _restore_opaque_key_headers(client: Any, api_key: str) -> None:
+    if api_key.startswith("sb_"):
+        client.options.headers.update(_opaque_key_headers(api_key))
+
+
+def create_compatible_supabase_client(supabase_url: str, api_key: str) -> Client:
+    """Create a sync Supabase client that supports legacy JWT and new sb_* keys."""
+
+    client_key, client_options = _client_key_and_options(api_key)
+    client: Client = create_sync_client(
+        supabase_url,
+        client_key,
+        options=client_options,
+    )
+    _restore_opaque_key_headers(client, api_key)
+    return client
+
+
+async def create_compatible_async_supabase_client(
+    supabase_url: str,
+    api_key: str,
+) -> AsyncClient:
+    """Create an async Supabase client that supports legacy JWT and new sb_* keys."""
+
+    client_key, client_options = _client_key_and_options(api_key)
+    client = await acreate_client(
+        supabase_url,
+        client_key,
+        options=client_options,
+    )
+    _restore_opaque_key_headers(client, api_key)
+    return client
 
 
 class TenantClient:
@@ -145,9 +213,9 @@ class SupabaseClient:
 
     def __init__(self):
         """Inicializa cliente Supabase com service role key"""
-        self.client: Client = create_client(
+        self.client = create_compatible_supabase_client(
             settings.SUPABASE_URL,
-            settings.SUPABASE_KEY,  # SERVICE ROLE KEY
+            settings.SUPABASE_KEY,
         )
         self.tenant = TenantClient(self.client)
         logger.info(f"Supabase client initialized: {settings.SUPABASE_URL}")
@@ -503,7 +571,10 @@ async def create_async_supabase_client() -> AsyncSupabaseClient:
     Factory para criar instância do cliente async.
     Chamar no startup do FastAPI (lifespan).
     """
-    client = await acreate_client(settings.SUPABASE_URL, settings.SUPABASE_KEY)
+    client = await create_compatible_async_supabase_client(
+        settings.SUPABASE_URL,
+        settings.SUPABASE_KEY,
+    )
     return AsyncSupabaseClient(client)
 
 
