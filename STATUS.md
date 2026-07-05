@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-05 01:56 UTC.
+Atualizado em 2026-07-05 02:04 UTC.
 
 ## Estado atual
 
@@ -70,7 +70,9 @@ Atualizado em 2026-07-05 01:56 UTC.
   imprimir valores, validando `app` completo + Vercel por padrao.
 - Env inventory: templates e helpers tambem cobrem opcionais do codigo real para
   MCP/OAuth GitHub/Slack, tokens MCP locais, Qdrant API key e knobs de tuning
-  backend, sempre como opcionais nao bloqueantes.
+  backend, sempre como opcionais nao bloqueantes. `scripts/check-env-inventory.sh`
+  compara automaticamente envs lidas pelo codigo real contra os templates e
+  permite apenas envs automaticas/fallback/staging em allowlist.
 - Env report: `scripts/env-report.sh` mostra arquivos e chaves obrigatorias
   vazias ou ainda com placeholder sem imprimir valores sensiveis.
 - Finalizacao externa: `scripts/finalize-external-services.sh` aplica
@@ -217,6 +219,7 @@ para esse IP.
 - `/opt/agent-smith/scripts/analyze-upstream.sh`
 - `/opt/agent-smith/scripts/validate-env.sh`
 - `/opt/agent-smith/scripts/env-report.sh`
+- `/opt/agent-smith/scripts/check-env-inventory.sh`
 - `/opt/agent-smith/scripts/pending-external-envs.sh`
 - `/opt/agent-smith/scripts/apply-external-envs.sh`
 - `/opt/agent-smith/scripts/finalize-external-services.sh`

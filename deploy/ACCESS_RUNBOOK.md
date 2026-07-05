@@ -65,6 +65,12 @@ Higiene de segredos:
 scripts/check-secret-hygiene.sh
 ```
 
+Cobertura de variaveis de ambiente usadas pelo codigo real:
+
+```bash
+scripts/check-env-inventory.sh
+```
+
 Env remoto da Vercel:
 
 ```bash

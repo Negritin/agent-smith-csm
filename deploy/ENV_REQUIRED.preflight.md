@@ -62,6 +62,8 @@ ALLOW_PARTIAL=1 scripts/audit-goal-status.sh
 
 Sem `ALLOW_PARTIAL=1`, o auditor falha enquanto o gate externo completo ainda
 estiver pendente.
+O auditor tambem roda `scripts/check-env-inventory.sh`, que compara as envs
+referenciadas pelo codigo real com os templates versionados.
 
 ## Dominios publicos
 
