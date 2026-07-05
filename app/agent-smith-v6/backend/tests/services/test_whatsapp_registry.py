@@ -9,8 +9,8 @@ Cobre :func:`app.services.whatsapp.registry.resolve_provider`:
   - INSTÂNCIA NOVA a cada resolução (config amarrada na construção,
     isolamento multi-tenant) — nunca um singleton;
   - :class:`UnknownProviderError` (ZERO fallback para Z-API, SEC-04) para
-    providers fora de ``{z-api, uazapi, evolution}`` (+alias), incluindo
-    ``wppconnect``/``whatsapp``/``whatsapp-cloud``/``meta``.
+    providers fora de ``{z-api, uazapi, evolution, meta-cloud}`` (+alias),
+    incluindo ``wppconnect``/``whatsapp``/``whatsapp-cloud``/``meta``.
 
 Convenções: SEM pytest-asyncio (asserts sync); env semeado por
 tests/services/conftest.py antes de importar app.*.
@@ -24,6 +24,7 @@ import pytest
 
 from app.services.whatsapp.exceptions import UnknownProviderError
 from app.services.whatsapp.providers.evolution import EvolutionProvider
+from app.services.whatsapp.providers.meta_cloud import MetaCloudProvider
 from app.services.whatsapp.providers.uazapi import UazapiProvider
 from app.services.whatsapp.providers.zapi import ZapiProvider
 from app.services.whatsapp.registry import resolve_provider
@@ -63,6 +64,18 @@ def _evolution_integration(**extra: Any) -> Dict[str, Any]:
     return base
 
 
+def _meta_cloud_integration(**extra: Any) -> Dict[str, Any]:
+    base: Dict[str, Any] = {
+        "provider": "meta-cloud",
+        "base_url": "https://graph.facebook.com/v23.0",
+        "instance_id": "phone-number-id",
+        "token": "meta-access-token",
+        "client_token": "meta-app-secret",
+    }
+    base.update(extra)
+    return base
+
+
 # =========================================================================== #
 # Resolução canônica: cada provider mapeia para o bridge correto
 # =========================================================================== #
@@ -81,6 +94,11 @@ def test_resolve_evolution_builds_evolution_provider() -> None:
     assert isinstance(provider, EvolutionProvider)
 
 
+def test_resolve_meta_cloud_builds_meta_provider() -> None:
+    provider = resolve_provider(_meta_cloud_integration())
+    assert isinstance(provider, MetaCloudProvider)
+
+
 # =========================================================================== #
 # Normalização: lower() + strip()
 # =========================================================================== #
@@ -96,6 +114,11 @@ def test_resolve_normalizes_case_and_whitespace(raw_label: str) -> None:
 def test_resolve_uazapi_normalizes_uppercase() -> None:
     provider = resolve_provider(_uazapi_integration(provider="UAZAPI"))
     assert isinstance(provider, UazapiProvider)
+
+
+def test_resolve_meta_cloud_normalizes_uppercase() -> None:
+    provider = resolve_provider(_meta_cloud_integration(provider=" META-CLOUD "))
+    assert isinstance(provider, MetaCloudProvider)
 
 
 # =========================================================================== #

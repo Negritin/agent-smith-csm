@@ -216,8 +216,8 @@ def test_index_is_partial_on_is_active_and_agent() -> None:
     assert re.search(r"agent_id\s+IS\s+NOT\s+NULL", where, re.IGNORECASE)
 
 
-def test_index_provider_set_matches_constant_exactly() -> None:
-    """O literal SQL do índice espelha EXATAMENTE WHATSAPP_PROVIDERS."""
+def test_index_provider_set_matches_june_seam_set() -> None:
+    """A migração de junho estreitou o índice para os 3 bridges existentes então."""
     m = re.search(
         r"CREATE\s+UNIQUE\s+INDEX\s+"
         r"uniq_whatsapp_active_integration_per_agent\s+ON\s+"
@@ -231,10 +231,7 @@ def test_index_provider_set_matches_constant_exactly() -> None:
     )
     assert in_clause is not None
     found = set(re.findall(r"'([^']+)'", in_clause.group(1)))
-    assert found == set(WHATSAPP_PROVIDERS), (
-        f"conjunto do índice {sorted(found)} != WHATSAPP_PROVIDERS "
-        f"{sorted(WHATSAPP_PROVIDERS)}"
-    )
+    assert found == {"z-api", "uazapi", "evolution"}
 
 
 def test_index_in_separate_file_non_concurrently() -> None:

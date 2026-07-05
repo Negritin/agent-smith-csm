@@ -131,7 +131,7 @@ Estado de integracoes:
 - MCP: catalogo global seedado. Internos ativos: Google Calendar, Google Drive,
   Slack e GitHub. Remotos oficiais ficam inativos ate passarem pelo gate de
   OAuth/smoke do runbook.
-- WhatsApp: borda pronta para `z-api`, `uazapi` e `evolution`. A linha ativa em
+- WhatsApp: borda pronta para `z-api`, `uazapi`, `evolution` e `meta-cloud`. A linha ativa em
   `public.integrations` deve ser criada pelo admin com token/instancia/base_url
   reais do provider, vinculada a um agente.
 

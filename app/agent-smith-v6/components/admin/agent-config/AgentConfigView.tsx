@@ -149,6 +149,9 @@ export function AgentConfigView({ companyId, agentId, onBack, onSaved, initialSe
   const [whatsappBufferEnabled, setWhatsappBufferEnabled] = useState(true);
   const [whatsappBufferDebounce, setWhatsappBufferDebounce] = useState(3);
   const [whatsappBufferMaxWait, setWhatsappBufferMaxWait] = useState(10);
+  const [whatsappBusinessAccountId, setWhatsappBusinessAccountId] = useState('');
+  const [whatsappWebhookVerifyToken, setWhatsappWebhookVerifyToken] = useState('');
+  const [whatsappWebhookMode, setWhatsappWebhookMode] = useState<'shadow' | 'active'>('shadow');
   const [hasExistingIntegration, setHasExistingIntegration] = useState(false);
   const [integrationId, setIntegrationId] = useState<string | null>(null);
   const [savingWhatsapp, setSavingWhatsapp] = useState(false);
@@ -560,6 +563,12 @@ export function AgentConfigView({ companyId, agentId, onBack, onSaved, initialSe
         setWhatsappBufferEnabled(integration.buffer_enabled ?? true);
         setWhatsappBufferDebounce(integration.buffer_debounce_seconds ?? 3);
         setWhatsappBufferMaxWait(integration.buffer_max_wait_seconds ?? 10);
+        const providerConfig = integration.provider_config || {};
+        setWhatsappBusinessAccountId(providerConfig.business_account_id || '');
+        setWhatsappWebhookVerifyToken(providerConfig.webhook_verify_token || '');
+        setWhatsappWebhookMode(
+          integration.whatsapp_webhook_mode === 'active' ? 'active' : 'shadow',
+        );
         // Token em texto puro só para re-exibir a URL (nunca logado — SPEC §1.2).
         setWhatsappWebhookToken(integration.webhook_token || '');
       } else {
@@ -576,6 +585,9 @@ export function AgentConfigView({ companyId, agentId, onBack, onSaved, initialSe
         setWhatsappBufferEnabled(true);
         setWhatsappBufferDebounce(3);
         setWhatsappBufferMaxWait(10);
+        setWhatsappBusinessAccountId('');
+        setWhatsappWebhookVerifyToken('');
+        setWhatsappWebhookMode('shadow');
         setWhatsappWebhookToken('');
       }
     } catch (error) {
@@ -620,6 +632,13 @@ export function AgentConfigView({ companyId, agentId, onBack, onSaved, initialSe
       // uazapi/evolution apontam para servidor próprio: se o base_url ainda é o
       // default z-api, limpa para o admin preencher o host da própria instância.
       setWhatsappBaseUrl((prev) => (prev.trim() === ZAPI_DEFAULT_BASE_URL ? '' : prev));
+    } else if (value === 'meta-cloud') {
+      setWhatsappBaseUrl((prev) =>
+        !prev.trim() || prev.trim() === ZAPI_DEFAULT_BASE_URL
+          ? 'https://graph.facebook.com/v23.0'
+          : prev,
+      );
+      setWhatsappWebhookMode('shadow');
     } else if (value === 'z-api') {
       // Voltando para z-api com campo vazio, restaura o default z-api.
       setWhatsappBaseUrl((prev) => (prev.trim() === '' ? ZAPI_DEFAULT_BASE_URL : prev));
@@ -719,6 +738,39 @@ export function AgentConfigView({ companyId, agentId, onBack, onSaved, initialSe
         });
         return;
       }
+    } else if (whatsappProvider === 'meta-cloud') {
+      if (!whatsappInstanceId.trim()) {
+        toast({
+          title: 'Atenção',
+          description: 'Phone Number ID é obrigatório para Meta Cloud',
+          variant: 'destructive',
+        });
+        return;
+      }
+      if (!whatsappClientToken.trim()) {
+        toast({
+          title: 'Atenção',
+          description: 'App Secret é obrigatório para Meta Cloud',
+          variant: 'destructive',
+        });
+        return;
+      }
+      if (!whatsappBusinessAccountId.trim()) {
+        toast({
+          title: 'Atenção',
+          description: 'WABA ID é obrigatório para Meta Cloud',
+          variant: 'destructive',
+        });
+        return;
+      }
+      if (!whatsappWebhookVerifyToken.trim()) {
+        toast({
+          title: 'Atenção',
+          description: 'Verify Token é obrigatório para Meta Cloud',
+          variant: 'destructive',
+        });
+        return;
+      }
     }
 
     setSavingWhatsapp(true);
@@ -732,6 +784,12 @@ export function AgentConfigView({ companyId, agentId, onBack, onSaved, initialSe
         token: whatsappToken.trim(),
         client_token: whatsappClientToken.trim() || null,
         base_url: whatsappBaseUrl.trim(),
+        provider_config: {
+          business_account_id: whatsappBusinessAccountId.trim(),
+          webhook_verify_token: whatsappWebhookVerifyToken.trim(),
+          graph_version: whatsappBaseUrl.trim().split('/').pop() || 'v23.0',
+        },
+        whatsapp_webhook_mode: whatsappProvider === 'meta-cloud' ? whatsappWebhookMode : null,
         is_active: whatsappIsActive,
         buffer_enabled: whatsappBufferEnabled,
         buffer_debounce_seconds: whatsappBufferDebounce,
@@ -1323,6 +1381,12 @@ export function AgentConfigView({ companyId, agentId, onBack, onSaved, initialSe
                   setWhatsappBufferDebounce={setWhatsappBufferDebounce}
                   whatsappBufferMaxWait={whatsappBufferMaxWait}
                   setWhatsappBufferMaxWait={setWhatsappBufferMaxWait}
+                  whatsappBusinessAccountId={whatsappBusinessAccountId}
+                  setWhatsappBusinessAccountId={setWhatsappBusinessAccountId}
+                  whatsappWebhookVerifyToken={whatsappWebhookVerifyToken}
+                  setWhatsappWebhookVerifyToken={setWhatsappWebhookVerifyToken}
+                  whatsappWebhookMode={whatsappWebhookMode}
+                  setWhatsappWebhookMode={setWhatsappWebhookMode}
                   savingWhatsapp={savingWhatsapp}
                   onSaveWhatsapp={handleSaveWhatsapp}
                   whatsappWebhookToken={whatsappWebhookToken}

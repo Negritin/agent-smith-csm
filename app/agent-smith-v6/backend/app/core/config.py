@@ -168,6 +168,11 @@ class Settings(BaseSettings):
     # AI turn (double charge / double send). 24h default.
     WHATSAPP_DEDUP_TTL_SECONDS: int = 86400
 
+    # Meta WhatsApp Cloud API defaults. Tenant-specific credentials live in
+    # public.integrations; this is only the default Graph API version used when an
+    # integration row/provider_config does not override base_url/graph_version.
+    META_GRAPH_VERSION: str = "v23.0"
+
     # Mandatory guardrail baseline kill-switch (F20). When True (default) the
     # safe-by-default baseline in SmithGuardrail.validate_input — prompt-injection
     # regex, toxicity regex and the Prompt Guard (safety_service.validate_all) —

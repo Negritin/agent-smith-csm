@@ -74,15 +74,16 @@ if not SUPABASE_URL or not SUPABASE_KEY:
 
 # ---------------------------------------------------------------------------
 # Provedores WhatsApp + tags do token (4ª ocorrência standalone da sincronia
-# tripla {z-api, uazapi, evolution}; inlinado de propósito para manter o script
+# tripla {z-api, uazapi, evolution, meta-cloud}; inlinado de propósito para manter o script
 # standalone — importar integration_service exigiria as env vars de settings).
-# Tags pinadas pelo CONTRATO: z-api->zapi, uazapi->uaz, evolution->evo.
+# Tags pinadas pelo CONTRATO: z-api->zapi, uazapi->uaz, evolution->evo, meta-cloud->meta.
 # ---------------------------------------------------------------------------
-WHATSAPP_PROVIDERS = ("z-api", "uazapi", "evolution")
+WHATSAPP_PROVIDERS = ("z-api", "uazapi", "evolution", "meta-cloud")
 PROVIDER_TAG = {
     "z-api": "zapi",
     "uazapi": "uaz",
     "evolution": "evo",
+    "meta-cloud": "meta",
 }
 
 # Limite de tentativas por linha em caso de colisão 23505 (extremamente raro com

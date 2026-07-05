@@ -144,23 +144,41 @@ implementado e:
 - `z-api`
 - `uazapi`
 - `evolution`
+- `meta-cloud`
 
 As credenciais ficam por empresa/agente em `public.integrations` e sao geridas
 pelo admin em `/admin/integrations`. Campos principais no banco:
 
-- `provider`: `z-api`, `uazapi` ou `evolution`
+- `provider`: `z-api`, `uazapi`, `evolution` ou `meta-cloud`
 - `identifier`: telefone/identificador conectado do provider
 - `token`: credencial de envio outbound
 - `client_token`: quando o provider exigir um segundo token
-- `instance_id`: usado por Z-API/Evolution; uazapi pode usar `NULL`
+- `instance_id`: usado por Z-API/Evolution; no `meta-cloud` e o `phone_number_id`
 - `base_url`: URL base do provider
 - `agent_id`: vincula a integracao ao agente correto
+- `provider_config`: metadados nao secretos. No `meta-cloud`: `business_account_id`,
+  `webhook_verify_token`, `graph_version` e, se util, ids do Chatwoot usados na
+  importacao.
+- `whatsapp_webhook_mode`: `shadow` recebe/persiste sem responder; `active`
+  responde pelo Agent Smith.
 
 A URL de webhook e gerada pelo admin usando `NEXT_PUBLIC_API_URL` e tem formato:
 
 ```text
 https://agent-smith-api.5.161.73.5.sslip.io/api/v1/webhook/{provider}/{token}
 ```
+
+Para a API oficial da Meta, cadastre essa URL no app da Meta usando o provider
+`meta-cloud`:
+
+```text
+https://agent-smith-api.5.161.73.5.sslip.io/api/v1/webhook/meta-cloud/{token}
+```
+
+No GET de verificacao da Meta, use o `webhook_verify_token` salvo na integracao.
+No POST, o backend valida `X-Hub-Signature-256` com o App Secret salvo no campo
+`client_token`. O primeiro corte deve ficar em `shadow`; apos confirmar recepcao,
+dedup e historico, altere para `active`.
 
 O token de webhook e por integracao. Ao regenerar, a URL antiga deixa de valer e
 deve ser recolada no painel do provider.
@@ -171,8 +189,25 @@ Envs opcionais de plataforma para WhatsApp:
 ZAPI_MEDIA_HOST_ALLOWLIST=
 UAZAPI_MEDIA_HOST_ALLOWLIST=
 EVOLUTION_MEDIA_HOST_ALLOWLIST=
+META_GRAPH_VERSION=v23.0
 WHATSAPP_DEDUP_TTL_SECONDS=86400
 ```
+
+Historico antigo da Meta nao e baixado pela Cloud API. Para o numero que hoje
+esta no Chatwoot, importe o historico a partir das tabelas do Chatwoot usando:
+
+```bash
+SUPABASE_DB_URL=... scripts/import-chatwoot-whatsapp.py \
+  --inbox-id <chatwoot-inbox-id> \
+  --company-id <agent-smith-company-id> \
+  --agent-id <agent-smith-agent-id> \
+  --integration-id <agent-smith-integration-id> \
+  --dry-run
+```
+
+Depois rode novamente sem `--dry-run`. A importacao grava as conversas/mensagens
+do Agent Smith e preserva IDs externos em `whatsapp_external_conversations` e
+`whatsapp_external_messages`.
 
 O schema Supabase necessario para esse fluxo e validado por:
 
@@ -190,6 +225,7 @@ Health checks publicos da borda WhatsApp:
 https://agent-smith-api.5.161.73.5.sslip.io/api/v1/webhook/z-api/health
 https://agent-smith-api.5.161.73.5.sslip.io/api/v1/webhook/uazapi/health
 https://agent-smith-api.5.161.73.5.sslip.io/api/v1/webhook/evolution/health
+https://agent-smith-api.5.161.73.5.sslip.io/api/v1/webhook/meta-cloud/health
 ```
 
 Para validar a superficie sem acionar mensagem real:
@@ -207,6 +243,7 @@ Hardening opcional para midias inbound:
 ZAPI_MEDIA_HOST_ALLOWLIST=
 UAZAPI_MEDIA_HOST_ALLOWLIST=
 EVOLUTION_MEDIA_HOST_ALLOWLIST=
+META_GRAPH_VERSION=v23.0
 ```
 
 Deixe vazio ate confirmar os hosts reais de midia de cada provider; vazio ainda

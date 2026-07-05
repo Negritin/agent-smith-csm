@@ -2,9 +2,9 @@
 
 SPEC §6.2 / §9 V7.1–V7.2. O índice ÚNICO PARCIAL EFETIVO sobre ``(agent_id)`` —
 após esta feature — é o RECRIADO pela migração datada
-``20260625_01_whatsapp_provider_seam.sql`` (DROP + CREATE), com predicado
+``20260705_01_meta_cloud_whatsapp.sql`` (DROP + CREATE), com predicado
 ``provider IN (WHATSAPP_PROVIDERS) AND agent_id IS NOT NULL AND is_active = true``
-sobre o conjunto ESTREITADO ``{z-api, uazapi, evolution}``. O arquivo legado e
+sobre o conjunto ``{z-api, uazapi, evolution, meta-cloud}``. O arquivo legado e
 IMUTÁVEL ``20260620_uazapi_integration.sql`` criou a 1ª versão do índice (conjunto
 histórico de 8 providers), mas a migração datada nova o substitui — por isso este
 teste deriva o predicado EFETIVO do arquivo NOVO. Como o mandato da sprint é
@@ -16,8 +16,8 @@ restringe exatamente o conjunto certo de linhas:
   - V7.1: duas integrações WhatsApp **ativas** para o mesmo ``agent_id`` colidem
     (mesma chave ``(agent_id)`` indexada); uma 3ª linha **inativa** NÃO entra no
     índice (predicado ``is_active = true``), logo não colide.
-  - V7.2: conjunto ESTREITADO ``{z-api, uazapi, evolution}`` — ``evolution``
-    ESTÁ em ``WHATSAPP_PROVIDERS``, logo DUAS linhas ativas ``evolution`` +
+  - V7.2: conjunto ``{z-api, uazapi, evolution, meta-cloud}`` — ``evolution``
+    e ``meta-cloud`` ESTÃO em ``WHATSAPP_PROVIDERS``, logo DUAS linhas ativas +
     ``uazapi`` no mesmo agente COLIDEM; já um provider **fora** do conjunto
     (ex.: ``telegram`` ou os órfãos removidos ``wppconnect``/``meta``) e linhas
     com ``agent_id IS NULL`` NÃO são indexadas (não colidem).
@@ -46,14 +46,13 @@ from app.services.integration_service import WHATSAPP_PROVIDERS
 # --------------------------------------------------------------------------- #
 _BACKEND_ROOT = pathlib.Path(__file__).resolve().parents[2]
 # Índice EFETIVO após a feature: a migração datada que faz DROP + CREATE do índice
-# parcial com o conjunto estreitado é a 20260625_03 (o seam foi dividido em 3
-# arquivos; o _01 só normaliza o alias, o _03 recria o índice). O arquivo legado
-# 20260620 (imutável) NÃO é a fonte do predicado vigente — derivamos do _03.
+# parcial com meta-cloud é a 20260705_01. O arquivo legado 20260620 e a seam
+# 20260625 NÃO são a fonte do predicado vigente — derivamos da migração mais nova.
 _MIGRATION_PATH = (
     _BACKEND_ROOT
     / "supabase"
     / "migrations"
-    / "20260625_03_whatsapp_seam_unique_index.sql"
+    / "20260705_01_meta_cloud_whatsapp.sql"
 )
 _SQL = _MIGRATION_PATH.read_text(encoding="utf-8")
 
@@ -165,14 +164,27 @@ def test_v72_legacy_alias_evolution_collides_with_uazapi() -> None:
 
 
 def test_v72_evolution_is_indexed() -> None:
-    # Conjunto ESTREITADO: evolution permanece restringido pelo índice.
+    # Conjunto canônico: evolution permanece restringido pelo índice.
     row = {"agent_id": "agent-1", "provider": "evolution", "is_active": True}
     assert _is_indexed(row), "evolution deve ser restringido pelo índice (V7.2)"
 
 
+def test_v72_meta_cloud_is_indexed() -> None:
+    row = {"agent_id": "agent-1", "provider": "meta-cloud", "is_active": True}
+    assert _is_indexed(row), "meta-cloud deve ser restringido pelo índice oficial"
+
+
+def test_v72_meta_cloud_collides_with_evolution() -> None:
+    rows = [
+        {"agent_id": "agent-1", "provider": "meta-cloud", "is_active": True},
+        {"agent_id": "agent-1", "provider": "evolution", "is_active": True},
+    ]
+    assert _collides(rows), "meta-cloud e evolution ativos no mesmo agente colidem"
+
+
 def test_v72_orphan_aliases_not_indexed() -> None:
     # Aliases órfãos antigos foram REMOVIDOS do conjunto canônico — não entram
-    # mais no índice parcial (estreitamento {z-api, uazapi, evolution}).
+    # mais no índice parcial (o canônico novo é meta-cloud, não whatsapp-cloud/meta).
     for orphan in (
         "evolution-api",
         "wppconnect",

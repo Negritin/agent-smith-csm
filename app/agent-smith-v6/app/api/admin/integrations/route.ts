@@ -11,8 +11,8 @@ export const dynamic = 'force-dynamic';
 /**
  * Provedores WhatsApp aceitos no write path.
  *
- * ESTREITADO para os 3 providers realmente implementados por bridge no backend:
- * `z-api`, `uazapi`, `evolution`. Aliases órfãos antigos (`evolution-api`,
+ * Aceita os providers realmente implementados por bridge no backend:
+ * `z-api`, `uazapi`, `evolution`, `meta-cloud`. Aliases órfãos antigos (`evolution-api`,
  * `wppconnect`, `whatsapp`, `whatsapp-cloud`, `meta`) NÃO são mais aceitos.
  *
  * POR QUE o estreitamento é SEGURO agora: a migração datada
@@ -23,7 +23,7 @@ export const dynamic = 'force-dynamic';
  *   - NORMALIZOU `evolution-api` -> `evolution`, então não sobra nenhuma linha
  *     legada com o nome antigo para ser re-salva.
  * Logo, re-salvar qualquer integração existente cai num provider ∈ {z-api,
- * uazapi, evolution} e passa pela whitelist. ⚠️ ORDEM DE DEPLOY: inverter
+ * uazapi, evolution, meta-cloud} e passa pela whitelist. ⚠️ ORDEM DE DEPLOY: inverter
  * (estreitar ANTES da migração) faria um UPDATE de uma linha legada
  * `evolution-api`/órfã retornar 400 — esta release sobe DEPOIS da migração.
  *
@@ -33,13 +33,13 @@ export const dynamic = 'force-dynamic';
  *   - pelo badge `has_whatsapp` (§2.3, agent_service);
  *   - pelo registry de providers do backend (resolve_provider).
  *
- * ⚠️ INVARIANTE DE SINCRONIA TRIPLA: {z-api, uazapi, evolution} DEVE bater em 3
+ * ⚠️ INVARIANTE DE SINCRONIA TRIPLA: {z-api, uazapi, evolution, meta-cloud} DEVE bater em 3
  * pontos — Python (integration_service.WHATSAPP_PROVIDERS), AQUI (route.ts) e o
  * literal SQL `provider IN (...)` da migração datada
  * `20260625_01_whatsapp_provider_seam.sql`. Drift quebra o build
  * (test_integration_route_exclusivity / test_uazapi_*).
  */
-const WHATSAPP_PROVIDERS = ['z-api', 'uazapi', 'evolution'] as const;
+const WHATSAPP_PROVIDERS = ['z-api', 'uazapi', 'evolution', 'meta-cloud'] as const;
 
 // Whitelist de provider do POST: WHATSAPP_PROVIDERS + 'none' (§7.3). Fora => 400.
 const ALLOWED_PROVIDERS = new Set<string>([...WHATSAPP_PROVIDERS, 'none']);
@@ -48,12 +48,13 @@ const ALLOWED_PROVIDERS = new Set<string>([...WHATSAPP_PROVIDERS, 'none']);
  * Tag de observabilidade do token de webhook por provider (§1.1). Só serve para
  * grep de log/prefixo — NÃO revela entropia. PINADO no CONTRATO (idêntico ao
  * backfill Python e ao regenerate/route.ts):
- *   z-api -> zapi | uazapi -> uaz | evolution -> evo.
+ *   z-api -> zapi | uazapi -> uaz | evolution -> evo | meta-cloud -> meta.
  */
 const WEBHOOK_TOKEN_TAGS: Record<string, string> = {
   'z-api': 'zapi',
   uazapi: 'uaz',
   evolution: 'evo',
+  'meta-cloud': 'meta',
 };
 
 type WebhookTokenFields = {
@@ -275,7 +276,7 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabaseAdmin
       .from('integrations')
       // eslint-disable-next-line prettier/prettier -- string literal único: o parser de tipos do supabase-js exige literal (não concatenado) para inferir as colunas
-      .select('id, agent_id, company_id, provider, identifier, instance_id, token, client_token, base_url, is_active, buffer_enabled, buffer_debounce_seconds, buffer_max_wait_seconds, webhook_token, webhook_token_prefix, webhook_token_rotated_at, created_at, updated_at')
+      .select('id, agent_id, company_id, provider, identifier, instance_id, token, client_token, base_url, provider_config, whatsapp_webhook_mode, is_active, buffer_enabled, buffer_debounce_seconds, buffer_max_wait_seconds, webhook_token, webhook_token_prefix, webhook_token_rotated_at, created_at, updated_at')
       .eq('agent_id', agentId)
       .eq('company_id', targetCompanyId)
       .order('created_at', { ascending: false })
@@ -335,6 +336,8 @@ export async function POST(request: NextRequest) {
       token,
       client_token,
       base_url,
+      provider_config,
+      whatsapp_webhook_mode,
       is_active,
       buffer_enabled,
       buffer_debounce_seconds,
@@ -379,14 +382,18 @@ export async function POST(request: NextRequest) {
     const trimmedInstanceId = typeof instance_id === 'string' ? instance_id.trim() : '';
     const isUazapi = integrationProvider === 'uazapi';
     const isEvolution = integrationProvider === 'evolution';
+    const isMetaCloud = integrationProvider === 'meta-cloud';
 
     // base_url: default z-api SÓ para o próprio z-api. uazapi e evolution apontam
     // para servidores próprios (host self-hosted/cluster), então NÃO herdam o
     // default https://api.z-api.io/instances — começam em '' e exigem base_url.
+    // meta-cloud usa Graph API e pode herdar o default público versionado.
     const resolvedBaseUrl =
       typeof base_url === 'string' && base_url.trim()
         ? base_url.trim()
-        : isUazapi || isEvolution
+        : isMetaCloud
+          ? 'https://graph.facebook.com/v23.0'
+          : isUazapi || isEvolution
           ? ''
           : 'https://api.z-api.io/instances';
 
@@ -406,24 +413,59 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    if (isMetaCloud) {
+      if (!trimmedInstanceId) {
+        return apiError('phone_number_id é obrigatório para meta-cloud', {
+          request,
+          status: 400,
+        });
+      }
+      if (typeof token !== 'string' || !token.trim()) {
+        return apiError('access token é obrigatório para meta-cloud', {
+          request,
+          status: 400,
+        });
+      }
+      if (typeof client_token !== 'string' || !client_token.trim()) {
+        return apiError('app secret é obrigatório para meta-cloud', {
+          request,
+          status: 400,
+        });
+      }
+    }
+
+    const normalizedWebhookMode =
+      typeof whatsapp_webhook_mode === 'string' &&
+      ['shadow', 'active'].includes(whatsapp_webhook_mode.trim().toLowerCase())
+        ? whatsapp_webhook_mode.trim().toLowerCase()
+        : isMetaCloud
+          ? 'shadow'
+          : null;
+
+    const normalizedProviderConfig =
+      provider_config && typeof provider_config === 'object' && !Array.isArray(provider_config)
+        ? provider_config
+        : {};
+
     const payload = {
       agent_id: agentId,
       company_id: targetCompanyId,
       provider: integrationProvider,
-      // evolution: identifier = connectedPhone (número conectado na instância).
+      // evolution/meta-cloud: identifier = número conectado/display phone.
       identifier: integrationIdentifier,
-      // uazapi não usa instance_id -> null (requer migração §2.2.1 DROP NOT NULL);
-      // evolution e z-api persistem o instance_id informado (evolution: obrigatório).
+      // uazapi não usa instance_id -> null; meta-cloud usa phone_number_id.
       instance_id: isUazapi ? null : trimmedInstanceId,
-      // evolution: token = apikey da instância.
+      // evolution: token = apikey; meta-cloud: token = Graph access token.
       token: typeof token === 'string' ? token.trim() : '',
-      // evolution não usa client_token (conceito Z-API) -> sempre null.
+      // evolution não usa client_token; meta-cloud usa client_token como App Secret.
       client_token: isEvolution
         ? null
         : typeof client_token === 'string'
           ? client_token.trim()
           : null,
       base_url: resolvedBaseUrl,
+      provider_config: normalizedProviderConfig,
+      whatsapp_webhook_mode: normalizedWebhookMode,
       is_active: is_active ?? true,
       buffer_enabled: buffer_enabled ?? true,
       buffer_debounce_seconds: buffer_debounce_seconds ?? 3,

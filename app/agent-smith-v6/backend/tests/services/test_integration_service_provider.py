@@ -133,8 +133,8 @@ def test_whatsapp_providers_is_module_level_and_includes_uazapi() -> None:
     # importável a partir do módulo (não mais lista local)
     assert isinstance(WHATSAPP_PROVIDERS, tuple)
     assert "uazapi" in WHATSAPP_PROVIDERS
-    # ESTREITADO: apenas os 3 providers implementados por bridges.
-    assert set(WHATSAPP_PROVIDERS) == {"z-api", "uazapi", "evolution"}
+    # Apenas os providers implementados por bridges.
+    assert set(WHATSAPP_PROVIDERS) == {"z-api", "uazapi", "evolution", "meta-cloud"}
     # aliases órfãos antigos NÃO são mais aceitos (sem fallback silencioso);
     # "evolution-api" é normalizado para "evolution" no registry/migração.
     for orphan in (

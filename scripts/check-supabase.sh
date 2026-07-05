@@ -238,7 +238,7 @@ main() {
     "active WhatsApp integrations without webhook token hash" \
     "select count(*)
        from public.integrations
-      where provider in ('z-api', 'uazapi', 'evolution')
+      where provider in ('z-api', 'uazapi', 'evolution', 'meta-cloud')
         and coalesce(is_active, false)
         and webhook_token_hash is null;"
   require_count_zero \

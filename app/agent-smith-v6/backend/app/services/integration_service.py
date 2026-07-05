@@ -26,13 +26,14 @@ logger = logging.getLogger(__name__)
 # (get_whatsapp_integration -> admin_send_message), pelo badge has_whatsapp
 # (agent_service) e por get_integration_by_phone(provider=...). Constante
 # MODULE-LEVEL importável. ESTREITADO para os 3 providers REALMENTE
-# implementados por bridges (z-api, uazapi, evolution) — o registry
-# (app.services.whatsapp.registry.resolve_provider) só sabe construir estes 3.
+# implementados por bridges (z-api, uazapi, evolution, meta-cloud) — o registry
+# (app.services.whatsapp.registry.resolve_provider) só sabe construir estes 4.
 # O alias legado "evolution-api" é normalizado para "evolution" no registry e na
 # migração SQL; aliases órfãos antigos (wppconnect/whatsapp/whatsapp-cloud/meta)
 # NÃO são mais aceitos (nunca tiveram implementação — apenas fallback silencioso).
 #
-# ⚠️ INVARIANTE DE SINCRONIA TRIPLA: o conjunto {z-api, uazapi, evolution} DEVE
+# ⚠️ INVARIANTE DE SINCRONIA TRIPLA: o conjunto
+# {z-api, uazapi, evolution, meta-cloud} DEVE
 # bater em 3 pontos independentes (Postgres/TS não importam esta constante):
 #   1. AQUI (Python)  — app.services.integration_service.WHATSAPP_PROVIDERS;
 #   2. route.ts       — const WHATSAPP_PROVIDERS em
@@ -40,7 +41,7 @@ logger = logging.getLogger(__name__)
 #   3. literal SQL    — predicado provider IN (...) do índice único parcial em
 #                       backend/supabase/migrations/20260625_01_whatsapp_provider_seam.sql
 #                       (migração datada que SANEIA dados e RECRIA o índice com o
-#                       conjunto estreitado). O arquivo legado e IMUTÁVEL
+#                       conjunto ampliado). O arquivo legado e IMUTÁVEL
 #                       20260620_uazapi_integration.sql NÃO acompanha este
 #                       estreitamento — mantém o conjunto HISTÓRICO de 8 providers.
 # Drift entre os três quebra o build (tests/services/test_integration_exclusivity,
@@ -56,6 +57,7 @@ WHATSAPP_PROVIDERS = (
     "z-api",
     "uazapi",
     "evolution",
+    "meta-cloud",
 )
 
 # Retry decorator do WhatsApp inbound (NÃO é o SLA do /chat/stream → backoff mais

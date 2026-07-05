@@ -39,6 +39,12 @@ interface Props {
   setWhatsappBufferDebounce: (value: number) => void;
   whatsappBufferMaxWait: number;
   setWhatsappBufferMaxWait: (value: number) => void;
+  whatsappBusinessAccountId: string;
+  setWhatsappBusinessAccountId: (value: string) => void;
+  whatsappWebhookVerifyToken: string;
+  setWhatsappWebhookVerifyToken: (value: string) => void;
+  whatsappWebhookMode: 'shadow' | 'active';
+  setWhatsappWebhookMode: (value: 'shadow' | 'active') => void;
   savingWhatsapp: boolean;
   onSaveWhatsapp: () => void;
   // Token de webhook por-integração (Fase 1: exibição read-only, copiar
@@ -72,6 +78,12 @@ export function WhatsAppSection({
   setWhatsappBufferDebounce,
   whatsappBufferMaxWait,
   setWhatsappBufferMaxWait,
+  whatsappBusinessAccountId,
+  setWhatsappBusinessAccountId,
+  whatsappWebhookVerifyToken,
+  setWhatsappWebhookVerifyToken,
+  whatsappWebhookMode,
+  setWhatsappWebhookMode,
   savingWhatsapp,
   onSaveWhatsapp,
   whatsappWebhookToken,
@@ -137,6 +149,9 @@ export function WhatsAppSection({
                   </SelectItem>
                   <SelectItem value="evolution" className="text-foreground">
                     Evolution API
+                  </SelectItem>
+                  <SelectItem value="meta-cloud" className="text-foreground">
+                    Meta Cloud API
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -393,6 +408,130 @@ export function WhatsAppSection({
                         )}
                       </button>
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Credenciais Meta Cloud API — provider oficial WABA. */}
+            {whatsappProvider === 'meta-cloud' && (
+              <Card className="bg-card border-border">
+                <CardHeader>
+                  <CardTitle className="text-sm text-foreground">Credenciais Meta Cloud API</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label className="text-muted-foreground">Telefone Conectado *</Label>
+                    <Input
+                      value={whatsappIdentifier}
+                      onChange={(e) => setWhatsappIdentifier(e.target.value)}
+                      placeholder="Ex: 5511999999999"
+                      className="bg-background border-border text-foreground"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-muted-foreground">Phone Number ID *</Label>
+                    <Input
+                      value={whatsappInstanceId}
+                      onChange={(e) => setWhatsappInstanceId(e.target.value)}
+                      placeholder="ID do número na Meta"
+                      className="bg-background border-border text-foreground"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-muted-foreground">WABA ID *</Label>
+                    <Input
+                      value={whatsappBusinessAccountId}
+                      onChange={(e) => setWhatsappBusinessAccountId(e.target.value)}
+                      placeholder="WhatsApp Business Account ID"
+                      className="bg-background border-border text-foreground"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-muted-foreground">Access Token *</Label>
+                    <div className="relative">
+                      <Input
+                        type={showWhatsappToken ? 'text' : 'password'}
+                        value={whatsappToken}
+                        onChange={(e) => setWhatsappToken(e.target.value)}
+                        placeholder="Token permanente/System User"
+                        className="bg-background border-border text-foreground pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowWhatsappToken(!showWhatsappToken)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showWhatsappToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-muted-foreground">App Secret *</Label>
+                    <div className="relative">
+                      <Input
+                        type={showWhatsappClientToken ? 'text' : 'password'}
+                        value={whatsappClientToken}
+                        onChange={(e) => setWhatsappClientToken(e.target.value)}
+                        placeholder="App Secret da Meta"
+                        className="bg-background border-border text-foreground pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowWhatsappClientToken(!showWhatsappClientToken)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        {showWhatsappClientToken ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-muted-foreground">Verify Token *</Label>
+                    <Input
+                      value={whatsappWebhookVerifyToken}
+                      onChange={(e) => setWhatsappWebhookVerifyToken(e.target.value)}
+                      placeholder="Token de verificação do webhook Meta"
+                      className="bg-background border-border text-foreground"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-muted-foreground">Graph API URL</Label>
+                    <Input
+                      value={whatsappBaseUrl}
+                      onChange={(e) => setWhatsappBaseUrl(e.target.value)}
+                      placeholder="https://graph.facebook.com/v23.0"
+                      className="bg-background border-border text-foreground"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-muted-foreground">Modo do Webhook</Label>
+                    <Select
+                      value={whatsappWebhookMode}
+                      onValueChange={(value) => setWhatsappWebhookMode(value as 'shadow' | 'active')}
+                    >
+                      <SelectTrigger className="bg-background border-border text-foreground">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-card border-border">
+                        <SelectItem value="shadow" className="text-foreground">
+                          Shadow
+                        </SelectItem>
+                        <SelectItem value="active" className="text-foreground">
+                          Active
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </CardContent>
               </Card>

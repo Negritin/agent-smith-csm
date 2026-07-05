@@ -183,6 +183,7 @@ main() {
     ZAPI_MEDIA_HOST_ALLOWLIST
     UAZAPI_MEDIA_HOST_ALLOWLIST
     EVOLUTION_MEDIA_HOST_ALLOWLIST
+    META_GRAPH_VERSION
     WHATSAPP_DEDUP_TTL_SECONDS
   )
   local key missing_required=0
@@ -209,7 +210,8 @@ main() {
 # WhatsApp/Meta note
 # This codebase does not read a global META_WHATSAPP_TOKEN env.
 # WhatsApp credentials are configured per tenant/provider in /admin/integrations:
-# z-api, uazapi, or evolution. Optional envs only harden media downloads and
+# z-api, uazapi, evolution, or meta-cloud. Official Meta credentials are saved
+# per integration in the admin; optional envs only harden media/versioning and
 # dedup behavior.
 MSG
 

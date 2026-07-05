@@ -5,7 +5,7 @@
  * Prova os comportamentos load-bearing desta sprint sobre
  * `POST`/`GET /api/admin/integrations`:
  *
- *  (1) WHITELIST ESTREITA: só {z-api, uazapi, evolution} (+ 'none') passam. Os
+ *  (1) WHITELIST ESTREITA: só {z-api, uazapi, evolution, meta-cloud} (+ 'none') passam. Os
  *      aliases órfãos sem bridge (evolution-api/meta/wppconnect/whatsapp-cloud)
  *      retornam 400 'Provider inválido' SEM nenhuma escrita.
  *  (2) BRANCH EVOLUTION (correção de bug): evolution EXIGE base_url e instance_id
@@ -49,6 +49,7 @@ const WEBHOOK_TOKEN_TAGS: Record<string, string> = {
   'z-api': 'zapi',
   uazapi: 'uaz',
   evolution: 'evo',
+  'meta-cloud': 'meta',
 };
 
 let fake: FakeSupabase;
@@ -187,6 +188,31 @@ function lastUpdate() {
   return fake.writes.find((w) => w.table === 'integrations' && w.op === 'update');
 }
 
+function validPostBodyFor(provider: string, baseUrl?: string) {
+  const common = {
+    agent_id: AGENT_ID,
+    provider,
+    identifier: '5511999999999',
+    instance_id: 'inst-1',
+    token: 'tok',
+    ...(baseUrl ? { base_url: baseUrl } : {}),
+  };
+
+  if (provider === 'meta-cloud') {
+    return {
+      ...common,
+      client_token: 'app-secret',
+      base_url: baseUrl ?? 'https://graph.facebook.com/v23.0',
+      provider_config: {
+        business_account_id: 'waba-123',
+        webhook_verify_token: 'verify-token',
+      },
+    };
+  }
+
+  return common;
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   configureWritePath();
@@ -216,20 +242,19 @@ describe('POST /api/admin/integrations — whitelist estreita', () => {
     },
   );
 
-  it.each(['z-api', 'uazapi', 'evolution', 'none'])(
+  it.each(['z-api', 'uazapi', 'evolution', 'meta-cloud', 'none'])(
     'aceita provider implementado "%s" na whitelist',
     async (provider) => {
       const { POST } = await import('@/app/api/admin/integrations/route');
       const res = await POST(
-        postReq({
-          agent_id: AGENT_ID,
-          provider,
-          identifier: '5511999999999',
-          // Campos obrigatórios para uazapi/evolution; inócuos p/ z-api/none.
-          instance_id: 'inst-1',
-          token: 'tok',
-          base_url: 'https://server.example.com',
-        }),
+        postReq(
+          validPostBodyFor(
+            provider,
+            provider === 'z-api' || provider === 'none'
+              ? undefined
+              : 'https://server.example.com',
+          ),
+        ),
       );
 
       // Passa da checagem de whitelist (não é 'Provider inválido').
@@ -351,6 +376,61 @@ describe('POST /api/admin/integrations — paridade com providers vizinhos', () 
   });
 });
 
+describe('POST /api/admin/integrations — branch meta-cloud', () => {
+  it('meta-cloud SEM phone_number_id retorna 400 e SEM escrita', async () => {
+    const { POST } = await import('@/app/api/admin/integrations/route');
+    const res = await POST(
+      postReq({
+        agent_id: AGENT_ID,
+        provider: 'meta-cloud',
+        identifier: '5511999999999',
+        token: 'graph-access-token',
+        client_token: 'app-secret',
+      }),
+    );
+
+    expect(res.status).toBe(400);
+    const body = await res.json();
+    expect(body.error).toBe('phone_number_id é obrigatório para meta-cloud');
+    expect(fake.writes).toHaveLength(0);
+  });
+
+  it('meta-cloud válido persiste Graph URL, App Secret, provider_config e modo shadow', async () => {
+    const { POST } = await import('@/app/api/admin/integrations/route');
+    const res = await POST(
+      postReq({
+        agent_id: AGENT_ID,
+        provider: 'meta-cloud',
+        identifier: '5511999999999',
+        instance_id: 'phone-number-id-123',
+        token: 'graph-access-token',
+        client_token: 'app-secret',
+        provider_config: {
+          business_account_id: 'waba-123',
+          webhook_verify_token: 'verify-token',
+          graph_version: 'v23.0',
+        },
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const values = lastInsert()!.values as Record<string, unknown>;
+
+    expect(values.provider).toBe('meta-cloud');
+    expect(values.identifier).toBe('5511999999999');
+    expect(values.instance_id).toBe('phone-number-id-123');
+    expect(values.token).toBe('graph-access-token');
+    expect(values.client_token).toBe('app-secret');
+    expect(values.base_url).toBe('https://graph.facebook.com/v23.0');
+    expect(values.provider_config).toEqual({
+      business_account_id: 'waba-123',
+      webhook_verify_token: 'verify-token',
+      graph_version: 'v23.0',
+    });
+    expect(values.whatsapp_webhook_mode).toBe('shadow');
+  });
+});
+
 describe('POST /api/admin/integrations — token de webhook no INSERT (§1.1/§4.1)', () => {
   // O INSERT de uma integração NOVA (existingByAgent === null) gera o token
   // SERVER-SIDE: o quarteto `webhook_token*` é injetado no insertPayload (FORA do
@@ -360,18 +440,10 @@ describe('POST /api/admin/integrations — token de webhook no INSERT (§1.1/§4
     ['z-api', undefined],
     ['uazapi', 'https://uaz.example.com'],
     ['evolution', 'https://evo.example.com'],
+    ['meta-cloud', 'https://graph.facebook.com/v23.0'],
   ])('INSERT de "%s" inclui o quarteto webhook_token* gerado', async (provider, baseUrl) => {
     const { POST } = await import('@/app/api/admin/integrations/route');
-    const res = await POST(
-      postReq({
-        agent_id: AGENT_ID,
-        provider,
-        identifier: '5511999999999',
-        instance_id: 'inst-1',
-        token: 'tok',
-        ...(baseUrl ? { base_url: baseUrl } : {}),
-      }),
-    );
+    const res = await POST(postReq(validPostBodyFor(provider, baseUrl)));
 
     expect(res.status).toBe(200);
     const values = lastInsert()!.values as Record<string, unknown>;

@@ -241,15 +241,17 @@ SENDGRID_FROM_EMAIL=
 ```
 
 WhatsApp nao usa segredo global por env nesta versao. As credenciais ficam em
-`public.integrations` por tenant/provedor (`z-api`, `uazapi`, `evolution`) e o
+`public.integrations` por tenant/provedor (`z-api`, `uazapi`, `evolution`,
+`meta-cloud`) e o
 webhook usa token por integracao (`/api/v1/webhook/{provider}/{token}`).
 `scripts/check-supabase.sh` valida as colunas `webhook_token*`, os indices de
 lookup/exclusividade e que nenhuma integracao WhatsApp ativa esteja sem
 `webhook_token_hash`.
 Opcionalmente configure `ZAPI_MEDIA_HOST_ALLOWLIST`,
-`UAZAPI_MEDIA_HOST_ALLOWLIST`, `EVOLUTION_MEDIA_HOST_ALLOWLIST` e
-`WHATSAPP_DEDUP_TTL_SECONDS` para endurecer downloads de midia inbound e ajustar
-a janela de deduplicacao de mensagens.
+`UAZAPI_MEDIA_HOST_ALLOWLIST`, `EVOLUTION_MEDIA_HOST_ALLOWLIST`,
+`META_GRAPH_VERSION` e `WHATSAPP_DEDUP_TTL_SECONDS` para endurecer downloads de
+midia inbound, fixar a versao da Graph API e ajustar a janela de deduplicacao de
+mensagens.
 
 ## Redis, Qdrant, MinIO e Docling internos
 

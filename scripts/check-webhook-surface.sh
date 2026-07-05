@@ -182,7 +182,7 @@ check_fail_closed() {
 
 main() {
   local backend provider
-  local providers=("z-api" "uazapi" "evolution")
+  local providers=("z-api" "uazapi" "evolution" "meta-cloud")
 
   backend="$(resolve_backend_url)"
   if is_placeholder "$backend"; then

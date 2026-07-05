@@ -12,10 +12,10 @@ export const dynamic = 'force-dynamic';
  * Provedores WhatsApp aceitos. MESMO conjunto (sincronia tripla) usado em
  * `route.ts` (write path), `integration_service.WHATSAPP_PROVIDERS` no backend e
  * o literal SQL `provider IN (...)` da seam migration. Aqui serve para:
- *   - mapear o provider -> tag do token (`zapi`/`uaz`/`evo`) e ao segmento da URL;
+ *   - mapear o provider -> tag do token (`zapi`/`uaz`/`evo`/`meta`) e ao segmento da URL;
  *   - garantir que só regeneramos token de uma integração WhatsApp.
  */
-const WHATSAPP_PROVIDERS = ['z-api', 'uazapi', 'evolution'] as const;
+const WHATSAPP_PROVIDERS = ['z-api', 'uazapi', 'evolution', 'meta-cloud'] as const;
 type WhatsAppProvider = (typeof WHATSAPP_PROVIDERS)[number];
 
 /**
@@ -28,6 +28,7 @@ const PROVIDER_TOKEN_TAG: Record<WhatsAppProvider, string> = {
   'z-api': 'zapi',
   uazapi: 'uaz',
   evolution: 'evo',
+  'meta-cloud': 'meta',
 };
 
 // Service Role Client

@@ -3,7 +3,8 @@
 SPEC — Sprint "Registry + estreitamento de WHATSAPP_PROVIDERS".
 
 This module is the single resolution point that binds the concrete bridges
-(:class:`ZapiProvider`, :class:`UazapiProvider`, :class:`EvolutionProvider`)
+(:class:`ZapiProvider`, :class:`UazapiProvider`, :class:`EvolutionProvider`,
+:class:`MetaCloudProvider`)
 to a tenant integration record. It exposes one function,
 :func:`resolve_provider`, which:
 
@@ -27,12 +28,11 @@ to a tenant integration record. It exposes one function,
 
 Canonical set
 -------------
-The accepted set is ``{"z-api", "uazapi", "evolution"}`` (plus the
-``evolution-api`` alias). Labels such as ``wppconnect``, ``whatsapp``,
+The accepted set is ``{"z-api", "uazapi", "evolution", "meta-cloud"}`` (plus
+the ``evolution-api`` alias). Labels such as ``wppconnect``, ``whatsapp``,
 ``whatsapp-cloud`` and ``meta`` are NOT registered — they raise
-:class:`UnknownProviderError`. This set is the Python anchor of the
-triple-sync invariant documented on
-:data:`app.services.integration_service.WHATSAPP_PROVIDERS`.
+:class:`UnknownProviderError`. This set is the Python anchor of the triple-sync
+invariant documented on :data:`app.services.integration_service.WHATSAPP_PROVIDERS`.
 """
 
 from __future__ import annotations
@@ -43,6 +43,7 @@ from typing import Any, Callable, Dict, Mapping
 from app.services.whatsapp.exceptions import UnknownProviderError
 from app.services.whatsapp.providers.base import WhatsAppProvider
 from app.services.whatsapp.providers.evolution import EvolutionProvider
+from app.services.whatsapp.providers.meta_cloud import MetaCloudProvider
 from app.services.whatsapp.providers.uazapi import UazapiProvider
 from app.services.whatsapp.providers.zapi import ZapiProvider
 
@@ -63,6 +64,7 @@ _PROVIDER_FACTORIES: Dict[str, Callable[[Dict[str, Any]], WhatsAppProvider]] = {
     "z-api": ZapiProvider,
     "uazapi": UazapiProvider,
     "evolution": EvolutionProvider,
+    "meta-cloud": MetaCloudProvider,
 }
 
 
@@ -98,8 +100,8 @@ def resolve_provider(integration: Dict[str, Any]) -> WhatsAppProvider:
     ------
     UnknownProviderError
         When the normalised provider label (after the ``evolution-api`` alias)
-        is not one of ``{"z-api", "uazapi", "evolution"}``. NO fallback to
-        Z-API (SEC-04).
+        is not one of ``{"z-api", "uazapi", "evolution", "meta-cloud"}``.
+        NO fallback to Z-API (SEC-04).
     """
     canonical = _normalize_provider_label(integration.get("provider"))
     factory = _PROVIDER_FACTORIES.get(canonical)

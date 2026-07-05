@@ -49,6 +49,7 @@ run_psql() {
 
 fresh_files=(
   "$SUPABASE_DIR/migrations/schema_completo_v7.0.sql"
+  "$SUPABASE_DIR/migrations/20260705_01_meta_cloud_whatsapp.sql"
   "$SUPABASE_DIR/migrations/storage_buckets.sql"
   "$SUPABASE_DIR/seed_llm_pricing.sql"
   "$SUPABASE_DIR/seed_platform_settings.sql"
@@ -107,6 +108,7 @@ upgrade_files=(
   "$SUPABASE_DIR/migrations/20260628_02_openrouter_models_refresh.sql"
   "$SUPABASE_DIR/migrations/20260628_03_platform_provider_alerts.sql"
   "$SUPABASE_DIR/migrations/20260628_04_rpc_metrics_attendance_agents.sql"
+  "$SUPABASE_DIR/migrations/20260705_01_meta_cloud_whatsapp.sql"
   "$SUPABASE_DIR/seed_llm_pricing.sql"
   "$SUPABASE_DIR/seed_platform_settings.sql"
 )

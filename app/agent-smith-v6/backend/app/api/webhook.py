@@ -23,12 +23,13 @@ nem singleton de client em import-time neste módulo (D4/D5).
 """
 
 import asyncio
+import json
 import hashlib
 import hmac
 import logging
-from typing import Optional
+from typing import Any, Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel
 
 from app.core.auth import (
@@ -62,6 +63,7 @@ from app.services.whatsapp_turn_service import (
 from app.services.whatsapp.exceptions import UnknownProviderError
 from app.services.whatsapp.models import CanonicalMessage
 from app.services.whatsapp.providers.evolution import EvolutionProvider
+from app.services.whatsapp.providers.meta_cloud import MetaCloudProvider
 from app.services.whatsapp.providers.uazapi import UazapiProvider
 from app.services.whatsapp.providers.zapi import ZapiProvider
 from app.services.whatsapp.registry import resolve_provider
@@ -273,18 +275,27 @@ _PARSE_ONLY_PROVIDERS = {
     "evolution": EvolutionProvider(
         {"base_url": "parse-only", "instance_id": "parse-only", "token": "parse-only"}
     ),
+    "meta-cloud": MetaCloudProvider(
+        {"base_url": "https://graph.facebook.com/v23.0", "instance_id": "parse-only", "token": "parse-only"}
+    ),
 }
 
 # Prefixo anti-colisão cross-provider da key de dedup (F16/§3.4): z-api SEM
 # namespace (compat histórica), uazapi/evolution com namespace próprio. O mesmo
 # messageId+connectedPhone em providers distintos gera chaves distintas.
-_DEDUP_NAMESPACES = {"z-api": "", "uazapi": "uazapi:", "evolution": "evolution:"}
+_DEDUP_NAMESPACES = {
+    "z-api": "",
+    "uazapi": "uazapi:",
+    "evolution": "evolution:",
+    "meta-cloud": "meta:",
+}
 
 # Tag de log por provider (preserva o log estruturado por-provider).
 _WEBHOOK_LOG_TAGS = {
     "z-api": "WEBHOOK",
     "uazapi": "WEBHOOK UAZAPI",
     "evolution": "WEBHOOK EVOLUTION",
+    "meta-cloud": "WEBHOOK META CLOUD",
 }
 
 
@@ -333,12 +344,149 @@ def _canonical_message_to_legacy_dict(
     return out
 
 
+def _integration_provider_config(integration: dict) -> dict:
+    raw = integration.get("provider_config") or {}
+    if isinstance(raw, dict):
+        return raw
+    if isinstance(raw, str):
+        try:
+            parsed = json.loads(raw)
+        except json.JSONDecodeError:
+            return {}
+        return parsed if isinstance(parsed, dict) else {}
+    return {}
+
+
+def _meta_webhook_mode(integration: dict) -> str:
+    mode = (
+        integration.get("whatsapp_webhook_mode")
+        or _integration_provider_config(integration).get("webhook_mode")
+        or "active"
+    )
+    normalized = str(mode).strip().lower()
+    return normalized if normalized in {"shadow", "active"} else "active"
+
+
+def _meta_verify_token(integration: dict) -> Optional[str]:
+    cfg = _integration_provider_config(integration)
+    token = (
+        cfg.get("webhook_verify_token")
+        or cfg.get("meta_webhook_verify_token")
+        or integration.get("webhook_token")
+    )
+    return str(token) if token else None
+
+
+async def _verify_meta_cloud_signature(request: Request, integration: dict) -> bytes:
+    body = await request.body()
+    signature = request.headers.get("x-hub-signature-256") or ""
+    provider = MetaCloudProvider(integration)
+    if not provider.verify_raw_webhook(body, signature):
+        await record_webhook_auth_failure(request, prefix="meta_")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
+    return body
+
+
+async def _persist_whatsapp_external_batch(
+    request: Request,
+    *,
+    integration: dict,
+    provider: str,
+    source: str,
+    raw_payload: dict,
+    batch: Any,
+) -> None:
+    """Best-effort persistence of provider ids/statuses/raw payload metadata."""
+    app_state = getattr(getattr(request, "app", None), "state", None)
+    async_db = getattr(app_state, "supabase_async", None)
+    client = getattr(async_db, "client", async_db)
+    if client is None:
+        return
+
+    rows: list[dict[str, Any]] = []
+    company_id = integration.get("company_id")
+    integration_id = integration.get("id")
+    raw_for_row = raw_payload if isinstance(raw_payload, dict) else {}
+
+    for message in getattr(batch, "messages", []) or []:
+        external_id = message.message_id
+        if not external_id:
+            continue
+        media = message.media
+        rows.append(
+            {
+                "company_id": company_id,
+                "integration_id": integration_id,
+                "provider": provider,
+                "source": source,
+                "event_kind": "message",
+                "external_message_id": external_id,
+                "direction": "outbound_echo" if message.from_me else "inbound",
+                "status": None,
+                "wa_from": message.from_phone,
+                "wa_to": message.connected_phone,
+                "message_type": message.type,
+                "content": message.text,
+                "media_metadata": {
+                    "raw_ref": media.raw_ref,
+                    "mime_type": media.mime_type,
+                    "caption": media.caption,
+                    "kind": media.kind,
+                }
+                if media
+                else {},
+                "raw_payload": raw_for_row,
+                "provider_timestamp": message.timestamp,
+            }
+        )
+
+    for delivery_status in getattr(batch, "statuses", []) or []:
+        external_id = delivery_status.provider_message_id
+        if not external_id:
+            continue
+        rows.append(
+            {
+                "company_id": company_id,
+                "integration_id": integration_id,
+                "provider": provider,
+                "source": source,
+                "event_kind": "status",
+                "external_message_id": external_id,
+                "direction": "outbound",
+                "status": delivery_status.state,
+                "wa_from": None,
+                "wa_to": None,
+                "message_type": None,
+                "content": delivery_status.error,
+                "media_metadata": {},
+                "raw_payload": raw_for_row,
+                "provider_timestamp": delivery_status.timestamp,
+            }
+        )
+
+    if not rows:
+        return
+
+    try:
+        await (
+            client.table("whatsapp_external_messages")
+            .upsert(
+                rows,
+                on_conflict="provider,external_message_id,event_kind",
+            )
+            .execute()
+        )
+    except Exception as exc:  # noqa: BLE001 - best-effort sidecar persistence
+        logger.warning("[WEBHOOK META CLOUD] external persistence skipped: %s", exc)
+
+
 async def _handle_webhook(
     request: Request,
     background_tasks: BackgroundTasks,
     *,
     provider: str,
     integration: Optional[dict] = None,
+    raw_override: Optional[dict] = None,
 ):
     """Corpo ÚNICO do webhook WhatsApp (parse + filtro + dedup + buffer/enqueue).
 
@@ -371,7 +519,7 @@ async def _handle_webhook(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized"
         )
     try:
-        raw = await request.json()
+        raw = raw_override if raw_override is not None else await request.json()
         batch = _PARSE_ONLY_PROVIDERS[provider].parse_webhook(raw)
 
         # Delivery receipts: vazio nos 3 bridges (capabilities.delivery_statuses
@@ -523,6 +671,8 @@ async def _is_duplicate_message_for(
         log_tag = "WEBHOOK UAZAPI"
     elif key_namespace == "evolution:":
         log_tag = "WEBHOOK EVOLUTION"
+    elif key_namespace == "meta:":
+        log_tag = "WEBHOOK META CLOUD"
     else:
         log_tag = "WEBHOOK"
     message_id = payload.messageId
@@ -690,6 +840,88 @@ async def evolution_webhook_health():
         "version": "1.0.0",
         "mode": "background_processing",
     }
+
+
+@router.get("/api/v1/webhook/meta-cloud/health")
+async def meta_cloud_webhook_health():
+    """Health check endpoint para webhook Meta Cloud."""
+    return {
+        "status": "healthy",
+        "webhook": "meta-cloud",
+        "version": "1.0.0",
+        "mode": "background_processing",
+    }
+
+
+@router.get("/api/v1/webhook/meta-cloud/{token}")
+@limiter.limit("120/minute")
+async def meta_cloud_webhook_verify(request: Request, token: str):
+    """Meta Cloud API webhook verification endpoint (hub.challenge)."""
+    integration = await _resolve_webhook_token(
+        request, provider="meta-cloud", path_token=token
+    )
+    mode = request.query_params.get("hub.mode")
+    supplied_token = request.query_params.get("hub.verify_token") or ""
+    challenge = request.query_params.get("hub.challenge")
+    expected_token = _meta_verify_token(integration)
+
+    if (
+        mode == "subscribe"
+        and challenge is not None
+        and expected_token
+        and hmac.compare_digest(expected_token, supplied_token)
+    ):
+        return Response(content=challenge, media_type="text/plain")
+
+    await record_webhook_auth_failure(request, prefix="meta_")
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+
+
+@router.post("/api/v1/webhook/meta-cloud/{token}")
+@limiter.limit("120/minute")
+async def meta_cloud_webhook_with_token(
+    request: Request, background_tasks: BackgroundTasks, token: str
+):
+    """Official Meta WhatsApp Cloud API webhook.
+
+    The path token still resolves the Agent Smith tenant/integration. The POST
+    then verifies Meta's X-Hub-Signature-256 with the App Secret stored on the
+    integration before any parse, persistence, buffer, or AI turn can run.
+    """
+    integration = await _resolve_webhook_token(
+        request, provider="meta-cloud", path_token=token
+    )
+    body = await _verify_meta_cloud_signature(request, integration)
+    try:
+        raw = json.loads(body.decode("utf-8") or "{}")
+    except json.JSONDecodeError as exc:
+        raise HTTPException(status_code=400, detail="Invalid JSON") from exc
+
+    batch = _PARSE_ONLY_PROVIDERS["meta-cloud"].parse_webhook(raw)
+    await _persist_whatsapp_external_batch(
+        request,
+        integration=integration,
+        provider="meta-cloud",
+        source="meta_webhook",
+        raw_payload=raw,
+        batch=batch,
+    )
+
+    if _meta_webhook_mode(integration) == "shadow":
+        return {
+            "status": "shadow",
+            "messages": len(batch.messages),
+            "statuses": len(batch.statuses),
+        }
+
+    await _handle_webhook(
+        request,
+        background_tasks,
+        provider="meta-cloud",
+        integration=integration,
+        raw_override=raw,
+    )
+    return {"status": "ok"}
 
 
 @router.post("/api/webhook/send-message")
