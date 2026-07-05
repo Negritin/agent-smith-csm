@@ -77,6 +77,12 @@ Proxy Vercel para API da VPS:
 scripts/check-vercel-api-proxy.sh
 ```
 
+Webhooks WhatsApp/Meta expostos na API:
+
+```bash
+scripts/check-webhook-surface.sh
+```
+
 Com validacao de login admin junto:
 
 ```bash
@@ -98,6 +104,7 @@ Pendencias de fornecedores externos:
 ```bash
 scripts/env-report.sh
 scripts/check-external-services.sh
+scripts/check-webhook-surface.sh
 ```
 
 Readiness consolidado:

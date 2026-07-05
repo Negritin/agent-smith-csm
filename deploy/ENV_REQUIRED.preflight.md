@@ -313,6 +313,7 @@ scripts/validate-env.sh app
 scripts/validate-env.sh vercel
 scripts/check-vercel-remote-env.sh production
 scripts/check-vercel-api-proxy.sh
+scripts/check-webhook-surface.sh
 scripts/check-persistence.sh
 scripts/check-runtime.sh
 scripts/production-readiness.sh
@@ -323,7 +324,8 @@ subir. `app` e `vercel` sao os gates do deploy de producao e passam quando os
 dominios, Supabase, provedores externos, Stripe e credenciais da Vercel forem
 preenchidos. `scripts/check-runtime.sh` valida a aplicacao ja no ar: env core,
 env Vercel, containers backend/worker/beat/Docling, health interno do FastAPI,
-ping do Celery, Supabase, Docling e acesso publico.
+ping do Celery, Supabase, Docling, acesso publico, proxy Vercel e superficie de
+webhooks WhatsApp.
 
 Depois dos envs preenchidos, a subida completa pode ser feita por:
 

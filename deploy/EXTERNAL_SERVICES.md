@@ -110,6 +110,23 @@ https://agent-smith-api.5.161.73.5.sslip.io/api/v1/webhook/{provider}/{token}
 O token de webhook e por integracao. Ao regenerar, a URL antiga deixa de valer e
 deve ser recolada no painel do provider.
 
+Health checks publicos da borda WhatsApp:
+
+```text
+https://agent-smith-api.5.161.73.5.sslip.io/api/v1/webhook/z-api/health
+https://agent-smith-api.5.161.73.5.sslip.io/api/v1/webhook/uazapi/health
+https://agent-smith-api.5.161.73.5.sslip.io/api/v1/webhook/evolution/health
+```
+
+Para validar a superficie sem acionar mensagem real:
+
+```bash
+scripts/check-webhook-surface.sh
+```
+
+O smoke confere HTTP 200 nos health checks e confirma fail-closed com token
+desconhecido (`401`, ou `429` se o limitador estiver ativo).
+
 Hardening opcional para midias inbound:
 
 ```env
@@ -128,6 +145,7 @@ Sem chamadas externas pagas:
 ```bash
 scripts/env-report.sh
 scripts/check-external-services.sh
+scripts/check-webhook-surface.sh
 scripts/validate-env.sh app
 scripts/production-readiness.sh
 ```

@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-05 00:50 UTC.
+Atualizado em 2026-07-05 00:56 UTC.
 
 ## Estado atual
 
@@ -43,6 +43,9 @@ Atualizado em 2026-07-05 00:50 UTC.
 - Vercel API proxy: `scripts/check-vercel-api-proxy.sh` valida que a rota
   serverless `/api/billing/plans` no frontend publicado fala com o backend da
   VPS e retorna o mesmo contrato publico de planos.
+- WhatsApp webhook surface: `scripts/check-webhook-surface.sh` valida os health
+  checks publicos de `z-api`, `uazapi` e `evolution`, e confirma que token
+  desconhecido e rejeitado pela API sem acionar mensagem real.
 - Frontend Vercel: `https://agent-smith-csm.vercel.app` responde 200 em `/`,
   `/login` e `/admin/login`.
 - Preflight base: `scripts/check-ready.sh` valida Git/origin/upstream, Redis,
@@ -94,8 +97,9 @@ Atualizado em 2026-07-05 00:50 UTC.
   envia jobs periodicos.
 - Runtime check: `scripts/check-runtime.sh` passa, validando env core, env
   Vercel, persistencia/restart policy, containers da app, health interno do
-  backend, ping Celery, Supabase, Docling e acesso publico. O login admin entra
-  como check opcional quando `ADMIN_LOGIN_PASSWORD` e fornecido.
+  backend, ping Celery, Supabase, Docling, acesso publico, proxy Vercel e
+  webhooks WhatsApp. O login admin entra como check opcional quando
+  `ADMIN_LOGIN_PASSWORD` e fornecido.
 - Persistencia: Docker esta `active` e `enabled`; Redis, Qdrant e MinIO usam
   volumes nomeados; infra/app usam restart policy `unless-stopped`.
 - Production readiness: `scripts/production-readiness.sh` consolida core
@@ -171,6 +175,7 @@ para esse IP.
 - `/opt/agent-smith/scripts/check-secret-hygiene.sh`
 - `/opt/agent-smith/scripts/check-vercel-remote-env.sh`
 - `/opt/agent-smith/scripts/check-vercel-api-proxy.sh`
+- `/opt/agent-smith/scripts/check-webhook-surface.sh`
 - `/opt/agent-smith/scripts/check-public-access.sh`
 - `/opt/agent-smith/scripts/check-supabase.sh`
 - `/opt/agent-smith/scripts/check-runtime.sh`
@@ -273,6 +278,8 @@ As migrations/seeds do Supabase ja foram aplicadas e validadas.
 WhatsApp e configurado por integracao (`z-api`, `uazapi`, `evolution`) no banco,
 com token de webhook por tenant; nao ha `META_WHATSAPP_TOKEN` global lido pelo
 codigo atual.
+Os health checks publicos ficam em `/api/v1/webhook/{provider}/health`; o smoke
+`scripts/check-webhook-surface.sh` valida health e rejeicao de token desconhecido.
 
 ## Comandos uteis
 
@@ -284,6 +291,7 @@ scripts/env-report.sh
 scripts/check-secret-hygiene.sh
 scripts/check-vercel-remote-env.sh production
 scripts/check-vercel-api-proxy.sh
+scripts/check-webhook-surface.sh
 scripts/validate-env.sh infra
 scripts/apply-external-envs.sh
 scripts/validate-env.sh app-core
