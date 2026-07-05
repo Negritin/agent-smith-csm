@@ -60,6 +60,19 @@ source_status() {
   if is_placeholder "$value"; then
     return 1
   fi
+
+  case "$key" in
+    ANTHROPIC_API_KEY) [[ "$value" =~ ^sk-ant-.+ ]] ;;
+    OPENROUTER_API_KEY) [[ "$value" =~ ^sk-or-.+ ]] ;;
+    TAVILY_API_KEY) [[ "$value" =~ ^tvly-.+ ]] ;;
+    COHERE_API_KEY) [[ "$value" =~ ^.+$ ]] ;;
+    GROQ_API_KEY) [[ "$value" =~ ^gsk_.+ ]] ;;
+    STRIPE_SECRET_KEY) [[ "$value" =~ ^sk_(test|live)_.+ ]] ;;
+    STRIPE_WEBHOOK_SECRET) [[ "$value" =~ ^whsec_.+ ]] ;;
+    SENDGRID_API_KEY) [[ "$value" =~ ^SG[.].+ ]] ;;
+    SENDGRID_FROM_EMAIL) [[ "$value" =~ ^[^@[:space:]]+@[^@[:space:]]+[.][^@[:space:]]+$ ]] ;;
+    *) return 0 ;;
+  esac
 }
 
 target_missing() {
@@ -176,7 +189,7 @@ main() {
 
   printf '# Agent Smith pending external envs\n'
   printf '# Source file: %s\n' "$EXTERNAL_ENV_FILE"
-  printf '# Paste the missing required lines into that file, then run:\n'
+  printf '# Paste missing or invalid required lines into that file, then run:\n'
   printf '#   RUN_LIVE=1 scripts/finalize-external-services.sh\n'
 
   for key in "${required_keys[@]}"; do
