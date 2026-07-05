@@ -167,6 +167,10 @@ main() {
     BILL_GROUP_MAX
     OUTBOX_DRAIN_LIMIT
     OUTBOX_STALE_MINUTES
+    ZAPI_MEDIA_HOST_ALLOWLIST
+    UAZAPI_MEDIA_HOST_ALLOWLIST
+    EVOLUTION_MEDIA_HOST_ALLOWLIST
+    WHATSAPP_DEDUP_TTL_SECONDS
   )
   local key missing_required=0
 
@@ -186,6 +190,15 @@ main() {
   if [ "$INCLUDE_OPTIONAL" = "1" ]; then
     print_missing_source_template "Recommended optional observability/integrations" "${optional_keys[@]}"
   fi
+
+  cat <<'MSG'
+
+# WhatsApp/Meta note
+# This codebase does not read a global META_WHATSAPP_TOKEN env.
+# WhatsApp credentials are configured per tenant/provider in /admin/integrations:
+# z-api, uazapi, or evolution. Optional envs only harden media downloads and
+# dedup behavior.
+MSG
 
   print_apply_hints "${required_keys[@]}"
 

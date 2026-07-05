@@ -164,6 +164,15 @@ https://agent-smith-api.5.161.73.5.sslip.io/api/v1/webhook/{provider}/{token}
 O token de webhook e por integracao. Ao regenerar, a URL antiga deixa de valer e
 deve ser recolada no painel do provider.
 
+Envs opcionais de plataforma para WhatsApp:
+
+```env
+ZAPI_MEDIA_HOST_ALLOWLIST=
+UAZAPI_MEDIA_HOST_ALLOWLIST=
+EVOLUTION_MEDIA_HOST_ALLOWLIST=
+WHATSAPP_DEDUP_TTL_SECONDS=86400
+```
+
 O schema Supabase necessario para esse fluxo e validado por:
 
 ```bash

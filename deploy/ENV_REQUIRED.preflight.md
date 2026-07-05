@@ -247,8 +247,9 @@ webhook usa token por integracao (`/api/v1/webhook/{provider}/{token}`).
 lookup/exclusividade e que nenhuma integracao WhatsApp ativa esteja sem
 `webhook_token_hash`.
 Opcionalmente configure `ZAPI_MEDIA_HOST_ALLOWLIST`,
-`UAZAPI_MEDIA_HOST_ALLOWLIST` e `EVOLUTION_MEDIA_HOST_ALLOWLIST` para endurecer
-downloads de midia inbound.
+`UAZAPI_MEDIA_HOST_ALLOWLIST`, `EVOLUTION_MEDIA_HOST_ALLOWLIST` e
+`WHATSAPP_DEDUP_TTL_SECONDS` para endurecer downloads de midia inbound e ajustar
+a janela de deduplicacao de mensagens.
 
 ## Redis, Qdrant, MinIO e Docling internos
 
