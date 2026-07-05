@@ -15,11 +15,13 @@ Required args:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import shlex
 import subprocess
 import sys
+import tempfile
 from typing import Any
 
 
@@ -119,7 +121,13 @@ def discover_chatwoot_container() -> str:
 def sql_literal(value: Any) -> str:
     if value is None:
         return "NULL"
-    return "'" + str(value).replace("'", "''") + "'"
+    text = str(value).replace("\x00", "")
+    suffix = hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
+    tag = f"as_{suffix}"
+    while f"${tag}$" in text:
+        suffix = hashlib.sha256((suffix + text).encode("utf-8")).hexdigest()[:16]
+        tag = f"as_{suffix}"
+    return f"${tag}${text}${tag}$"
 
 
 def json_literal(value: Any) -> str:
@@ -360,6 +368,11 @@ def main() -> int:
     parser.add_argument("--chatwoot-container")
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--print-sql",
+        action="store_true",
+        help="Print generated SQL. Avoid in shared terminals because it includes message content.",
+    )
     args = parser.parse_args()
 
     db_url = os.environ.get("SUPABASE_DB_URL")
@@ -373,17 +386,30 @@ def main() -> int:
 
     sql = build_sql(records, args)
     if args.dry_run:
-        print(sql)
+        if args.print_sql:
+            print(sql)
+        print(f"dry_run_complete conversations={conv_count} messages={msg_count}", file=sys.stderr)
         return 0
 
-    proc = subprocess.run(
-        ["psql", db_url, "-v", "ON_ERROR_STOP=1", "-q"],
-        input=sql,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=False,
-    )
+    sql_path = None
+    try:
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", delete=False) as tmp:
+            tmp.write(sql)
+            sql_path = tmp.name
+
+        proc = subprocess.run(
+            ["psql", db_url, "-v", "ON_ERROR_STOP=1", "-q", "-f", sql_path],
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+    finally:
+        if sql_path:
+            try:
+                os.unlink(sql_path)
+            except FileNotFoundError:
+                pass
     if proc.returncode != 0:
         print(proc.stdout, file=sys.stderr)
         print(proc.stderr, file=sys.stderr)
