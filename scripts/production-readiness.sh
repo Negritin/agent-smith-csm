@@ -90,6 +90,7 @@ main() {
   run_core_check "Persistence and restart policy" scripts/check-persistence.sh
   run_core_check "Application core env" scripts/validate-env.sh app-core
   run_core_check "Vercel env" scripts/validate-env.sh vercel
+  run_core_check "Vercel remote env" scripts/check-vercel-remote-env.sh production
 
   if [ "$RUN_RUNTIME" = "1" ]; then
     run_core_check "Runtime health" scripts/check-runtime.sh

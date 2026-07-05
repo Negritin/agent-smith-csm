@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-05 00:40 UTC.
+Atualizado em 2026-07-05 00:45 UTC.
 
 ## Estado atual
 
@@ -37,6 +37,9 @@ Atualizado em 2026-07-05 00:40 UTC.
   publica do frontend.
 - Vercel envs de producao: Supabase/URLs/segredos internos sincronizados. O
   build/redeploy Next.js passou depois disso.
+- Vercel remote env: `scripts/check-vercel-remote-env.sh production` valida os
+  nomes exigidos no projeto remoto e garante que segredos backend-only/LLM nao
+  foram colocados na Vercel.
 - Frontend Vercel: `https://agent-smith-csm.vercel.app` responde 200 em `/`,
   `/login` e `/admin/login`.
 - Preflight base: `scripts/check-ready.sh` valida Git/origin/upstream, Redis,
@@ -163,6 +166,7 @@ para esse IP.
 - `/opt/agent-smith/scripts/import-upstream.sh`
 - `/opt/agent-smith/scripts/check-ready.sh`
 - `/opt/agent-smith/scripts/check-secret-hygiene.sh`
+- `/opt/agent-smith/scripts/check-vercel-remote-env.sh`
 - `/opt/agent-smith/scripts/check-public-access.sh`
 - `/opt/agent-smith/scripts/check-supabase.sh`
 - `/opt/agent-smith/scripts/check-runtime.sh`
@@ -274,6 +278,7 @@ scripts/check-ready.sh
 scripts/analyze-upstream.sh
 scripts/env-report.sh
 scripts/check-secret-hygiene.sh
+scripts/check-vercel-remote-env.sh production
 scripts/validate-env.sh infra
 scripts/apply-external-envs.sh
 scripts/validate-env.sh app-core

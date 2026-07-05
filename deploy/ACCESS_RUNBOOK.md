@@ -65,6 +65,12 @@ Higiene de segredos:
 scripts/check-secret-hygiene.sh
 ```
 
+Env remoto da Vercel:
+
+```bash
+scripts/check-vercel-remote-env.sh production
+```
+
 Com validacao de login admin junto:
 
 ```bash
