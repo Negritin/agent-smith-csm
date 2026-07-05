@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-05 01:45 UTC.
+Atualizado em 2026-07-05 01:49 UTC.
 
 ## Estado atual
 
@@ -123,6 +123,10 @@ Atualizado em 2026-07-05 01:45 UTC.
   readiness, runtime, Vercel remote full env e gate completo de chaves externas.
   Hoje confirma o core e falha corretamente no gate completo enquanto faltarem
   providers/Stripe/SendGrid.
+- Objective audit: `scripts/audit-goal-status.sh` valida repo oficial,
+  upstream, VPS, Vercel, Supabase, superficies publicas e gate externo completo
+  como prova unica do objetivo. Use `ALLOW_PARTIAL=1` enquanto faltarem chaves
+  externas obrigatorias.
 - Supabase client compat: backend/worker foram ajustados para aceitar chaves
   Supabase novas `sb_secret_*` com a versao atual de `supabase-py`, evitando
   duplicidade de header `apikey`.
@@ -204,6 +208,7 @@ para esse IP.
 - `/opt/agent-smith/scripts/check-runtime.sh`
 - `/opt/agent-smith/scripts/check-persistence.sh`
 - `/opt/agent-smith/scripts/production-readiness.sh`
+- `/opt/agent-smith/scripts/audit-goal-status.sh`
 - `/opt/agent-smith/scripts/check-admin-login.sh`
 - `/opt/agent-smith/scripts/create-admin.sh`
 - `/opt/agent-smith/scripts/analyze-upstream.sh`

@@ -120,6 +120,16 @@ Readiness consolidado:
 scripts/production-readiness.sh
 ```
 
+Auditoria do objetivo completo deste deploy:
+
+```bash
+ALLOW_PARTIAL=1 scripts/audit-goal-status.sh
+```
+
+Esse comando valida repo oficial, upstream importado, VPS, Vercel, Supabase,
+superficies publicas e gate externo. Sem `ALLOW_PARTIAL=1`, ele sai com falha
+enquanto as chaves externas obrigatorias ainda nao estiverem preenchidas.
+
 Enquanto faltarem as chaves externas, esse comando sai com falha no gate
 completo, mas ainda mostra se o core esta pronto. Para usar em automacao que
 aceita o estado parcial atual:

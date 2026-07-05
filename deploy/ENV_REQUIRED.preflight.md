@@ -54,6 +54,15 @@ RUN_LIVE=1 scripts/finalize-external-services.sh
 Esse comando aplica envs, sincroniza Vercel, valida o gate completo, redeploya
 backend/frontend e roda a validacao runtime.
 
+Para auditar o objetivo inteiro sem aplicar mudancas:
+
+```bash
+ALLOW_PARTIAL=1 scripts/audit-goal-status.sh
+```
+
+Sem `ALLOW_PARTIAL=1`, o auditor falha enquanto o gate externo completo ainda
+estiver pendente.
+
 ## Dominios publicos
 
 ```env
