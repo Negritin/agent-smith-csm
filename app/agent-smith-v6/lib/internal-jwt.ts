@@ -88,8 +88,10 @@ export function signInternalJwt(input: InternalJwtInput): string {
 }
 
 export function createInternalAuthHeaders(input: InternalJwtInput): HeaderMap {
+  const token = signInternalJwt(input);
   return {
-    Authorization: `Bearer ${signInternalJwt(input)}`,
+    Authorization: `Bearer ${token}`,
+    'X-Internal-JWT': token,
   };
 }
 

@@ -235,6 +235,7 @@ async def require_master_admin(
 async def require_internal_user_claims(
     request: Request,
     authorization: Optional[str] = Header(None, alias="Authorization"),
+    x_internal_jwt: Optional[str] = Header(None, alias="X-Internal-JWT"),
     db: AsyncSupabaseClient = Depends(get_async_db),
 ) -> InternalJwtClaims:
     """
@@ -243,7 +244,13 @@ async def require_internal_user_claims(
     SECURITY: validates HS256 signature, expiration, required claims, and
     existence of user_id in users_v2. company_id claims are checked against DB.
     """
-    if not authorization or not authorization.startswith("Bearer "):
+    token: Optional[str] = None
+    if authorization and authorization.startswith("Bearer "):
+        token = authorization.removeprefix("Bearer ").strip()
+    elif x_internal_jwt:
+        token = x_internal_jwt.removeprefix("Bearer ").strip()
+
+    if not token:
         logger.warning(
             "[Auth] Missing bearer token from %s",
             request.client.host if request and request.client else "unknown",
@@ -253,7 +260,7 @@ async def require_internal_user_claims(
             detail="Authentication required",
         )
 
-    claims = _decode_internal_jwt(authorization.removeprefix("Bearer ").strip())
+    claims = _decode_internal_jwt(token)
 
     try:
         if claims.actor_type == "master_admin":
