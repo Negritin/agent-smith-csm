@@ -71,21 +71,12 @@ Manual equivalent:
   scripts/deploy-frontend-vercel.sh
   scripts/check-runtime.sh
 
-Required external credentials still enforced by the full gate:
-  ANTHROPIC_API_KEY
-  OPENROUTER_API_KEY
-  TAVILY_API_KEY
-  COHERE_API_KEY
-  GROQ_API_KEY
-  STRIPE_SECRET_KEY
-  STRIPE_WEBHOOK_SECRET
-  SENDGRID_API_KEY
-  SENDGRID_FROM_EMAIL
-
 Recommended:
   SENTRY_DSN
   NEXT_PUBLIC_SENTRY_DSN
 MSG
+  printf '\nCurrent missing required credentials:\n'
+  scripts/pending-external-envs.sh | sed -n '/# Required for complete production gate/,/^$/p'
 }
 
 main() {
