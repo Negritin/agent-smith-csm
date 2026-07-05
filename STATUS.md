@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-05 01:49 UTC.
+Atualizado em 2026-07-05 01:56 UTC.
 
 ## Estado atual
 
@@ -68,6 +68,9 @@ Atualizado em 2026-07-05 01:49 UTC.
 - Env externo: `deploy/external.env.example` e `scripts/apply-external-envs.sh`
   preparados para aplicar as chaves reais em `.env.app`/`.env.vercel` sem
   imprimir valores, validando `app` completo + Vercel por padrao.
+- Env inventory: templates e helpers tambem cobrem opcionais do codigo real para
+  MCP/OAuth GitHub/Slack, tokens MCP locais, Qdrant API key e knobs de tuning
+  backend, sempre como opcionais nao bloqueantes.
 - Env report: `scripts/env-report.sh` mostra arquivos e chaves obrigatorias
   vazias ou ainda com placeholder sem imprimir valores sensiveis.
 - Finalizacao externa: `scripts/finalize-external-services.sh` aplica

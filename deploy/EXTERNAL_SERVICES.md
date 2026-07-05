@@ -83,6 +83,11 @@ faltam chaves obrigatorias.
 | Sentry | `NEXT_PUBLIC_SENTRY_DSN` | Vercel | erros frontend |
 | LangSmith | `LANGCHAIN_API_KEY` | VPS backend/workers | tracing LangChain |
 | LangSmith | `LANGSMITH_WORKSPACE_ID` | VPS backend/workers | service keys org-scoped |
+| MCP OAuth | `MCP_OAUTH_REDIRECT_BASE` | VPS backend | base publica dos callbacks OAuth MCP |
+| GitHub MCP | `GITHUB_OAUTH_CLIENT_ID`/`GITHUB_OAUTH_CLIENT_SECRET` | VPS backend | OAuth de conectores MCP GitHub |
+| Slack MCP | `SLACK_OAUTH_CLIENT_ID`/`SLACK_OAUTH_CLIENT_SECRET` | VPS backend | OAuth de conectores MCP Slack |
+| MCP local | `GOOGLE_ACCESS_TOKEN`/`GITHUB_ACCESS_TOKEN`/`SLACK_ACCESS_TOKEN` | VPS backend | tokens diretos dos servidores MCP locais |
+| Qdrant externo | `QDRANT_API_KEY` | VPS backend | somente se Qdrant exigir API key |
 
 Sem SendGrid, o app continua online, mas o gate completo nao passa porque envio
 de convite e recuperacao de senha retornam falha de servico de email.
