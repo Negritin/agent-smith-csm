@@ -119,6 +119,52 @@ require_index() {
   fi
 }
 
+require_storage_bucket() {
+  local bucket="$1"
+  local file_size_limit="$2"
+  local mime_array_sql="$3"
+  local mime_condition exists
+
+  if [ "$mime_array_sql" = "NULL" ]; then
+    mime_condition="allowed_mime_types is null"
+  else
+    mime_condition="allowed_mime_types @> $mime_array_sql and $mime_array_sql @> allowed_mime_types"
+  fi
+
+  exists="$(scalar "select exists (
+    select 1
+      from storage.buckets
+     where id = '$bucket'
+       and name = '$bucket'
+       and public = true
+       and file_size_limit = $file_size_limit
+       and $mime_condition
+  );")"
+  if [ "$exists" = "t" ]; then
+    pass "storage bucket $bucket metadata"
+  else
+    fail "storage bucket $bucket metadata mismatch"
+  fi
+}
+
+require_storage_policy() {
+  local policy="$1"
+  local exists
+
+  exists="$(scalar "select exists (
+    select 1
+      from pg_policies
+     where schemaname = 'storage'
+       and tablename = 'objects'
+       and policyname = '$policy'
+  );")"
+  if [ "$exists" = "t" ]; then
+    pass "storage policy $policy"
+  else
+    fail "missing storage policy $policy"
+  fi
+}
+
 main() {
   if is_placeholder "${SUPABASE_DB_URL:-}"; then
     fail "SUPABASE_DB_URL is missing or placeholder"
@@ -158,10 +204,32 @@ main() {
     "platform_settings.system_base_prompt" \
     "select count(*) from public.platform_settings where key = 'system_base_prompt';" \
     1
-  require_count_at_least \
-    "storage buckets" \
-    "select count(*) from storage.buckets where id in ('avatars', 'chat-media', 'voice-messages');" \
-    3
+  require_storage_bucket \
+    avatars \
+    52428800 \
+    "ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif']::text[]"
+  require_storage_bucket \
+    chat-media \
+    5242880 \
+    "ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif']::text[]"
+  require_storage_bucket \
+    attachments \
+    5242880 \
+    "ARRAY['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf']::text[]"
+  require_storage_bucket \
+    voice-messages \
+    52428800 \
+    NULL
+  require_storage_policy "Public Read"
+  require_storage_policy "Public Upload Avatars"
+  require_storage_policy "Public Update Avatars"
+  require_storage_policy "Public Delete Avatars"
+  require_storage_policy "Qualquer um pode ver imagens"
+  require_storage_policy "Permitir upload via chat"
+  require_storage_policy "Admins podem deletar"
+  require_storage_policy "Anyone can read attachments"
+  require_storage_policy "Anyone can read voice messages"
+  require_storage_policy "Anyone can upload to voice-messages"
   require_count_at_least \
     "private.app_runtime_secrets.widget_hmac_secret" \
     "select count(*) from private.app_runtime_secrets where name = 'widget_hmac_secret';" \

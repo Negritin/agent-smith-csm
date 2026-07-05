@@ -137,6 +137,9 @@ Configurar no Supabase antes da subida completa:
 - Para upgrade v6.2 -> v7.0: `CONFIRM=1 scripts/setup-supabase.sh upgrade`.
 - O modo `fresh` aplica `schema_completo_v7.0.sql`, `storage_buckets.sql`,
   `seed_llm_pricing.sql` e `seed_platform_settings.sql`.
+- `storage_buckets.sql` cria/atualiza `avatars`, `chat-media`, `attachments` e
+  `voice-messages`, incluindo metadados de tamanho/MIME type e policies de
+  leitura/upload necessarias para o app.
 - `scripts/setup-supabase.sh` tambem sincroniza `WIDGET_HMAC_SECRET` em
   `private.app_runtime_secrets` e roda `scripts/check-supabase.sh`.
 - Criar o usuario master/admin com `scripts/create-admin.sh`.

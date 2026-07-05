@@ -14,8 +14,13 @@ INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_typ
 VALUES
   ('avatars', 'avatars', true, 52428800, ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif']),
   ('chat-media', 'chat-media', true, 5242880, ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif']),
+  ('attachments', 'attachments', true, 5242880, ARRAY['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf']),
   ('voice-messages', 'voice-messages', true, 52428800, NULL)
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET
+  name = EXCLUDED.name,
+  public = EXCLUDED.public,
+  file_size_limit = EXCLUDED.file_size_limit,
+  allowed_mime_types = EXCLUDED.allowed_mime_types;
 
 
 -- ============================================================
@@ -93,7 +98,21 @@ END $$;
 
 
 -- ============================================================
--- 4. POLICIES — BUCKET: voice-messages
+-- 4. POLICIES — BUCKET: attachments
+-- ============================================================
+
+-- Qualquer um pode ver anexos gerados pelo endpoint server-side /api/upload
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Anyone can read attachments' AND tablename = 'objects' AND schemaname = 'storage') THEN
+        CREATE POLICY "Anyone can read attachments"
+        ON storage.objects FOR SELECT
+        USING (bucket_id = 'attachments');
+    END IF;
+END $$;
+
+
+-- ============================================================
+-- 5. POLICIES — BUCKET: voice-messages
 -- ============================================================
 
 -- Qualquer um pode ler mensagens de voz

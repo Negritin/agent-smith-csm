@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-05 01:21 UTC.
+Atualizado em 2026-07-05 01:27 UTC.
 
 ## Estado atual
 
@@ -118,9 +118,10 @@ Atualizado em 2026-07-05 01:21 UTC.
   duplicidade de header `apikey`.
 - Supabase setup: `CONFIRM=1 scripts/setup-supabase.sh fresh` aplicado com
   sucesso. Tabelas, buckets, seeds e `private.app_runtime_secrets` foram
-  validados por `scripts/check-supabase.sh`. O check tambem valida a tabela
-  `public.integrations`, colunas de webhook token por integracao, indices
-  `uniq_integrations_webhook_token_hash`/`uniq_whatsapp_active_integration_per_agent`
+  validados por `scripts/check-supabase.sh`. O check valida metadados/policies
+  dos buckets `avatars`, `chat-media`, `attachments` e `voice-messages`; tambem
+  valida a tabela `public.integrations`, colunas de webhook token por integracao,
+  indices `uniq_integrations_webhook_token_hash`/`uniq_whatsapp_active_integration_per_agent`
   e ausencia de integracoes WhatsApp ativas sem `webhook_token_hash`.
 - Supabase admin: primeiro `master_admin` criado e login validado em
   `/api/admin/login`.
