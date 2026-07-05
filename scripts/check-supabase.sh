@@ -255,6 +255,24 @@ main() {
         and coalesce(is_active, false)
         and webhook_token_hash is null;"
   require_count_zero \
+    "active meta-cloud integrations without App Secret" \
+    "select count(*)
+       from public.integrations
+      where provider = 'meta-cloud'
+        and coalesce(is_active, false)
+        and nullif(client_token, '') is null;"
+  require_count_zero \
+    "active meta-cloud integrations without verify token" \
+    "select count(*)
+       from public.integrations
+      where provider = 'meta-cloud'
+        and coalesce(is_active, false)
+        and nullif(coalesce(
+          provider_config->>'webhook_verify_token',
+          provider_config->>'meta_webhook_verify_token',
+          ''
+        ), '') is null;"
+  require_count_zero \
     "active legacy WhatsApp provider rows" \
     "select count(*)
        from public.integrations

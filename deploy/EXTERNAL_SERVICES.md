@@ -180,6 +180,22 @@ No POST, o backend valida `X-Hub-Signature-256` com o App Secret salvo no campo
 `client_token`. O primeiro corte deve ficar em `shadow`; apos confirmar recepcao,
 dedup e historico, altere para `active`.
 
+Para ativar uma linha `meta-cloud` existente sem expor o App Secret no historico
+do shell:
+
+```bash
+scripts/activate-meta-cloud-whatsapp.py \
+  --integration-id <agent-smith-integration-id> \
+  --mode shadow
+```
+
+O comando pede o App Secret da Meta por prompt seguro, marca a integracao como
+ativa e mantem `whatsapp_webhook_mode=shadow`. Use `--mode active
+--confirm-active` somente depois de confirmar que os webhooks reais estao sendo
+persistidos corretamente. Por padrao o comando nao imprime a URL completa porque
+ela contem o token secreto do webhook; copie-a pelo admin ou use
+`--print-webhook-url` apenas em terminal privado.
+
 O token de webhook e por integracao. Ao regenerar, a URL antiga deixa de valer e
 deve ser recolada no painel do provider.
 

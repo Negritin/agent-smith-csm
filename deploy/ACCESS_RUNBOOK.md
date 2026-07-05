@@ -133,7 +133,14 @@ Estado de integracoes:
   OAuth/smoke do runbook.
 - WhatsApp: borda pronta para `z-api`, `uazapi`, `evolution` e `meta-cloud`. A linha ativa em
   `public.integrations` deve ser criada pelo admin com token/instancia/base_url
-  reais do provider, vinculada a um agente.
+  reais do provider, vinculada a um agente. Para Meta Cloud, ative primeiro em
+  shadow com:
+
+```bash
+scripts/activate-meta-cloud-whatsapp.py \
+  --integration-id <agent-smith-integration-id> \
+  --mode shadow
+```
 
 Readiness consolidado:
 
