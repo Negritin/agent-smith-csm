@@ -20,6 +20,9 @@ Os arquivos reais ficam ignorados pelo Git. Os templates versionados estao em
 `deploy/.env.app.example`, `deploy/.env.infra.example` e
 `deploy/vercel.env.example`.
 
+O checklist especifico dos fornecedores externos fica em
+`deploy/EXTERNAL_SERVICES.md`.
+
 Para reduzir erro manual, preencha um unico arquivo fora do Git:
 
 ```bash

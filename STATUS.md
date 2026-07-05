@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-05 00:14 UTC.
+Atualizado em 2026-07-05 00:19 UTC.
 
 ## Estado atual
 
@@ -54,6 +54,8 @@ Atualizado em 2026-07-05 00:14 UTC.
   imprimir valores, validando `app` completo + Vercel por padrao.
 - Env report: `scripts/env-report.sh` mostra arquivos e chaves obrigatorias
   vazias ou ainda com placeholder sem imprimir valores sensiveis.
+- Servicos externos: `deploy/EXTERNAL_SERVICES.md` lista as chaves que faltam,
+  onde cada uma entra e como validar sem imprimir segredos.
 - `/opt/agent-smith/.env.external`: criado com permissao `600`; `PUBLIC_SERVER_IP`,
   URLs publicas, `SUPABASE_URL`, `SUPABASE_KEY`, `SUPABASE_DB_URL`,
   `DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` e `OPENAI_API_KEY` estao
@@ -142,6 +144,7 @@ para esse IP.
 - `/opt/agent-smith/deploy/vercel.env.example`
 - `/opt/agent-smith/deploy/external.env.example`
 - `/opt/agent-smith/deploy/ENV_REQUIRED.preflight.md`
+- `/opt/agent-smith/deploy/EXTERNAL_SERVICES.md`
 - `/opt/agent-smith/scripts/import-upstream.sh`
 - `/opt/agent-smith/scripts/check-ready.sh`
 - `/opt/agent-smith/scripts/check-public-access.sh`
