@@ -76,6 +76,20 @@ scripts/env-report.sh
 scripts/check-external-services.sh
 ```
 
+Readiness consolidado:
+
+```bash
+scripts/production-readiness.sh
+```
+
+Enquanto faltarem as chaves externas, esse comando sai com falha no gate
+completo, mas ainda mostra se o core esta pronto. Para usar em automacao que
+aceita o estado parcial atual:
+
+```bash
+ALLOW_PARTIAL=1 scripts/production-readiness.sh
+```
+
 ## Deploy
 
 Backend/workers na VPS:
@@ -114,7 +128,7 @@ Depois:
 
 ```bash
 scripts/apply-external-envs.sh
-RUN_LIVE=1 scripts/check-external-services.sh
+RUN_LIVE=1 scripts/production-readiness.sh
 scripts/validate-env.sh app
 scripts/deploy-app.sh
 scripts/check-runtime.sh

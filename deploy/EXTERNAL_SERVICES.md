@@ -129,12 +129,13 @@ Sem chamadas externas pagas:
 scripts/env-report.sh
 scripts/check-external-services.sh
 scripts/validate-env.sh app
+scripts/production-readiness.sh
 ```
 
 Com teste vivo de autenticacao para os providers suportados pelo script:
 
 ```bash
-RUN_LIVE=1 scripts/check-external-services.sh
+RUN_LIVE=1 scripts/production-readiness.sh
 ```
 
 O teste vivo valida OpenAI, Anthropic, OpenRouter, Groq, Stripe, SendGrid e

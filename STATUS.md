@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-05 00:24 UTC.
+Atualizado em 2026-07-05 00:29 UTC.
 
 ## Estado atual
 
@@ -87,6 +87,9 @@ Atualizado em 2026-07-05 00:24 UTC.
   Vercel, containers da app, health interno do backend, ping Celery, Supabase,
   Docling e acesso publico. O login admin entra como check opcional quando
   `ADMIN_LOGIN_PASSWORD` e fornecido.
+- Production readiness: `scripts/production-readiness.sh` consolida core
+  readiness, runtime e gate completo de chaves externas. Hoje confirma o core e
+  falha corretamente no gate completo enquanto faltarem providers/Stripe.
 - Supabase client compat: backend/worker foram ajustados para aceitar chaves
   Supabase novas `sb_secret_*` com a versao atual de `supabase-py`, evitando
   duplicidade de header `apikey`.
@@ -157,6 +160,7 @@ para esse IP.
 - `/opt/agent-smith/scripts/check-public-access.sh`
 - `/opt/agent-smith/scripts/check-supabase.sh`
 - `/opt/agent-smith/scripts/check-runtime.sh`
+- `/opt/agent-smith/scripts/production-readiness.sh`
 - `/opt/agent-smith/scripts/check-admin-login.sh`
 - `/opt/agent-smith/scripts/create-admin.sh`
 - `/opt/agent-smith/scripts/analyze-upstream.sh`
@@ -271,6 +275,7 @@ scripts/smoke-docling.sh
 scripts/sync-local-envs.sh
 scripts/check-supabase.sh
 scripts/check-runtime.sh
+scripts/production-readiness.sh
 scripts/check-admin-login.sh
 scripts/validate-env.sh app
 scripts/validate-env.sh vercel
