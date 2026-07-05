@@ -23,6 +23,8 @@ Os arquivos reais ficam ignorados pelo Git. Os templates versionados estao em
 O checklist especifico dos fornecedores externos fica em
 `deploy/EXTERNAL_SERVICES.md`.
 O runbook de acesso e operacao fica em `deploy/ACCESS_RUNBOOK.md`.
+Para imprimir um template apenas com as chaves externas ainda pendentes, sem
+mostrar valores existentes, use `scripts/pending-external-envs.sh`.
 
 Para reduzir erro manual, preencha um unico arquivo fora do Git:
 

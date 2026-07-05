@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-05 01:27 UTC.
+Atualizado em 2026-07-05 01:42 UTC.
 
 ## Estado atual
 
@@ -81,6 +81,10 @@ Atualizado em 2026-07-05 01:27 UTC.
   URLs publicas, `SUPABASE_URL`, `SUPABASE_KEY`, `SUPABASE_DB_URL`,
   `DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` e `OPENAI_API_KEY` estao
   preenchidos. Ainda faltam providers LLM/busca adicionais e Stripe.
+- OpenAI/Supabase live auth: `RUN_LIVE=1 scripts/check-external-services.sh`
+  validou OpenAI e Supabase REST ao vivo sem imprimir segredos; o comando ainda
+  falha corretamente enquanto faltam Anthropic/OpenRouter/Tavily/Cohere/Groq,
+  Stripe e SendGrid.
 - Preparacao de producao: `scripts/prepare-production-envs.sh` passa nos checks
   base e no prefill publico, mas para corretamente em `scripts/check-external-services.sh`
   enquanto faltarem providers LLM/busca e Stripe.
@@ -199,6 +203,7 @@ para esse IP.
 - `/opt/agent-smith/scripts/analyze-upstream.sh`
 - `/opt/agent-smith/scripts/validate-env.sh`
 - `/opt/agent-smith/scripts/env-report.sh`
+- `/opt/agent-smith/scripts/pending-external-envs.sh`
 - `/opt/agent-smith/scripts/apply-external-envs.sh`
 - `/opt/agent-smith/scripts/deploy-app.sh`
 - `/opt/agent-smith/scripts/deploy-production.sh`

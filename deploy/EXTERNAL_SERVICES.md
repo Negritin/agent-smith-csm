@@ -42,6 +42,19 @@ sentido, para `/opt/agent-smith/.env.vercel`, sem imprimir segredos.
 codigo usa OpenAI por padrao para chat, embeddings, ingestao, memoria, audio e
 benchmarks.
 
+Para gerar um bloco seguro apenas com os segredos que ainda faltam em
+`/opt/agent-smith/.env.external`:
+
+```bash
+scripts/pending-external-envs.sh
+```
+
+Com opcionais recomendados de observabilidade/integracoes:
+
+```bash
+INCLUDE_OPTIONAL=1 scripts/pending-external-envs.sh
+```
+
 ## Recomendado
 
 | Servico | Variavel | Onde fica | Uso |
