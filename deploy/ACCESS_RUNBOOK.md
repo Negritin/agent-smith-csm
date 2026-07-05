@@ -170,16 +170,12 @@ O GitHub `Negritin/agent-smith-csm` tambem esta conectado a Vercel na branch
 
 ## Proximos desbloqueios
 
-O core esta operando. Para liberar o gate completo de producao, preencher as
-chaves em `/opt/agent-smith/.env.external` conforme
-`deploy/EXTERNAL_SERVICES.md`, principalmente:
+O core esta operando. OpenAI, Anthropic, OpenRouter, Tavily, Cohere e Groq ja
+foram aplicados. Para liberar o gate completo de producao, preencher as chaves
+restantes em `/opt/agent-smith/.env.external` conforme
+`deploy/EXTERNAL_SERVICES.md`:
 
 ```env
-ANTHROPIC_API_KEY=
-OPENROUTER_API_KEY=
-TAVILY_API_KEY=
-COHERE_API_KEY=
-GROQ_API_KEY=
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 SENDGRID_API_KEY=

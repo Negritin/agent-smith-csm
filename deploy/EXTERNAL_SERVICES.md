@@ -5,11 +5,11 @@ producao completa. Ele nao deve conter valores reais de segredo.
 
 Estado atual da VPS/Vercel:
 
-- Core online com OpenAI, Supabase, Redis, Qdrant, MinIO, Docling, FastAPI,
-  Celery worker e Celery beat.
+- Core online com OpenAI, Anthropic, OpenRouter, Tavily, Cohere, Groq,
+  Supabase, Redis, Qdrant, MinIO, Docling, FastAPI, Celery worker e Celery beat.
 - `scripts/validate-env.sh app-core` passa.
 - `scripts/check-runtime.sh` passa.
-- `scripts/validate-env.sh app` ainda exige as chaves abaixo para liberar o
+- `scripts/validate-env.sh app` ainda exige Stripe e SendGrid para liberar o
   gate completo.
 
 ## Onde preencher
@@ -49,9 +49,10 @@ com `scripts/check-runtime.sh`.
 | SendGrid | `SENDGRID_API_KEY` | Vercel/Next e VPS | `SG...` |
 | SendGrid | `SENDGRID_FROM_EMAIL` | Vercel/Next e VPS | email verificado |
 
-`OPENAI_API_KEY` ja esta aplicado no backend. Ele continua obrigatorio porque o
-codigo usa OpenAI por padrao para chat, embeddings, ingestao, memoria, audio e
-benchmarks.
+`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `OPENROUTER_API_KEY`, `TAVILY_API_KEY`,
+`COHERE_API_KEY` e `GROQ_API_KEY` ja estao aplicados no backend. OpenAI continua
+obrigatorio porque o codigo usa OpenAI por padrao para chat, embeddings,
+ingestao, memoria, audio e benchmarks.
 
 Para gerar um bloco seguro apenas com os segredos que ainda faltam em
 `/opt/agent-smith/.env.external`:

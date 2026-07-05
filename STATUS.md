@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-05 02:19 UTC.
+Atualizado em 2026-07-05 12:03 UTC.
 
 ## Estado atual
 
@@ -37,9 +37,10 @@ Atualizado em 2026-07-05 02:19 UTC.
   contra o Supabase sem imprimir valores. A chave `sb_secret_*` funciona como
   server-side/service-role e a `sb_publishable_*` ficou mapeada como chave
   publica do frontend.
-- OpenAI: `OPENAI_API_KEY` foi atualizada em `.env.external`/`.env.app`,
-  validada contra a API da OpenAI e confirmada dentro do container backend sem
-  imprimir o valor.
+- LLM/search/guardrails: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`,
+  `OPENROUTER_API_KEY`, `TAVILY_API_KEY`, `COHERE_API_KEY` e `GROQ_API_KEY`
+  estao aplicadas em `.env.external`/`.env.app` e confirmadas dentro do
+  container backend sem imprimir valores.
 - Vercel envs de producao: Supabase/URLs/segredos internos sincronizados. O
   build/redeploy Next.js passou depois disso.
 - Vercel remote env: `scripts/check-vercel-remote-env.sh production` valida os
@@ -95,15 +96,17 @@ Atualizado em 2026-07-05 02:19 UTC.
   reset/criacao de admin e proximos desbloqueios sem versionar senhas.
 - `/opt/agent-smith/.env.external`: criado com permissao `600`; `PUBLIC_SERVER_IP`,
   URLs publicas, `SUPABASE_URL`, `SUPABASE_KEY`, `SUPABASE_DB_URL`,
-  `DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` e `OPENAI_API_KEY` estao
-  preenchidos. Ainda faltam providers LLM/busca adicionais e Stripe.
-- OpenAI/Supabase live auth: `RUN_LIVE=1 scripts/check-external-services.sh`
-  validou OpenAI e Supabase REST ao vivo sem imprimir segredos; o comando ainda
-  falha corretamente enquanto faltam Anthropic/OpenRouter/Tavily/Cohere/Groq,
-  Stripe e SendGrid.
+  `DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `OPENAI_API_KEY`,
+  `ANTHROPIC_API_KEY`, `OPENROUTER_API_KEY`, `TAVILY_API_KEY`,
+  `COHERE_API_KEY` e `GROQ_API_KEY` estao preenchidos. Ainda faltam Stripe e
+  SendGrid para o gate completo.
+- Live auth externo: `RUN_LIVE=1 scripts/check-external-services.sh` validou
+  OpenAI, Anthropic, OpenRouter, Groq e Supabase REST ao vivo sem imprimir
+  segredos. Tavily/Cohere passam em validacao de formato, e o comando ainda
+  falha corretamente enquanto faltam Stripe e SendGrid.
 - Preparacao de producao: `scripts/prepare-production-envs.sh` passa nos checks
   base e no prefill publico, mas para corretamente em `scripts/check-external-services.sh`
-  enquanto faltarem providers LLM/busca e Stripe.
+  enquanto faltarem Stripe e SendGrid.
 - Imagens Docker: backend, worker, beat, docling-api e docling-worker foram
   buildadas e estao rodando com sucesso.
 - Backend smoke: `scripts/smoke-backend.sh` passou, validando compose, build da
