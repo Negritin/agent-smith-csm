@@ -23,6 +23,7 @@ import subprocess
 import sys
 import tempfile
 from typing import Any
+from urllib.parse import parse_qs, unquote, urlparse
 
 
 RAILS_EXPORTER = r"""
@@ -140,6 +141,57 @@ def uuid_literal(value: str) -> str:
 
 def ts_literal(value: Any) -> str:
     return f"{sql_literal(value)}::timestamptz" if value else "now()"
+
+
+def _pgpass_escape(value: str) -> str:
+    return value.replace("\\", "\\\\").replace(":", "\\:")
+
+
+def psql_env_from_url(database_url: str) -> tuple[list[str], dict[str, str], str | None]:
+    """Build a psql invocation without putting the DB URL/password in argv."""
+    parsed = urlparse(database_url)
+    if parsed.scheme not in {"postgres", "postgresql"}:
+        raise SystemExit("SUPABASE_DB_URL must use postgres/postgresql scheme")
+
+    host = parsed.hostname or ""
+    port = str(parsed.port or 5432)
+    database = unquote((parsed.path or "/postgres").lstrip("/") or "postgres")
+    user = unquote(parsed.username or "")
+    password = unquote(parsed.password or "")
+    query = parse_qs(parsed.query or "")
+    sslmode = (query.get("sslmode") or ["require"])[0]
+
+    env = os.environ.copy()
+    env.update(
+        {
+            "PGHOST": host,
+            "PGPORT": port,
+            "PGDATABASE": database,
+            "PGUSER": user,
+            "PGSSLMODE": sslmode,
+        }
+    )
+
+    pgpass_path = None
+    if password:
+        fd, pgpass_path = tempfile.mkstemp(prefix="agent-smith-pgpass-")
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            handle.write(
+                ":".join(
+                    [
+                        _pgpass_escape(host),
+                        _pgpass_escape(port),
+                        _pgpass_escape(database),
+                        _pgpass_escape(user),
+                        _pgpass_escape(password),
+                    ]
+                )
+                + "\n"
+            )
+        os.chmod(pgpass_path, 0o600)
+        env["PGPASSFILE"] = pgpass_path
+
+    return ["psql"], env, pgpass_path
 
 
 def split_name(name: str | None) -> tuple[str, str]:
@@ -392,13 +444,16 @@ def main() -> int:
         return 0
 
     sql_path = None
+    pgpass_path = None
     try:
         with tempfile.NamedTemporaryFile("w", encoding="utf-8", delete=False) as tmp:
             tmp.write(sql)
             sql_path = tmp.name
+        psql_base, psql_env, pgpass_path = psql_env_from_url(db_url)
 
         proc = subprocess.run(
-            ["psql", db_url, "-v", "ON_ERROR_STOP=1", "-q", "-f", sql_path],
+            [*psql_base, "-v", "ON_ERROR_STOP=1", "-q", "-f", sql_path],
+            env=psql_env,
             text=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -408,6 +463,11 @@ def main() -> int:
         if sql_path:
             try:
                 os.unlink(sql_path)
+            except FileNotFoundError:
+                pass
+        if pgpass_path:
+            try:
+                os.unlink(pgpass_path)
             except FileNotFoundError:
                 pass
     if proc.returncode != 0:

@@ -181,6 +181,8 @@ main() {
   require_table public.agents
   require_table public.documents
   require_table public.integrations
+  require_table public.whatsapp_external_conversations
+  require_table public.whatsapp_external_messages
   require_table public.llm_pricing
   require_table public.platform_settings
   require_table private.app_runtime_secrets
@@ -196,8 +198,19 @@ main() {
   require_column public integrations webhook_token_hash
   require_column public integrations webhook_token_prefix
   require_column public integrations webhook_token_rotated_at
+  require_column public integrations provider_config
+  require_column public integrations whatsapp_webhook_mode
+  require_column public whatsapp_external_conversations integration_id
+  require_column public whatsapp_external_conversations conversation_id
+  require_column public whatsapp_external_conversations external_conversation_id
+  require_column public whatsapp_external_messages integration_id
+  require_column public whatsapp_external_messages message_id
+  require_column public whatsapp_external_messages external_message_id
+  require_column public whatsapp_external_messages event_kind
   require_index public.uniq_integrations_webhook_token_hash
   require_index public.uniq_whatsapp_active_integration_per_agent
+  require_index public.uniq_whatsapp_external_conversations_source_id
+  require_index public.uniq_whatsapp_external_messages_provider_id
 
   require_count_at_least "llm_pricing" "select count(*) from public.llm_pricing;" 60
   require_count_at_least \
