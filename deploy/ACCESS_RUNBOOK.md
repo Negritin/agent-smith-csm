@@ -53,6 +53,12 @@ cd /opt/agent-smith
 scripts/check-runtime.sh
 ```
 
+Persistencia/restart policy:
+
+```bash
+scripts/check-persistence.sh
+```
+
 Com validacao de login admin junto:
 
 ```bash

@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-05 00:29 UTC.
+Atualizado em 2026-07-05 00:34 UTC.
 
 ## Estado atual
 
@@ -84,9 +84,11 @@ Atualizado em 2026-07-05 00:29 UTC.
   `attendance,billing,sanitization,celery`, consulta Supabase com 200, e o beat
   envia jobs periodicos.
 - Runtime check: `scripts/check-runtime.sh` passa, validando env core, env
-  Vercel, containers da app, health interno do backend, ping Celery, Supabase,
-  Docling e acesso publico. O login admin entra como check opcional quando
-  `ADMIN_LOGIN_PASSWORD` e fornecido.
+  Vercel, persistencia/restart policy, containers da app, health interno do
+  backend, ping Celery, Supabase, Docling e acesso publico. O login admin entra
+  como check opcional quando `ADMIN_LOGIN_PASSWORD` e fornecido.
+- Persistencia: Docker esta `active` e `enabled`; Redis, Qdrant e MinIO usam
+  volumes nomeados; infra/app usam restart policy `unless-stopped`.
 - Production readiness: `scripts/production-readiness.sh` consolida core
   readiness, runtime e gate completo de chaves externas. Hoje confirma o core e
   falha corretamente no gate completo enquanto faltarem providers/Stripe.
@@ -160,6 +162,7 @@ para esse IP.
 - `/opt/agent-smith/scripts/check-public-access.sh`
 - `/opt/agent-smith/scripts/check-supabase.sh`
 - `/opt/agent-smith/scripts/check-runtime.sh`
+- `/opt/agent-smith/scripts/check-persistence.sh`
 - `/opt/agent-smith/scripts/production-readiness.sh`
 - `/opt/agent-smith/scripts/check-admin-login.sh`
 - `/opt/agent-smith/scripts/create-admin.sh`
@@ -274,6 +277,7 @@ scripts/smoke-frontend.sh
 scripts/smoke-docling.sh
 scripts/sync-local-envs.sh
 scripts/check-supabase.sh
+scripts/check-persistence.sh
 scripts/check-runtime.sh
 scripts/production-readiness.sh
 scripts/check-admin-login.sh

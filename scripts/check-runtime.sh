@@ -90,6 +90,7 @@ check_celery_ping() {
 main() {
   scripts/validate-env.sh app-core || FAILED=1
   scripts/validate-env.sh vercel || FAILED=1
+  scripts/check-persistence.sh || FAILED=1
 
   require_service_running backend
   require_service_running worker

@@ -310,6 +310,7 @@ scripts/validate-env.sh infra
 scripts/validate-env.sh app-core
 scripts/validate-env.sh app
 scripts/validate-env.sh vercel
+scripts/check-persistence.sh
 scripts/check-runtime.sh
 scripts/production-readiness.sh
 ```
