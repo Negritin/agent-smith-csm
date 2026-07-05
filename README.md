@@ -108,9 +108,9 @@ Os arquivos reais ficam somente na VPS e estao protegidos pelo `.gitignore`:
 - `/opt/agent-smith/.env.vercel`
 - `/opt/agent-smith/.env.external`
 
-Os segredos internos ja foram gerados localmente. Ainda faltam dominios,
-credenciais Supabase, chaves de provedores externos, Stripe e credenciais Vercel.
-Para preencher tudo sem editar varios arquivos manualmente:
+Os segredos internos e as chaves obrigatorias de producao ja ficam somente na
+VPS. Para revisar, reaplicar ou trocar credenciais sem editar varios arquivos
+manualmente:
 
 ```bash
 cd /opt/agent-smith

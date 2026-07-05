@@ -1,8 +1,22 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-05 12:03 UTC.
+Atualizado em 2026-07-05 13:33 UTC.
 
-## Estado atual
+## Estado atual de producao
+
+- `RUN_LIVE=1 scripts/production-readiness.sh` passou com `complete production
+  gate is ready`.
+- Chaves obrigatorias externas estao preenchidas e validadas: Supabase,
+  OpenAI, Anthropic, OpenRouter, Tavily, Cohere, Groq, Stripe e SendGrid.
+- Stripe autentica ao vivo, mas a conta live ainda nao tem prices ativos; crie
+  produtos/precos no painel Stripe e vincule os `price_...` em planos no admin.
+- SendGrid autentica ao vivo; o dominio `csmmarketing.info` esta autenticado.
+- Banco operacional validado: 1 empresa, 1 master admin, 70 precos LLM e
+  `platform_settings.system_base_prompt`. Ainda nao ha agentes ativos, planos,
+  integracoes WhatsApp ou MCP servers configurados para uso de cliente.
+- Pendencias de producao agora sao configuracoes de negocio/operacao:
+  criar planos, criar agentes reais, configurar integracoes por tenant e apontar
+  dominio proprio quando desejado.
 
 - VPS: Ubuntu 24.04, Docker/Compose ativos.
 - Frontend tooling: Node.js `v22.23.1`, npm `10.9.8`, Vercel CLI `54.20.1`.
@@ -90,23 +104,17 @@ Atualizado em 2026-07-05 12:03 UTC.
 - Secret hygiene: `scripts/check-secret-hygiene.sh` valida que envs reais ficam
   ignorados, nao rastreados, com permissao privada e sem segredos de alta
   confianca em arquivos rastreados.
-- Servicos externos: `deploy/EXTERNAL_SERVICES.md` lista as chaves que faltam,
+- Servicos externos: `deploy/EXTERNAL_SERVICES.md` lista as chaves obrigatorias,
   onde cada uma entra e como validar sem imprimir segredos.
 - Acesso/admin: `deploy/ACCESS_RUNBOOK.md` documenta URLs, comandos de smoke,
   reset/criacao de admin e proximos desbloqueios sem versionar senhas.
-- `/opt/agent-smith/.env.external`: criado com permissao `600`; `PUBLIC_SERVER_IP`,
-  URLs publicas, `SUPABASE_URL`, `SUPABASE_KEY`, `SUPABASE_DB_URL`,
-  `DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `OPENAI_API_KEY`,
-  `ANTHROPIC_API_KEY`, `OPENROUTER_API_KEY`, `TAVILY_API_KEY`,
-  `COHERE_API_KEY` e `GROQ_API_KEY` estao preenchidos. Ainda faltam Stripe e
-  SendGrid para o gate completo.
+- `/opt/agent-smith/.env.external`: criado com permissao `600`; URLs publicas,
+  Supabase, LLM/search, Stripe e SendGrid obrigatorios estao preenchidos.
 - Live auth externo: `RUN_LIVE=1 scripts/check-external-services.sh` validou
-  OpenAI, Anthropic, OpenRouter, Groq e Supabase REST ao vivo sem imprimir
-  segredos. Tavily/Cohere passam em validacao de formato, e o comando ainda
-  falha corretamente enquanto faltam Stripe e SendGrid.
+  OpenAI, Anthropic, OpenRouter, Groq, Stripe, SendGrid e Supabase REST ao vivo
+  sem imprimir segredos. Tavily/Cohere passam em validacao de formato.
 - Preparacao de producao: `scripts/prepare-production-envs.sh` passa nos checks
-  base e no prefill publico, mas para corretamente em `scripts/check-external-services.sh`
-  enquanto faltarem Stripe e SendGrid.
+  base, prefill publico e validacao externa com as credenciais atuais.
 - Imagens Docker: backend, worker, beat, docling-api e docling-worker foram
   buildadas e estao rodando com sucesso.
 - Backend smoke: `scripts/smoke-backend.sh` passou, validando compose, build da
@@ -134,12 +142,10 @@ Atualizado em 2026-07-05 12:03 UTC.
   volumes nomeados; infra/app usam restart policy `unless-stopped`.
 - Production readiness: `scripts/production-readiness.sh` consolida core
   readiness, runtime, Vercel remote full env e gate completo de chaves externas.
-  Hoje confirma o core e falha corretamente no gate completo enquanto faltarem
-  providers/Stripe/SendGrid.
+  Hoje confirma `complete production gate is ready`.
 - Objective audit: `scripts/audit-goal-status.sh` valida repo oficial,
   upstream, VPS, Vercel, Supabase, superficies publicas e gate externo completo
-  como prova unica do objetivo. Use `ALLOW_PARTIAL=1` enquanto faltarem chaves
-  externas obrigatorias.
+  como prova unica do objetivo.
 - Supabase client compat: backend/worker foram ajustados para aceitar chaves
   Supabase novas `sb_secret_*` com a versao atual de `supabase-py`, evitando
   duplicidade de header `apikey`.
@@ -303,7 +309,7 @@ SUPABASE_DB_PASSWORD='<senha-do-banco>' SUPABASE_DB_REGION='<regiao>' scripts/pr
 scripts/apply-external-envs.sh
 ```
 
-Obrigatorio para `scripts/validate-env.sh app` completo:
+Obrigatorio para `scripts/validate-env.sh app` completo ja preenchido:
 
 - `ANTHROPIC_API_KEY`
 - `OPENROUTER_API_KEY`

@@ -135,16 +135,13 @@ scripts/production-readiness.sh
 Auditoria do objetivo completo deste deploy:
 
 ```bash
-ALLOW_PARTIAL=1 scripts/audit-goal-status.sh
+scripts/audit-goal-status.sh
 ```
 
 Esse comando valida repo oficial, upstream importado, VPS, Vercel, Supabase,
-superficies publicas e gate externo. Sem `ALLOW_PARTIAL=1`, ele sai com falha
-enquanto as chaves externas obrigatorias ainda nao estiverem preenchidas.
+superficies publicas e gate externo.
 
-Enquanto faltarem as chaves externas, esse comando sai com falha no gate
-completo, mas ainda mostra se o core esta pronto. Para usar em automacao que
-aceita o estado parcial atual:
+Para auditorias parciais durante troca de credenciais:
 
 ```bash
 ALLOW_PARTIAL=1 scripts/production-readiness.sh
@@ -170,19 +167,17 @@ O GitHub `Negritin/agent-smith-csm` tambem esta conectado a Vercel na branch
 
 ## Proximos desbloqueios
 
-O core esta operando. OpenAI, Anthropic, OpenRouter, Tavily, Cohere e Groq ja
-foram aplicados. Para liberar o gate completo de producao, preencher as chaves
-restantes em `/opt/agent-smith/.env.external` conforme
-`deploy/EXTERNAL_SERVICES.md`:
+O core e o gate completo de credenciais estao operando. Para deixar a oferta
+pronta para clientes:
 
-```env
-STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
-SENDGRID_API_KEY=
-SENDGRID_FROM_EMAIL=
-```
+- Criar produtos/precos ativos no Stripe live.
+- Criar planos no admin e preencher cada `stripe_price_id`.
+- Criar agentes reais para as empresas.
+- Configurar integracoes WhatsApp/MCP por tenant quando forem usadas.
+- Configurar dominio proprio para frontend/API quando sair do `vercel.app` e
+  `sslip.io`.
 
-Depois:
+Depois de trocar credenciais externas:
 
 ```bash
 RUN_LIVE=1 scripts/finalize-external-services.sh

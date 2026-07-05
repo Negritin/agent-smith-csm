@@ -6,17 +6,40 @@ from __future__ import annotations
 import json
 import importlib.util
 import sys
+import types
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
+APP_DIR = ROOT / "backend" / "app"
+SERVICES_DIR = APP_DIR / "services"
 
-MODULE_PATH = ROOT / "backend" / "app" / "services" / "mcp_gateway_service.py"
-spec = importlib.util.spec_from_file_location("mcp_gateway_service_under_test", MODULE_PATH)
-assert spec and spec.loader
-mcp_gateway_service = importlib.util.module_from_spec(spec)
-sys.modules[spec.name] = mcp_gateway_service
-spec.loader.exec_module(mcp_gateway_service)
+app_pkg = types.ModuleType("app")
+app_pkg.__path__ = [str(APP_DIR)]
+services_pkg = types.ModuleType("app.services")
+services_pkg.__path__ = [str(SERVICES_DIR)]
+sys.modules.setdefault("app", app_pkg)
+sys.modules.setdefault("app.services", services_pkg)
+
+
+def load_service_module(name: str, path: Path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+load_service_module(
+    "app.services.mcp_log_utils",
+    SERVICES_DIR / "mcp_log_utils.py",
+)
+mcp_gateway_service = load_service_module(
+    "app.services.mcp_gateway_service",
+    SERVICES_DIR / "mcp_gateway_service.py",
+)
+
 _serialize_mcp_jsonrpc_request = mcp_gateway_service._serialize_mcp_jsonrpc_request
 
 
