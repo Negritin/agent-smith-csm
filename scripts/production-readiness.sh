@@ -73,10 +73,12 @@ Required external credentials still enforced by the full gate:
   GROQ_API_KEY
   STRIPE_SECRET_KEY
   STRIPE_WEBHOOK_SECRET
-
-Recommended:
   SENDGRID_API_KEY
   SENDGRID_FROM_EMAIL
+
+Recommended:
+  SENTRY_DSN
+  NEXT_PUBLIC_SENTRY_DSN
 MSG
 }
 

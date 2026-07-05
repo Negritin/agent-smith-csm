@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-05 01:02 UTC.
+Atualizado em 2026-07-05 01:07 UTC.
 
 ## Estado atual
 
@@ -271,12 +271,15 @@ Obrigatorio para `scripts/validate-env.sh app` completo:
 - `GROQ_API_KEY`
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
+- `SENDGRID_API_KEY`
+- `SENDGRID_FROM_EMAIL`
 
 Preencher `/opt/agent-smith/.env.vercel`:
 
-- Nada obrigatorio no momento; `scripts/validate-env.sh vercel` passa.
-- Opcional/recomendado para emails disparados pelo Next: `SENDGRID_API_KEY` e
-  `SENDGRID_FROM_EMAIL`.
+- `scripts/validate-env.sh vercel` passa no core atual.
+- `SENDGRID_API_KEY` e `SENDGRID_FROM_EMAIL` ficam obrigatorios para o gate
+  completo e serao sincronizados para a Vercel depois de preencher
+  `/opt/agent-smith/.env.external`.
 
 As migrations/seeds do Supabase ja foram aplicadas e validadas.
 WhatsApp e configurado por integracao (`z-api`, `uazapi`, `evolution`) no banco,

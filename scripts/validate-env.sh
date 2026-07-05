@@ -287,6 +287,8 @@ check_app() {
     SESSION_SECRET
     STRIPE_SECRET_KEY
     STRIPE_WEBHOOK_SECRET
+    SENDGRID_API_KEY
+    SENDGRID_FROM_EMAIL
   )
 
   local key
@@ -296,8 +298,6 @@ check_app() {
   require_supabase_db_url "$APP_ENV_FILE" DATABASE_URL "app"
 
   local optional_keys=(
-    SENDGRID_API_KEY
-    SENDGRID_FROM_EMAIL
     SENTRY_DSN
     LANGCHAIN_API_KEY
     GOOGLE_API_KEY

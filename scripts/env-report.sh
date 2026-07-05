@@ -136,12 +136,12 @@ main() {
     COHERE_API_KEY \
     GROQ_API_KEY \
     STRIPE_SECRET_KEY \
-    STRIPE_WEBHOOK_SECRET
+    STRIPE_WEBHOOK_SECRET \
+    SENDGRID_API_KEY \
+    SENDGRID_FROM_EMAIL
 
   print_optional_group "external optional input" "$EXTERNAL_ENV_FILE" \
     PUBLIC_SERVER_IP \
-    SENDGRID_API_KEY \
-    SENDGRID_FROM_EMAIL \
     GOOGLE_API_KEY \
     GOOGLE_OAUTH_CLIENT_ID \
     GOOGLE_OAUTH_CLIENT_SECRET \
@@ -172,6 +172,8 @@ main() {
     GROQ_API_KEY \
     STRIPE_SECRET_KEY \
     STRIPE_WEBHOOK_SECRET \
+    SENDGRID_API_KEY \
+    SENDGRID_FROM_EMAIL \
     ENCRYPTION_KEY \
     SESSION_SECRET \
     APP_SECRET \
@@ -194,7 +196,9 @@ main() {
     INTERNAL_JWT_SECRET \
     SESSION_SECRET \
     WIDGET_HMAC_SECRET \
-    ADMIN_API_KEY
+    ADMIN_API_KEY \
+    SENDGRID_API_KEY \
+    SENDGRID_FROM_EMAIL
 
   if [ "$FAILED" -eq 0 ]; then
     printf '\nok      env report complete\n'

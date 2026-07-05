@@ -328,9 +328,8 @@ main() {
   require_pattern GROQ_API_KEY '^gsk_.+' "Groq"
   require_pattern STRIPE_SECRET_KEY '^sk_(test|live)_.+' "Stripe"
   require_pattern STRIPE_WEBHOOK_SECRET '^whsec_.+' "Stripe"
-
-  optional_pattern SENDGRID_API_KEY '^SG\..+' "SendGrid"
-  optional_pattern SENDGRID_FROM_EMAIL '^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$' "SendGrid"
+  require_pattern SENDGRID_API_KEY '^SG\..+' "SendGrid"
+  require_pattern SENDGRID_FROM_EMAIL '^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$' "SendGrid"
 
   run_live_checks
 

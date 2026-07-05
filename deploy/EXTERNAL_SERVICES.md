@@ -35,6 +35,8 @@ sentido, para `/opt/agent-smith/.env.vercel`, sem imprimir segredos.
 | Groq | `GROQ_API_KEY` | VPS backend/workers | `gsk_...` |
 | Stripe | `STRIPE_SECRET_KEY` | VPS backend, opcional Vercel | `sk_test_...` ou `sk_live_...` |
 | Stripe | `STRIPE_WEBHOOK_SECRET` | VPS backend | `whsec_...` |
+| SendGrid | `SENDGRID_API_KEY` | Vercel/Next e VPS | `SG...` |
+| SendGrid | `SENDGRID_FROM_EMAIL` | Vercel/Next e VPS | email verificado |
 
 `OPENAI_API_KEY` ja esta aplicado no backend. Ele continua obrigatorio porque o
 codigo usa OpenAI por padrao para chat, embeddings, ingestao, memoria, audio e
@@ -44,15 +46,13 @@ benchmarks.
 
 | Servico | Variavel | Onde fica | Uso |
 | --- | --- | --- | --- |
-| SendGrid | `SENDGRID_API_KEY` | Vercel/Next e VPS | convites e recuperacao de senha |
-| SendGrid | `SENDGRID_FROM_EMAIL` | Vercel/Next e VPS | remetente dos emails |
 | Sentry | `SENTRY_DSN` | VPS e/ou Vercel | erros backend/serverless |
 | Sentry | `NEXT_PUBLIC_SENTRY_DSN` | Vercel | erros frontend |
 | LangSmith | `LANGCHAIN_API_KEY` | VPS backend/workers | tracing LangChain |
 | LangSmith | `LANGSMITH_WORKSPACE_ID` | VPS backend/workers | service keys org-scoped |
 
-Sem SendGrid, o app continua online, mas envio de convite e recuperacao de
-senha retornam falha de servico de email.
+Sem SendGrid, o app continua online, mas o gate completo nao passa porque envio
+de convite e recuperacao de senha retornam falha de servico de email.
 
 ## Stripe
 

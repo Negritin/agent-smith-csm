@@ -209,11 +209,6 @@ Obrigatorio para a validacao atual do backend:
 ```env
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
-```
-
-Recomendado/opcional conforme uso:
-
-```env
 SENDGRID_API_KEY=
 SENDGRID_FROM_EMAIL=
 ```
