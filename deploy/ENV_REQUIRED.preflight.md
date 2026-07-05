@@ -281,6 +281,7 @@ Depois de preencher `/opt/agent-smith/.env.vercel`, sincronizar no projeto:
 ```bash
 scripts/sync-local-envs.sh
 scripts/sync-vercel-env.sh production
+FULL_GATE=1 scripts/check-vercel-remote-env.sh production
 ```
 
 Opcional/recomendado para runtime serverless:

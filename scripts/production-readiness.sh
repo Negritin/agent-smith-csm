@@ -62,8 +62,9 @@ print_next_steps() {
 Next step for the complete production gate:
   1. Fill /opt/agent-smith/.env.external with the missing provider credentials.
   2. Run scripts/apply-external-envs.sh.
-  3. Run RUN_LIVE=1 scripts/production-readiness.sh.
-  4. Run scripts/deploy-app.sh and scripts/check-runtime.sh.
+  3. Run scripts/sync-vercel-env.sh production.
+  4. Run RUN_LIVE=1 scripts/production-readiness.sh.
+  5. Run scripts/deploy-app.sh, scripts/deploy-frontend-vercel.sh, and scripts/check-runtime.sh.
 
 Required external credentials still enforced by the full gate:
   ANTHROPIC_API_KEY
@@ -105,6 +106,7 @@ main() {
 
   run_full_check "Redacted env report" scripts/env-report.sh
   run_full_check "Full application env" scripts/validate-env.sh app
+  run_full_check "Vercel remote full env" env FULL_GATE=1 scripts/check-vercel-remote-env.sh production
   run_full_check "External service credentials" env RUN_LIVE="$RUN_LIVE" scripts/check-external-services.sh
 
   printf '\n==> Readiness summary\n'

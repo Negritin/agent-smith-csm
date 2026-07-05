@@ -179,6 +179,7 @@ Depois de passar o gate completo:
 ```bash
 scripts/deploy-app.sh
 scripts/sync-vercel-env.sh production
+scripts/deploy-frontend-vercel.sh
 scripts/check-runtime.sh
 scripts/check-admin-login.sh
 ```

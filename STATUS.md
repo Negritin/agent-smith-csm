@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-05 01:07 UTC.
+Atualizado em 2026-07-05 01:12 UTC.
 
 ## Estado atual
 
@@ -38,8 +38,11 @@ Atualizado em 2026-07-05 01:07 UTC.
 - Vercel envs de producao: Supabase/URLs/segredos internos sincronizados. O
   build/redeploy Next.js passou depois disso.
 - Vercel remote env: `scripts/check-vercel-remote-env.sh production` valida os
-  nomes exigidos no projeto remoto e garante que segredos backend-only/LLM nao
-  foram colocados na Vercel.
+  nomes core exigidos no projeto remoto e garante que segredos backend-only/LLM
+  nao foram colocados na Vercel. O modo
+  `FULL_GATE=1 scripts/check-vercel-remote-env.sh production` tambem exige
+  `SENDGRID_API_KEY` e `SENDGRID_FROM_EMAIL` remotos para rotas serverless de
+  convite/recuperacao de senha.
 - Vercel API proxy: `scripts/check-vercel-api-proxy.sh` valida que a rota
   serverless `/api/billing/plans` no frontend publicado fala com o backend da
   VPS e retorna o mesmo contrato publico de planos.
@@ -106,8 +109,9 @@ Atualizado em 2026-07-05 01:07 UTC.
 - Persistencia: Docker esta `active` e `enabled`; Redis, Qdrant e MinIO usam
   volumes nomeados; infra/app usam restart policy `unless-stopped`.
 - Production readiness: `scripts/production-readiness.sh` consolida core
-  readiness, runtime e gate completo de chaves externas. Hoje confirma o core e
-  falha corretamente no gate completo enquanto faltarem providers/Stripe.
+  readiness, runtime, Vercel remote full env e gate completo de chaves externas.
+  Hoje confirma o core e falha corretamente no gate completo enquanto faltarem
+  providers/Stripe/SendGrid.
 - Supabase client compat: backend/worker foram ajustados para aceitar chaves
   Supabase novas `sb_secret_*` com a versao atual de `supabase-py`, evitando
   duplicidade de header `apikey`.

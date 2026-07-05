@@ -168,8 +168,10 @@ Depois:
 
 ```bash
 scripts/apply-external-envs.sh
+scripts/sync-vercel-env.sh production
 RUN_LIVE=1 scripts/production-readiness.sh
 scripts/validate-env.sh app
 scripts/deploy-app.sh
+scripts/deploy-frontend-vercel.sh
 scripts/check-runtime.sh
 ```

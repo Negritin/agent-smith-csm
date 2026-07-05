@@ -4,6 +4,7 @@ set -Eeuo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VERCEL_ENV_FILE="${VERCEL_ENV_FILE:-/opt/agent-smith/.env.vercel}"
 TARGET="${1:-production}"
+FULL_GATE="${FULL_GATE:-0}"
 FAILED=0
 NAMES_FILE=""
 
@@ -118,11 +119,21 @@ main() {
     STRICT_URL_VALIDATION
     USE_JWT_DB_CLIENT
     STRIPE_SECRET_KEY
-    SENDGRID_API_KEY
-    SENDGRID_FROM_EMAIL
     SENTRY_DSN
     NEXT_PUBLIC_SENTRY_DSN
   )
+
+  if [ "$FULL_GATE" = "1" ]; then
+    required+=(
+      SENDGRID_API_KEY
+      SENDGRID_FROM_EMAIL
+    )
+  else
+    optional+=(
+      SENDGRID_API_KEY
+      SENDGRID_FROM_EMAIL
+    )
+  fi
 
   local backend_only=(
     DATABASE_URL
