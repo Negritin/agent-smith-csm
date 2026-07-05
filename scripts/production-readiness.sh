@@ -96,6 +96,7 @@ main() {
     run_core_check "Runtime health" scripts/check-runtime.sh
   else
     warn "runtime health skipped; set RUN_RUNTIME=1 to enable"
+    run_core_check "Vercel API proxy" scripts/check-vercel-api-proxy.sh
   fi
 
   run_full_check "Redacted env report" scripts/env-report.sh

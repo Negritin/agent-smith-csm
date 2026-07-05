@@ -104,6 +104,7 @@ main() {
   scripts/check-supabase.sh || FAILED=1
   scripts/smoke-docling.sh || FAILED=1
   scripts/check-public-access.sh || FAILED=1
+  scripts/check-vercel-api-proxy.sh || FAILED=1
   if [ -n "${ADMIN_LOGIN_PASSWORD:-}" ]; then
     scripts/check-admin-login.sh || FAILED=1
   else

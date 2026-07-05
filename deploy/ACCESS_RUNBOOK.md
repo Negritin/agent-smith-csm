@@ -71,6 +71,12 @@ Env remoto da Vercel:
 scripts/check-vercel-remote-env.sh production
 ```
 
+Proxy Vercel para API da VPS:
+
+```bash
+scripts/check-vercel-api-proxy.sh
+```
+
 Com validacao de login admin junto:
 
 ```bash
