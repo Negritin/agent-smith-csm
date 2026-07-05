@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-05 00:06 UTC.
+Atualizado em 2026-07-05 00:14 UTC.
 
 ## Estado atual
 
@@ -79,6 +79,9 @@ Atualizado em 2026-07-05 00:06 UTC.
 - Worker/beat: Celery worker conecta no Redis, processa filas
   `attendance,billing,sanitization,celery`, consulta Supabase com 200, e o beat
   envia jobs periodicos.
+- Runtime check: `scripts/check-runtime.sh` passa, validando env core, env
+  Vercel, containers da app, health interno do backend, ping Celery, Supabase,
+  Docling e acesso publico.
 - Supabase client compat: backend/worker foram ajustados para aceitar chaves
   Supabase novas `sb_secret_*` com a versao atual de `supabase-py`, evitando
   duplicidade de header `apikey`.
@@ -143,6 +146,7 @@ para esse IP.
 - `/opt/agent-smith/scripts/check-ready.sh`
 - `/opt/agent-smith/scripts/check-public-access.sh`
 - `/opt/agent-smith/scripts/check-supabase.sh`
+- `/opt/agent-smith/scripts/check-runtime.sh`
 - `/opt/agent-smith/scripts/create-admin.sh`
 - `/opt/agent-smith/scripts/analyze-upstream.sh`
 - `/opt/agent-smith/scripts/validate-env.sh`
@@ -232,6 +236,8 @@ Obrigatorio para `scripts/validate-env.sh app` completo:
 Preencher `/opt/agent-smith/.env.vercel`:
 
 - Nada obrigatorio no momento; `scripts/validate-env.sh vercel` passa.
+- Opcional/recomendado para emails disparados pelo Next: `SENDGRID_API_KEY` e
+  `SENDGRID_FROM_EMAIL`.
 
 As migrations/seeds do Supabase ja foram aplicadas e validadas.
 WhatsApp e configurado por integracao (`z-api`, `uazapi`, `evolution`) no banco,
@@ -253,6 +259,7 @@ scripts/smoke-frontend.sh
 scripts/smoke-docling.sh
 scripts/sync-local-envs.sh
 scripts/check-supabase.sh
+scripts/check-runtime.sh
 scripts/validate-env.sh app
 scripts/validate-env.sh vercel
 scripts/check-public-access.sh

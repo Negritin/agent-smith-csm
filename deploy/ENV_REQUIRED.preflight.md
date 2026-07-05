@@ -57,6 +57,7 @@ de subir o backend via Traefik. Apos o deploy, valide com:
 
 ```bash
 scripts/check-public-access.sh
+scripts/check-runtime.sh
 ```
 
 Na Vercel:
@@ -134,13 +135,20 @@ Configurar no Supabase antes da subida completa:
   `seed_llm_pricing.sql` e `seed_platform_settings.sql`.
 - `scripts/setup-supabase.sh` tambem sincroniza `WIDGET_HMAC_SECRET` em
   `private.app_runtime_secrets` e roda `scripts/check-supabase.sh`.
-- Criar o usuario master/admin com `app/agent-smith-v6/backend/scripts/create_admin.py`.
-  Na VPS, use o wrapper `scripts/create-admin.sh`; ele e interativo, exige TTY
-  e usa `APP_URL`/`FRONTEND_URL` para mostrar o login publico.
+- Criar o usuario master/admin com `scripts/create-admin.sh`.
+  Na VPS, esse wrapper usa Postgres direto, e compativel com chaves Supabase
+  novas `sb_secret_*`, e exige TTY para ler email/senha sem ecoar segredo.
+  O script legado `app/agent-smith-v6/backend/scripts/create_admin.py` pode
+  falhar com chaves opacas em algumas versoes de `supabase-py`.
 
 ## Modelos, busca e guardrails
 
-O backend valida estes provedores como obrigatorios no nosso preflight atual:
+O `OPENAI_API_KEY` e obrigatorio para o core em producao: chat/LLM padrao,
+embeddings, ingestao, memoria, audio e benchmarks usam OpenAI por padrao em
+varios caminhos do backend.
+
+O backend valida estes provedores como obrigatorios no preflight completo
+`scripts/validate-env.sh app`:
 
 ```env
 OPENAI_API_KEY=
@@ -151,6 +159,15 @@ TAVILY_API_KEY=
 COHERE_API_KEY=
 GROQ_API_KEY=
 ```
+
+Escopo pratico das chaves adicionais:
+
+- `ANTHROPIC_API_KEY`: habilita o provider Anthropic.
+- `OPENROUTER_API_KEY`: habilita OpenRouter e sincronizacao de precos/modelos.
+- `TAVILY_API_KEY`: habilita busca web.
+- `COHERE_API_KEY`: habilita reranking; sem ele, fluxos de rerank ficam
+  indisponiveis ou devem ser bypassados.
+- `GROQ_API_KEY`: habilita caminhos de guardrails/Llama Guard.
 
 Opcional conforme features:
 
@@ -245,6 +262,12 @@ Como o repo e monorepo, a Vercel deve ficar conectada ao GitHub
 command `npm run build`. A CLI local deve rodar a partir de `VERCEL_PROJECT_DIR`,
 na raiz do repo, para respeitar esse `Root Directory`.
 
+As rotas Next de chat, sanitizacao, billing/pricing e admin usam
+`NEXT_PUBLIC_API_URL`/`NEXT_PUBLIC_BACKEND_URL` para falar com o backend na VPS.
+Por isso as chaves LLM ficam no backend/workers da VPS, nao na Vercel. A Vercel
+precisa principalmente das URLs publicas, Supabase publico/servico e segredos
+internos compartilhados.
+
 Tambem manter na Vercel os mesmos valores de:
 
 ```env
@@ -283,12 +306,15 @@ scripts/validate-env.sh infra
 scripts/validate-env.sh app-core
 scripts/validate-env.sh app
 scripts/validate-env.sh vercel
+scripts/check-runtime.sh
 ```
 
 `infra` ja deve passar. `app-core` passa quando o backend tem o minimo para
 subir. `app` e `vercel` sao os gates do deploy de producao e passam quando os
 dominios, Supabase, provedores externos, Stripe e credenciais da Vercel forem
-preenchidos.
+preenchidos. `scripts/check-runtime.sh` valida a aplicacao ja no ar: env core,
+env Vercel, containers backend/worker/beat/Docling, health interno do FastAPI,
+ping do Celery, Supabase, Docling e acesso publico.
 
 Depois dos envs preenchidos, a subida completa pode ser feita por:
 
