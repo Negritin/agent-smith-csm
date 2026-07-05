@@ -22,6 +22,7 @@ import pytest
 from fastapi import HTTPException
 
 import app.api.webhook as webhook
+from app.services.whatsapp.models import CanonicalMessage, InboundBatch, MediaRef
 
 _TOKEN = "wh_meta_" + "M" * 43
 _INTEGRATION_ID = "int-meta-1"
@@ -96,6 +97,40 @@ class _FakeIntegrationService:
         return self.row
 
 
+class _SyncExternalTable:
+    def __init__(self, client: "_SyncExternalClient", table: str) -> None:
+        self.client = client
+        self.table = table
+        self.update_payload: dict[str, Any] | None = None
+        self.filters: list[tuple[str, Any]] = []
+
+    def update(self, payload: dict[str, Any]):
+        self.update_payload = payload
+        return self
+
+    def eq(self, key: str, value: Any):
+        self.filters.append((key, value))
+        return self
+
+    def execute(self):
+        self.client.updates.append(
+            {
+                "table": self.table,
+                "payload": self.update_payload,
+                "filters": self.filters,
+            }
+        )
+        return SimpleNamespace(data=[], error=None)
+
+
+class _SyncExternalClient:
+    def __init__(self) -> None:
+        self.updates: list[dict[str, Any]] = []
+
+    def table(self, table: str) -> _SyncExternalTable:
+        return _SyncExternalTable(self, table)
+
+
 def _integration_row(
     *,
     mode: str = "shadow",
@@ -165,6 +200,26 @@ def _meta_payload() -> Dict[str, Any]:
             }
         ],
     }
+
+
+def _meta_image_payload() -> Dict[str, Any]:
+    payload = _meta_payload()
+    value = payload["entry"][0]["changes"][0]["value"]
+    value["messages"] = [
+        {
+            "from": "5544888888888",
+            "id": "wamid.image.1",
+            "timestamp": "1700000002",
+            "type": "image",
+            "image": {
+                "id": "media-image-id",
+                "mime_type": "image/jpeg",
+                "caption": "foto",
+            },
+        }
+    ]
+    value["statuses"] = []
+    return payload
 
 
 def _payload_bytes(payload: Dict[str, Any]) -> bytes:
@@ -292,6 +347,97 @@ def test_meta_cloud_shadow_schedules_chatwoot_relay_when_enabled(
     assert func is webhook.relay_meta_cloud_webhook_to_chatwoot
     assert args == (row, body, _signature(body))
     assert kwargs == {}
+
+
+def test_meta_cloud_shadow_schedules_media_persistence_for_media(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    row = _integration_row(mode="shadow")
+    _install_resolver(monkeypatch, row)
+    _install_counters(monkeypatch)
+    payload = _meta_image_payload()
+    body = _payload_bytes(payload)
+    tasks = _FakeBackgroundTasks()
+    req = _FakeRequest(body=body, headers={"x-hub-signature-256": _signature(body)})
+
+    result = asyncio.run(
+        webhook.meta_cloud_webhook_with_token.__wrapped__(req, tasks, _TOKEN)
+    )
+
+    assert result == {"status": "shadow", "messages": 1, "statuses": 0}
+    assert len(tasks.tasks) == 1
+    func, args, kwargs = tasks.tasks[0]
+    assert func is webhook._persist_meta_cloud_shadow_media
+    assert args[0] == row
+    assert args[1].messages[0].message_id == "wamid.image.1"
+    assert kwargs == {}
+
+
+def test_meta_cloud_shadow_media_task_persists_stable_url(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    sync_client = _SyncExternalClient()
+
+    class _Provider:
+        def __init__(self, _integration: dict[str, Any]) -> None:
+            pass
+
+        def resolve_media_url(self, media: MediaRef) -> str:
+            assert media.raw_ref == "media-image-id"
+            return "https://lookaside.example/media.jpg"
+
+    async def _process_image(
+        image_url: str, company_id: str, supabase_client: Any
+    ) -> str:
+        assert image_url == "https://lookaside.example/media.jpg"
+        assert company_id == _COMPANY_ID
+        assert supabase_client is sync_client
+        return "https://storage.example/chat-media/image.jpg"
+
+    monkeypatch.setattr(webhook, "MetaCloudProvider", _Provider)
+    monkeypatch.setattr(
+        webhook,
+        "get_supabase_client",
+        lambda: SimpleNamespace(client=sync_client),
+    )
+    monkeypatch.setattr(webhook, "process_image_for_vision", _process_image)
+
+    batch = InboundBatch(
+        provider="meta-cloud",
+        connected_phone="5511999999999",
+        messages=[
+            CanonicalMessage(
+                connected_phone="5511999999999",
+                from_phone="5544888888888",
+                type="image",
+                from_me=False,
+                is_group=False,
+                media=MediaRef(
+                    kind="image",
+                    raw_ref="media-image-id",
+                    mime_type="image/jpeg",
+                    caption="foto",
+                ),
+                message_id="wamid.image.1",
+            )
+        ],
+    )
+
+    asyncio.run(webhook._persist_meta_cloud_shadow_media(_integration_row(), batch))
+
+    assert len(sync_client.updates) == 1
+    update = sync_client.updates[0]
+    assert update["table"] == "whatsapp_external_messages"
+    assert update["filters"] == [
+        ("provider", "meta-cloud"),
+        ("external_message_id", "wamid.image.1"),
+        ("event_kind", "message"),
+    ]
+    metadata = update["payload"]["media_metadata"]
+    assert metadata["raw_ref"] == "media-image-id"
+    assert metadata["resolved_url"] == "https://lookaside.example/media.jpg"
+    assert metadata["stable_url"] == "https://storage.example/chat-media/image.jpg"
+    assert metadata["persisted"] is True
 
 
 def test_meta_cloud_post_rejects_invalid_signature(

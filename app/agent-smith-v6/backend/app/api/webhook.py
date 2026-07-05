@@ -53,6 +53,8 @@ from app.services.message_buffer_service import get_message_buffer_service
 # shape canônico downstream consumido pelo buffer e por ``process_inbound``.
 from app.services.whatsapp_turn_service import (
     ZAPIWebhookPayload,
+    process_audio_for_storage,
+    process_image_for_vision,
     process_inbound,
 )
 
@@ -407,6 +409,88 @@ def _schedule_meta_cloud_chatwoot_relay(
         body,
         request.headers.get("x-hub-signature-256"),
     )
+
+
+async def _persist_meta_cloud_shadow_media(integration: dict, batch: Any) -> None:
+    """Persist inbound Meta media while shadow mode keeps the AI silent.
+
+    In active mode, media is persisted by ``process_inbound`` before the turn
+    proceeds. Shadow mode intentionally does not dispatch a turn, so this task
+    resolves Meta media ids and uploads the bytes to our own storage before the
+    temporary Meta URL expires.
+    """
+    company_id = integration.get("company_id")
+    if not company_id:
+        return
+
+    try:
+        provider = MetaCloudProvider(integration)
+        sync_client = get_supabase_client().client
+    except Exception as exc:  # noqa: BLE001 - best-effort shadow media persistence
+        logger.warning("[WEBHOOK META CLOUD] shadow media setup skipped: %s", exc)
+        return
+
+    for message in getattr(batch, "messages", []) or []:
+        media = getattr(message, "media", None)
+        external_id = getattr(message, "message_id", None)
+        if not media or not external_id:
+            continue
+
+        metadata = {
+            "raw_ref": media.raw_ref,
+            "mime_type": media.mime_type,
+            "caption": media.caption,
+            "kind": media.kind,
+        }
+        try:
+            resolved_url = await asyncio.to_thread(provider.resolve_media_url, media)
+            if not resolved_url:
+                continue
+
+            stable_url: Optional[str] = None
+            metadata["resolved_url"] = resolved_url
+            if media.kind == "audio":
+                stable_url = await process_audio_for_storage(
+                    resolved_url, company_id, sync_client
+                )
+            elif media.kind == "image":
+                stable_url = await process_image_for_vision(
+                    resolved_url, company_id, sync_client
+                )
+            if not stable_url:
+                continue
+
+            metadata["stable_url"] = stable_url
+            metadata["persisted"] = True
+
+            await asyncio.to_thread(
+                lambda: (
+                    sync_client.table("whatsapp_external_messages")
+                    .update({"media_metadata": metadata})
+                    .eq("provider", "meta-cloud")
+                    .eq("external_message_id", external_id)
+                    .eq("event_kind", "message")
+                    .execute()
+                )
+            )
+            logger.info("[WEBHOOK META CLOUD] Shadow media persisted")
+        except Exception as exc:  # noqa: BLE001 - best-effort media persistence
+            logger.warning("[WEBHOOK META CLOUD] shadow media skipped: %s", exc)
+
+
+def _schedule_meta_cloud_shadow_media(
+    background_tasks: BackgroundTasks,
+    *,
+    integration: dict,
+    batch: Any,
+) -> None:
+    has_media = any(
+        getattr(message, "media", None) is not None
+        for message in (getattr(batch, "messages", []) or [])
+    )
+    if not has_media:
+        return
+    background_tasks.add_task(_persist_meta_cloud_shadow_media, integration, batch)
 
 
 async def _persist_whatsapp_external_batch(
@@ -920,6 +1004,8 @@ async def meta_cloud_webhook_with_token(
         raise HTTPException(status_code=400, detail="Invalid JSON") from exc
 
     batch = _PARSE_ONLY_PROVIDERS["meta-cloud"].parse_webhook(raw)
+    webhook_mode = _meta_webhook_mode(integration)
+
     await _persist_whatsapp_external_batch(
         request,
         integration=integration,
@@ -935,7 +1021,12 @@ async def meta_cloud_webhook_with_token(
         body=body,
     )
 
-    if _meta_webhook_mode(integration) == "shadow":
+    if webhook_mode == "shadow":
+        _schedule_meta_cloud_shadow_media(
+            background_tasks,
+            integration=integration,
+            batch=batch,
+        )
         return {
             "status": "shadow",
             "messages": len(batch.messages),

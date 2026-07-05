@@ -212,6 +212,12 @@ Smith, o backend repassa o payload bruto para o endpoint nativo do Chatwoot:
 `POST /webhooks/whatsapp/:phone_number`. O relay e best-effort e roda em
 background; falha no Chatwoot nao impede o ACK para a Meta.
 
+Em `shadow`, mensagens de midia tambem disparam uma tarefa em background que
+resolve o `media id` na Graph API, baixa a URL temporaria e reenvia para o
+storage do Agent Smith. A URL estavel fica em
+`whatsapp_external_messages.media_metadata.stable_url`, evitando depender do TTL
+da Meta.
+
 O token de webhook e por integracao. Ao regenerar, a URL antiga deixa de valer e
 deve ser recolada no painel do provider.
 
@@ -268,6 +274,20 @@ scripts/check-webhook-surface.sh
 
 O smoke confere HTTP 200 nos health checks e confirma fail-closed com token
 desconhecido (`401`, ou `429` se o limitador estiver ativo).
+
+Gate especifico do corte Meta Cloud:
+
+```bash
+scripts/check-meta-cloud-cutover.py --phase prepared
+scripts/check-meta-cloud-cutover.py --phase shadow
+scripts/check-meta-cloud-cutover.py --phase active
+```
+
+`prepared` e o estado pre-App Secret: historico importado, credenciais estaticas,
+relay Chatwoot e webhook publico prontos. `shadow` so passa quando o App Secret
+foi salvo, a integracao esta ativa em shadow e ja recebeu mensagem real da Meta.
+`active` so passa depois de trocar `whatsapp_webhook_mode` para `active` e
+confirmar eventos reais.
 
 Hardening opcional para midias inbound:
 
