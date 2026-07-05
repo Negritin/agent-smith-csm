@@ -140,9 +140,7 @@ main() {
   printf '# Agent Smith pending external envs\n'
   printf '# Source file: %s\n' "$EXTERNAL_ENV_FILE"
   printf '# Paste the missing required lines into that file, then run:\n'
-  printf '#   scripts/apply-external-envs.sh\n'
-  printf '#   scripts/sync-vercel-env.sh production\n'
-  printf '#   RUN_LIVE=1 scripts/production-readiness.sh\n'
+  printf '#   RUN_LIVE=1 scripts/finalize-external-services.sh\n'
 
   print_missing_source_template "Required for complete production gate" "${required_keys[@]}"
 

@@ -24,6 +24,17 @@ scripts/apply-external-envs.sh
 O helper copia os valores para `/opt/agent-smith/.env.app` e, quando fizer
 sentido, para `/opt/agent-smith/.env.vercel`, sem imprimir segredos.
 
+Depois que todas as chaves obrigatorias estiverem preenchidas, o caminho mais
+seguro e o finalizador:
+
+```bash
+RUN_LIVE=1 scripts/finalize-external-services.sh
+```
+
+Ele aplica `.env.external`, sincroniza envs da Vercel, valida o gate completo
+com autenticacao viva dos providers suportados, redeploya VPS/Vercel e fecha
+com `scripts/check-runtime.sh`.
+
 ## Obrigatorio para o gate completo
 
 | Servico | Variavel | Onde fica | Formato esperado pelo check |
@@ -203,9 +214,5 @@ metered de busca/rerank.
 Depois de passar o gate completo:
 
 ```bash
-scripts/deploy-app.sh
-scripts/sync-vercel-env.sh production
-scripts/deploy-frontend-vercel.sh
-scripts/check-runtime.sh
-scripts/check-admin-login.sh
+RUN_LIVE=1 scripts/finalize-external-services.sh
 ```

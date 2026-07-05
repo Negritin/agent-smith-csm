@@ -167,11 +167,8 @@ SENDGRID_FROM_EMAIL=
 Depois:
 
 ```bash
-scripts/apply-external-envs.sh
-scripts/sync-vercel-env.sh production
-RUN_LIVE=1 scripts/production-readiness.sh
-scripts/validate-env.sh app
-scripts/deploy-app.sh
-scripts/deploy-frontend-vercel.sh
-scripts/check-runtime.sh
+RUN_LIVE=1 scripts/finalize-external-services.sh
 ```
+
+Esse wrapper aplica `.env.external`, sincroniza a Vercel, valida o gate
+completo, redeploya backend/frontend e roda `scripts/check-runtime.sh`.

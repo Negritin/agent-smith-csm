@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-05 01:42 UTC.
+Atualizado em 2026-07-05 01:41 UTC.
 
 ## Estado atual
 
@@ -70,6 +70,10 @@ Atualizado em 2026-07-05 01:42 UTC.
   imprimir valores, validando `app` completo + Vercel por padrao.
 - Env report: `scripts/env-report.sh` mostra arquivos e chaves obrigatorias
   vazias ou ainda com placeholder sem imprimir valores sensiveis.
+- Finalizacao externa: `scripts/finalize-external-services.sh` aplica
+  `.env.external`, sincroniza Vercel, valida o gate completo, redeploya
+  backend/frontend e roda `scripts/check-runtime.sh` depois que as chaves
+  obrigatorias forem preenchidas.
 - Secret hygiene: `scripts/check-secret-hygiene.sh` valida que envs reais ficam
   ignorados, nao rastreados, com permissao privada e sem segredos de alta
   confianca em arquivos rastreados.
@@ -205,6 +209,7 @@ para esse IP.
 - `/opt/agent-smith/scripts/env-report.sh`
 - `/opt/agent-smith/scripts/pending-external-envs.sh`
 - `/opt/agent-smith/scripts/apply-external-envs.sh`
+- `/opt/agent-smith/scripts/finalize-external-services.sh`
 - `/opt/agent-smith/scripts/deploy-app.sh`
 - `/opt/agent-smith/scripts/deploy-production.sh`
 - `/opt/agent-smith/scripts/find-frontend.sh`

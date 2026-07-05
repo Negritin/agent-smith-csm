@@ -45,6 +45,15 @@ os valores compartilhados em `/opt/agent-smith/.env.vercel` e roda as validacoes
 `app` e `vercel` sem imprimir valores sensiveis. Para teste minimo de backend,
 rode com `APP_VALIDATE_SCOPE=app-core`.
 
+Quando todas as chaves externas obrigatorias estiverem preenchidas, use:
+
+```bash
+RUN_LIVE=1 scripts/finalize-external-services.sh
+```
+
+Esse comando aplica envs, sincroniza Vercel, valida o gate completo, redeploya
+backend/frontend e roda a validacao runtime.
+
 ## Dominios publicos
 
 ```env
