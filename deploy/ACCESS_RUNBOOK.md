@@ -71,6 +71,12 @@ Cobertura de variaveis de ambiente usadas pelo codigo real:
 scripts/check-env-inventory.sh
 ```
 
+Sincronia com o upstream original:
+
+```bash
+scripts/check-upstream-sync.sh
+```
+
 Env remoto da Vercel:
 
 ```bash

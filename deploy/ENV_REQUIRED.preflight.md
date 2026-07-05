@@ -64,6 +64,8 @@ Sem `ALLOW_PARTIAL=1`, o auditor falha enquanto o gate externo completo ainda
 estiver pendente.
 O auditor tambem roda `scripts/check-env-inventory.sh`, que compara as envs
 referenciadas pelo codigo real com os templates versionados.
+Ele tambem roda `scripts/check-upstream-sync.sh` para avisar se o snapshot
+importado de `LionLabsCommunity/Agent-SmithV6` ficou atrasado.
 
 ## Dominios publicos
 

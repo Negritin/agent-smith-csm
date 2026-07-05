@@ -123,6 +123,7 @@ main() {
   printf 'RUN_RUNTIME=%s RUN_LIVE=%s ALLOW_PARTIAL=%s\n' "$RUN_RUNTIME" "$RUN_LIVE" "$ALLOW_PARTIAL"
 
   run_core_check "Official repository wiring" check_repository_wiring
+  run_core_check "Upstream snapshot sync" scripts/check-upstream-sync.sh
   run_core_check "Base server, upstream and Vercel readiness" scripts/check-ready.sh
   run_core_check "Runtime env inventory coverage" scripts/check-env-inventory.sh
   run_core_check "Application core env" scripts/validate-env.sh app-core

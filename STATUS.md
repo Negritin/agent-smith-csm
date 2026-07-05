@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-05 02:04 UTC.
+Atualizado em 2026-07-05 02:19 UTC.
 
 ## Estado atual
 
@@ -13,6 +13,8 @@ Atualizado em 2026-07-05 02:04 UTC.
 - Upstream original: `LionLabsCommunity/Agent-SmithV6` acessivel; `git ls-remote`
   via SSH confirmou o `HEAD`.
 - Import upstream: concluido em `app/agent-smith-v6`.
+- Upstream sync: `scripts/check-upstream-sync.sh` valida que o snapshot importado
+  esta no mesmo commit do HEAD upstream atual.
 - Frontend Next.js: dependencias instaladas, typecheck passou e suite de testes
   passou localmente. Build de producao Next.js tambem passou com envs dummy.
 - Frontend smoke: `scripts/smoke-frontend.sh` passou, cobrindo typecheck, 246
@@ -35,6 +37,9 @@ Atualizado em 2026-07-05 02:04 UTC.
   contra o Supabase sem imprimir valores. A chave `sb_secret_*` funciona como
   server-side/service-role e a `sb_publishable_*` ficou mapeada como chave
   publica do frontend.
+- OpenAI: `OPENAI_API_KEY` foi atualizada em `.env.external`/`.env.app`,
+  validada contra a API da OpenAI e confirmada dentro do container backend sem
+  imprimir o valor.
 - Vercel envs de producao: Supabase/URLs/segredos internos sincronizados. O
   build/redeploy Next.js passou depois disso.
 - Vercel remote env: `scripts/check-vercel-remote-env.sh production` valida os
@@ -202,6 +207,7 @@ para esse IP.
 - `/opt/agent-smith/deploy/EXTERNAL_SERVICES.md`
 - `/opt/agent-smith/deploy/ACCESS_RUNBOOK.md`
 - `/opt/agent-smith/scripts/import-upstream.sh`
+- `/opt/agent-smith/scripts/check-upstream-sync.sh`
 - `/opt/agent-smith/scripts/check-ready.sh`
 - `/opt/agent-smith/scripts/check-secret-hygiene.sh`
 - `/opt/agent-smith/scripts/check-vercel-remote-env.sh`
