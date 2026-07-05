@@ -306,6 +306,7 @@ SENTRY_AUTH_TOKEN=
 cd /opt/agent-smith
 scripts/check-ready.sh
 scripts/env-report.sh
+scripts/check-secret-hygiene.sh
 scripts/validate-env.sh infra
 scripts/validate-env.sh app-core
 scripts/validate-env.sh app

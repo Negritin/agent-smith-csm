@@ -85,6 +85,7 @@ main() {
   printf 'RUN_RUNTIME=%s RUN_LIVE=%s ALLOW_PARTIAL=%s\n' "$RUN_RUNTIME" "$RUN_LIVE" "$ALLOW_PARTIAL"
 
   run_core_check "Base server readiness" scripts/check-ready.sh
+  run_core_check "Secret hygiene" scripts/check-secret-hygiene.sh
   run_core_check "Infrastructure env" scripts/validate-env.sh infra
   run_core_check "Persistence and restart policy" scripts/check-persistence.sh
   run_core_check "Application core env" scripts/validate-env.sh app-core

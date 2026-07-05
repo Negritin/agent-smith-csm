@@ -59,6 +59,12 @@ Persistencia/restart policy:
 scripts/check-persistence.sh
 ```
 
+Higiene de segredos:
+
+```bash
+scripts/check-secret-hygiene.sh
+```
+
 Com validacao de login admin junto:
 
 ```bash

@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-05 00:34 UTC.
+Atualizado em 2026-07-05 00:40 UTC.
 
 ## Estado atual
 
@@ -54,6 +54,9 @@ Atualizado em 2026-07-05 00:34 UTC.
   imprimir valores, validando `app` completo + Vercel por padrao.
 - Env report: `scripts/env-report.sh` mostra arquivos e chaves obrigatorias
   vazias ou ainda com placeholder sem imprimir valores sensiveis.
+- Secret hygiene: `scripts/check-secret-hygiene.sh` valida que envs reais ficam
+  ignorados, nao rastreados, com permissao privada e sem segredos de alta
+  confianca em arquivos rastreados.
 - Servicos externos: `deploy/EXTERNAL_SERVICES.md` lista as chaves que faltam,
   onde cada uma entra e como validar sem imprimir segredos.
 - Acesso/admin: `deploy/ACCESS_RUNBOOK.md` documenta URLs, comandos de smoke,
@@ -159,6 +162,7 @@ para esse IP.
 - `/opt/agent-smith/deploy/ACCESS_RUNBOOK.md`
 - `/opt/agent-smith/scripts/import-upstream.sh`
 - `/opt/agent-smith/scripts/check-ready.sh`
+- `/opt/agent-smith/scripts/check-secret-hygiene.sh`
 - `/opt/agent-smith/scripts/check-public-access.sh`
 - `/opt/agent-smith/scripts/check-supabase.sh`
 - `/opt/agent-smith/scripts/check-runtime.sh`
@@ -269,6 +273,7 @@ cd /opt/agent-smith
 scripts/check-ready.sh
 scripts/analyze-upstream.sh
 scripts/env-report.sh
+scripts/check-secret-hygiene.sh
 scripts/validate-env.sh infra
 scripts/apply-external-envs.sh
 scripts/validate-env.sh app-core
