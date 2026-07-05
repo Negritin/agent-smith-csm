@@ -126,6 +126,15 @@ scripts/check-stripe-surface.sh
 scripts/check-webhook-surface.sh
 ```
 
+Estado de integracoes:
+
+- MCP: catalogo global seedado. Internos ativos: Google Calendar, Google Drive,
+  Slack e GitHub. Remotos oficiais ficam inativos ate passarem pelo gate de
+  OAuth/smoke do runbook.
+- WhatsApp: borda pronta para `z-api`, `uazapi` e `evolution`. A linha ativa em
+  `public.integrations` deve ser criada pelo admin com token/instancia/base_url
+  reais do provider, vinculada a um agente.
+
 Readiness consolidado:
 
 ```bash
@@ -172,8 +181,9 @@ pronta para clientes:
 
 - Criar produtos/precos ativos no Stripe live.
 - Criar planos no admin e preencher cada `stripe_price_id`.
-- Criar agentes reais para as empresas.
-- Configurar integracoes WhatsApp/MCP por tenant quando forem usadas.
+- Configurar integracoes WhatsApp por agente quando houver credenciais reais do
+  provider.
+- Autorizar conexoes MCP OAuth por agente/provedor quando forem usadas.
 - Configurar dominio proprio para frontend/API quando sair do `vercel.app` e
   `sslip.io`.
 

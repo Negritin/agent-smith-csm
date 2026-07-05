@@ -31,7 +31,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 try:
     from dotenv import load_dotenv
 
-    from supabase import create_client
+    from app.core.database import create_compatible_supabase_client
 except ImportError as e:
     print(f"❌ Dependência não encontrada: {e}")
     print("   Execute: pip install supabase python-dotenv")
@@ -158,7 +158,7 @@ MCP_SERVERS = [
 
 def seed_mcp_servers():
     """Popula a tabela mcp_servers com os servidores internos."""
-    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+    supabase = create_compatible_supabase_client(SUPABASE_URL, SUPABASE_KEY)
 
     print("\n" + "=" * 50)
     print("🔄 Populando tabela mcp_servers...")

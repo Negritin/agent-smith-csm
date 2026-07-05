@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-05 13:33 UTC.
+Atualizado em 2026-07-05 13:48 UTC.
 
 ## Estado atual de producao
 
@@ -11,12 +11,17 @@ Atualizado em 2026-07-05 13:33 UTC.
 - Stripe autentica ao vivo, mas a conta live ainda nao tem prices ativos; crie
   produtos/precos no painel Stripe e vincule os `price_...` em planos no admin.
 - SendGrid autentica ao vivo; o dominio `csmmarketing.info` esta autenticado.
-- Banco operacional validado: 1 empresa, 1 master admin, 70 precos LLM e
-  `platform_settings.system_base_prompt`. Ainda nao ha agentes ativos, planos,
-  integracoes WhatsApp ou MCP servers configurados para uso de cliente.
+- Banco operacional validado: 1 empresa, 1 master admin, 70 precos LLM,
+  `platform_settings.system_base_prompt`, agentes ativos e catalogo MCP.
+- MCP servers: 4 internos ativos (`google-calendar`, `google-drive`, `slack`,
+  `github`) e 5 remotos oficiais seedados/inativos por gate (`notion`,
+  `klaviyo`, `sentry`, `supabase`, `higgsfield`).
+- WhatsApp: schema, indices, borda publica e health checks de `z-api`,
+  `uazapi` e `evolution` estao prontos. Integracao ativa ainda depende de
+  credenciais reais do provider por agente/tenant.
 - Pendencias de producao agora sao configuracoes de negocio/operacao:
-  criar planos, criar agentes reais, configurar integracoes por tenant e apontar
-  dominio proprio quando desejado.
+  criar planos, conectar WhatsApp real por agente, autorizar MCP OAuth por
+  provider quando usado e apontar dominio proprio quando desejado.
 
 - VPS: Ubuntu 24.04, Docker/Compose ativos.
 - Frontend tooling: Node.js `v22.23.1`, npm `10.9.8`, Vercel CLI `54.20.1`.
