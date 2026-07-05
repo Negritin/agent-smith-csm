@@ -66,6 +66,15 @@ Com opcionais recomendados de observabilidade/integracoes:
 INCLUDE_OPTIONAL=1 scripts/pending-external-envs.sh
 ```
 
+Para usar o helper como gate em automacao:
+
+```bash
+REQUIRE_COMPLETE=1 scripts/pending-external-envs.sh
+```
+
+O finalizador usa esse modo para parar antes de alterar envs locais quando ainda
+faltam chaves obrigatorias.
+
 ## Recomendado
 
 | Servico | Variavel | Onde fica | Uso |

@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-05 01:41 UTC.
+Atualizado em 2026-07-05 01:45 UTC.
 
 ## Estado atual
 
@@ -73,7 +73,9 @@ Atualizado em 2026-07-05 01:41 UTC.
 - Finalizacao externa: `scripts/finalize-external-services.sh` aplica
   `.env.external`, sincroniza Vercel, valida o gate completo, redeploya
   backend/frontend e roda `scripts/check-runtime.sh` depois que as chaves
-  obrigatorias forem preenchidas.
+  obrigatorias forem preenchidas. O wrapper usa
+  `REQUIRE_COMPLETE=1 scripts/pending-external-envs.sh` para falhar antes de
+  alterar envs locais se ainda houver credenciais externas obrigatorias vazias.
 - Secret hygiene: `scripts/check-secret-hygiene.sh` valida que envs reais ficam
   ignorados, nao rastreados, com permissao privada e sem segredos de alta
   confianca em arquivos rastreados.

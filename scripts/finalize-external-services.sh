@@ -22,7 +22,7 @@ main() {
   fi
 
   step "Pending external envs"
-  scripts/pending-external-envs.sh
+  REQUIRE_COMPLETE=1 scripts/pending-external-envs.sh
 
   step "Applying external envs locally"
   APP_VALIDATE_SCOPE=app RUN_VALIDATE=1 scripts/apply-external-envs.sh

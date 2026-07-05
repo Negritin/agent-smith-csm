@@ -5,6 +5,7 @@ EXTERNAL_ENV_FILE="${EXTERNAL_ENV_FILE:-/opt/agent-smith/.env.external}"
 APP_ENV_FILE="${APP_ENV_FILE:-/opt/agent-smith/.env.app}"
 VERCEL_ENV_FILE="${VERCEL_ENV_FILE:-/opt/agent-smith/.env.vercel}"
 INCLUDE_OPTIONAL="${INCLUDE_OPTIONAL:-0}"
+REQUIRE_COMPLETE="${REQUIRE_COMPLETE:-0}"
 
 value_for() {
   local file="$1"
@@ -136,11 +137,18 @@ main() {
     GOOGLE_OAUTH_CLIENT_ID
     GOOGLE_OAUTH_CLIENT_SECRET
   )
+  local key missing_required=0
 
   printf '# Agent Smith pending external envs\n'
   printf '# Source file: %s\n' "$EXTERNAL_ENV_FILE"
   printf '# Paste the missing required lines into that file, then run:\n'
   printf '#   RUN_LIVE=1 scripts/finalize-external-services.sh\n'
+
+  for key in "${required_keys[@]}"; do
+    if ! source_status "$key"; then
+      missing_required=$((missing_required + 1))
+    fi
+  done
 
   print_missing_source_template "Required for complete production gate" "${required_keys[@]}"
 
@@ -149,6 +157,11 @@ main() {
   fi
 
   print_apply_hints "${required_keys[@]}"
+
+  if [ "$REQUIRE_COMPLETE" = "1" ] && [ "$missing_required" -ne 0 ]; then
+    printf '\nerror: %s required external env(s) still missing\n' "$missing_required" >&2
+    return 1
+  fi
 }
 
 main "$@"
