@@ -69,6 +69,19 @@ Webhook publico a cadastrar no Stripe:
 https://agent-smith-api.5.161.73.5.sslip.io/api/webhooks/stripe
 ```
 
+Para validar que a rota publica existe e rejeita payload sem assinatura:
+
+```bash
+scripts/check-stripe-surface.sh
+```
+
+Esse smoke nao chama a Stripe e nao precisa de segredo real. A autenticacao real
+da chave Stripe fica no check vivo:
+
+```bash
+RUN_LIVE=1 scripts/check-external-services.sh
+```
+
 Eventos tratados pelo backend:
 
 - `checkout.session.completed`
@@ -145,6 +158,7 @@ Sem chamadas externas pagas:
 ```bash
 scripts/env-report.sh
 scripts/check-external-services.sh
+scripts/check-stripe-surface.sh
 scripts/check-webhook-surface.sh
 scripts/validate-env.sh app
 scripts/production-readiness.sh

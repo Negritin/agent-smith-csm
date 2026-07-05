@@ -97,6 +97,7 @@ main() {
   else
     warn "runtime health skipped; set RUN_RUNTIME=1 to enable"
     run_core_check "Vercel API proxy" scripts/check-vercel-api-proxy.sh
+    run_core_check "Stripe webhook surface" scripts/check-stripe-surface.sh
     run_core_check "WhatsApp webhook surface" scripts/check-webhook-surface.sh
   fi
 

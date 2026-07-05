@@ -77,6 +77,12 @@ Proxy Vercel para API da VPS:
 scripts/check-vercel-api-proxy.sh
 ```
 
+Webhook Stripe exposto na API:
+
+```bash
+scripts/check-stripe-surface.sh
+```
+
 Webhooks WhatsApp/Meta expostos na API:
 
 ```bash
@@ -104,6 +110,7 @@ Pendencias de fornecedores externos:
 ```bash
 scripts/env-report.sh
 scripts/check-external-services.sh
+scripts/check-stripe-surface.sh
 scripts/check-webhook-surface.sh
 ```
 
