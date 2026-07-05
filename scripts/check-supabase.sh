@@ -273,6 +273,17 @@ main() {
           ''
         ), '') is null;"
   require_count_zero \
+    "active meta-cloud Chatwoot relay missing target" \
+    "select count(*)
+       from public.integrations
+      where provider = 'meta-cloud'
+        and coalesce(is_active, false)
+        and lower(coalesce(provider_config->>'chatwoot_relay_enabled', 'false')) in ('true', '1', 'yes', 'on', 'enabled')
+        and (
+          nullif(provider_config->>'chatwoot_relay_base_url', '') is null
+          or nullif(coalesce(provider_config->>'chatwoot_relay_phone_number', identifier, ''), '') is null
+        );"
+  require_count_zero \
     "active legacy WhatsApp provider rows" \
     "select count(*)
        from public.integrations

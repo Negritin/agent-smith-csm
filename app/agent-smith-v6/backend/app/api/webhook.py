@@ -62,6 +62,10 @@ from app.services.whatsapp_turn_service import (
 # provider via ``resolve_provider`` e envia pela fachada ``WhatsAppService``.
 from app.services.whatsapp.exceptions import UnknownProviderError
 from app.services.whatsapp.models import CanonicalMessage
+from app.services.whatsapp.chatwoot_relay import (
+    chatwoot_relay_enabled,
+    relay_meta_cloud_webhook_to_chatwoot,
+)
 from app.services.whatsapp.providers.evolution import EvolutionProvider
 from app.services.whatsapp.providers.meta_cloud import MetaCloudProvider
 from app.services.whatsapp.providers.uazapi import UazapiProvider
@@ -385,6 +389,24 @@ async def _verify_meta_cloud_signature(request: Request, integration: dict) -> b
         await record_webhook_auth_failure(request, prefix="meta_")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
     return body
+
+
+def _schedule_meta_cloud_chatwoot_relay(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    *,
+    integration: dict,
+    body: bytes,
+) -> None:
+    """Best-effort fan-out to Chatwoot after Meta HMAC validation."""
+    if not chatwoot_relay_enabled(integration):
+        return
+    background_tasks.add_task(
+        relay_meta_cloud_webhook_to_chatwoot,
+        integration,
+        body,
+        request.headers.get("x-hub-signature-256"),
+    )
 
 
 async def _persist_whatsapp_external_batch(
@@ -905,6 +927,12 @@ async def meta_cloud_webhook_with_token(
         source="meta_webhook",
         raw_payload=raw,
         batch=batch,
+    )
+    _schedule_meta_cloud_chatwoot_relay(
+        request,
+        background_tasks,
+        integration=integration,
+        body=body,
     )
 
     if _meta_webhook_mode(integration) == "shadow":

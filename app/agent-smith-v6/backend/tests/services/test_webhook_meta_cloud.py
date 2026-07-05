@@ -96,7 +96,18 @@ class _FakeIntegrationService:
         return self.row
 
 
-def _integration_row(*, mode: str = "shadow", provider: str = "meta-cloud") -> Dict[str, Any]:
+def _integration_row(
+    *,
+    mode: str = "shadow",
+    provider: str = "meta-cloud",
+    provider_config: Optional[dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    config = {
+        "business_account_id": "waba-123",
+        "webhook_verify_token": "verify-token",
+    }
+    if provider_config:
+        config.update(provider_config)
     return {
         "id": _INTEGRATION_ID,
         "company_id": _COMPANY_ID,
@@ -106,10 +117,7 @@ def _integration_row(*, mode: str = "shadow", provider: str = "meta-cloud") -> D
         "identifier": "5511999999999",
         "token": "graph-access-token",
         "client_token": "app-secret",
-        "provider_config": {
-            "business_account_id": "waba-123",
-            "webhook_verify_token": "verify-token",
-        },
+        "provider_config": config,
         "whatsapp_webhook_mode": mode,
         "webhook_token": _TOKEN,
         "webhook_token_hash": hashlib.sha256(_TOKEN.encode()).hexdigest(),
@@ -255,6 +263,35 @@ def test_meta_cloud_shadow_persists_messages_and_statuses(
         "wamid.inbound.1",
         "wamid.outbound.1",
     }
+
+
+def test_meta_cloud_shadow_schedules_chatwoot_relay_when_enabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    row = _integration_row(
+        mode="shadow",
+        provider_config={
+            "chatwoot_relay_enabled": True,
+            "chatwoot_relay_base_url": "http://chatwoot-chatwoot:3000",
+            "chatwoot_relay_phone_number": "+5511999999999",
+        },
+    )
+    _install_resolver(monkeypatch, row)
+    _install_counters(monkeypatch)
+    body = _payload_bytes(_meta_payload())
+    tasks = _FakeBackgroundTasks()
+    req = _FakeRequest(body=body, headers={"x-hub-signature-256": _signature(body)})
+
+    result = asyncio.run(
+        webhook.meta_cloud_webhook_with_token.__wrapped__(req, tasks, _TOKEN)
+    )
+
+    assert result == {"status": "shadow", "messages": 1, "statuses": 1}
+    assert len(tasks.tasks) == 1
+    func, args, kwargs = tasks.tasks[0]
+    assert func is webhook.relay_meta_cloud_webhook_to_chatwoot
+    assert args == (row, body, _signature(body))
+    assert kwargs == {}
 
 
 def test_meta_cloud_post_rejects_invalid_signature(

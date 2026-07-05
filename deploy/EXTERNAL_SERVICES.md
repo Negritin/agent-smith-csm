@@ -196,6 +196,22 @@ persistidos corretamente. Por padrao o comando nao imprime a URL completa porque
 ela contem o token secreto do webhook; copie-a pelo admin ou use
 `--print-webhook-url` apenas em terminal privado.
 
+Para manter o Chatwoot como central humana durante a transicao, habilite o relay
+por integracao em `provider_config`:
+
+```json
+{
+  "chatwoot_relay_enabled": true,
+  "chatwoot_relay_base_url": "http://chatwoot-chatwoot:3000",
+  "chatwoot_relay_phone_number": "+5511952136557"
+}
+```
+
+Com isso, depois de validar a assinatura da Meta e persistir o evento no Agent
+Smith, o backend repassa o payload bruto para o endpoint nativo do Chatwoot:
+`POST /webhooks/whatsapp/:phone_number`. O relay e best-effort e roda em
+background; falha no Chatwoot nao impede o ACK para a Meta.
+
 O token de webhook e por integracao. Ao regenerar, a URL antiga deixa de valer e
 deve ser recolada no painel do provider.
 
