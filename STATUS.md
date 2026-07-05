@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-05 00:19 UTC.
+Atualizado em 2026-07-05 00:24 UTC.
 
 ## Estado atual
 
@@ -56,6 +56,8 @@ Atualizado em 2026-07-05 00:19 UTC.
   vazias ou ainda com placeholder sem imprimir valores sensiveis.
 - Servicos externos: `deploy/EXTERNAL_SERVICES.md` lista as chaves que faltam,
   onde cada uma entra e como validar sem imprimir segredos.
+- Acesso/admin: `deploy/ACCESS_RUNBOOK.md` documenta URLs, comandos de smoke,
+  reset/criacao de admin e proximos desbloqueios sem versionar senhas.
 - `/opt/agent-smith/.env.external`: criado com permissao `600`; `PUBLIC_SERVER_IP`,
   URLs publicas, `SUPABASE_URL`, `SUPABASE_KEY`, `SUPABASE_DB_URL`,
   `DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` e `OPENAI_API_KEY` estao
@@ -83,7 +85,8 @@ Atualizado em 2026-07-05 00:19 UTC.
   envia jobs periodicos.
 - Runtime check: `scripts/check-runtime.sh` passa, validando env core, env
   Vercel, containers da app, health interno do backend, ping Celery, Supabase,
-  Docling e acesso publico.
+  Docling e acesso publico. O login admin entra como check opcional quando
+  `ADMIN_LOGIN_PASSWORD` e fornecido.
 - Supabase client compat: backend/worker foram ajustados para aceitar chaves
   Supabase novas `sb_secret_*` com a versao atual de `supabase-py`, evitando
   duplicidade de header `apikey`.
@@ -92,6 +95,9 @@ Atualizado em 2026-07-05 00:19 UTC.
   validados por `scripts/check-supabase.sh`.
 - Supabase admin: primeiro `master_admin` criado e login validado em
   `/api/admin/login`.
+- Admin login smoke: `scripts/check-admin-login.sh` passou, validando o login
+  publico via Vercel, role `master_admin` e emissao de cookie de sessao sem
+  imprimir a senha.
 - Supabase safety: scripts de setup/check/sync rejeitam placeholders como
   `project-ref`, `*_here`, senha fake e exemplos antes de chamar `psql`.
 - Supabase DB helper: `scripts/prefill-supabase-db-url.sh` monta
@@ -145,11 +151,13 @@ para esse IP.
 - `/opt/agent-smith/deploy/external.env.example`
 - `/opt/agent-smith/deploy/ENV_REQUIRED.preflight.md`
 - `/opt/agent-smith/deploy/EXTERNAL_SERVICES.md`
+- `/opt/agent-smith/deploy/ACCESS_RUNBOOK.md`
 - `/opt/agent-smith/scripts/import-upstream.sh`
 - `/opt/agent-smith/scripts/check-ready.sh`
 - `/opt/agent-smith/scripts/check-public-access.sh`
 - `/opt/agent-smith/scripts/check-supabase.sh`
 - `/opt/agent-smith/scripts/check-runtime.sh`
+- `/opt/agent-smith/scripts/check-admin-login.sh`
 - `/opt/agent-smith/scripts/create-admin.sh`
 - `/opt/agent-smith/scripts/analyze-upstream.sh`
 - `/opt/agent-smith/scripts/validate-env.sh`
@@ -263,6 +271,7 @@ scripts/smoke-docling.sh
 scripts/sync-local-envs.sh
 scripts/check-supabase.sh
 scripts/check-runtime.sh
+scripts/check-admin-login.sh
 scripts/validate-env.sh app
 scripts/validate-env.sh vercel
 scripts/check-public-access.sh

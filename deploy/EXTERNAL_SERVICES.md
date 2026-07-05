@@ -147,4 +147,5 @@ Depois de passar o gate completo:
 scripts/deploy-app.sh
 scripts/sync-vercel-env.sh production
 scripts/check-runtime.sh
+scripts/check-admin-login.sh
 ```

@@ -13,6 +13,10 @@ pass() {
   printf 'ok: %s\n' "$1"
 }
 
+skip() {
+  printf 'skip: %s\n' "$1"
+}
+
 fail() {
   printf 'fail: %s\n' "$1" >&2
   FAILED=1
@@ -99,6 +103,11 @@ main() {
   scripts/check-supabase.sh || FAILED=1
   scripts/smoke-docling.sh || FAILED=1
   scripts/check-public-access.sh || FAILED=1
+  if [ -n "${ADMIN_LOGIN_PASSWORD:-}" ]; then
+    scripts/check-admin-login.sh || FAILED=1
+  else
+    skip "admin login validation (set ADMIN_LOGIN_PASSWORD to enable)"
+  fi
 
   if [ "$FAILED" -eq 0 ]; then
     pass "runtime validation complete"
