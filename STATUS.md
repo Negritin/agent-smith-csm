@@ -1,6 +1,6 @@
 # Agent Smith VPS Status
 
-Atualizado em 2026-07-05 01:12 UTC.
+Atualizado em 2026-07-05 01:16 UTC.
 
 ## Estado atual
 
@@ -42,7 +42,8 @@ Atualizado em 2026-07-05 01:12 UTC.
   nao foram colocados na Vercel. O modo
   `FULL_GATE=1 scripts/check-vercel-remote-env.sh production` tambem exige
   `SENDGRID_API_KEY` e `SENDGRID_FROM_EMAIL` remotos para rotas serverless de
-  convite/recuperacao de senha.
+  convite/recuperacao de senha. `STRIPE_SECRET_KEY` e `STRIPE_WEBHOOK_SECRET`
+  sao backend-only e devem ficar ausentes da Vercel.
 - Vercel API proxy: `scripts/check-vercel-api-proxy.sh` valida que a rota
   serverless `/api/billing/plans` no frontend publicado fala com o backend da
   VPS e retorna o mesmo contrato publico de planos.

@@ -111,6 +111,24 @@ optional_key() {
   fi
 }
 
+forbidden_key() {
+  local file="$1"
+  local key="$2"
+  local label="$3"
+  local value
+
+  if [ ! -f "$file" ]; then
+    return
+  fi
+
+  value="$(value_for "$file" "$key")"
+  if is_placeholder "$value"; then
+    pass "$label backend-only absent: $key"
+  else
+    fail "$label backend-only secret must not be set here: $key"
+  fi
+}
+
 supabase_key_type() {
   local value="$1"
 
@@ -387,11 +405,12 @@ check_vercel() {
 
   optional_key "$VERCEL_ENV_FILE" UPSTASH_REDIS_REST_URL "vercel"
   optional_key "$VERCEL_ENV_FILE" UPSTASH_REDIS_REST_TOKEN "vercel"
-  optional_key "$VERCEL_ENV_FILE" STRIPE_SECRET_KEY "vercel"
   optional_key "$VERCEL_ENV_FILE" SENDGRID_API_KEY "vercel"
   optional_key "$VERCEL_ENV_FILE" SENDGRID_FROM_EMAIL "vercel"
   optional_key "$VERCEL_ENV_FILE" SENTRY_DSN "vercel"
   optional_key "$VERCEL_ENV_FILE" NEXT_PUBLIC_SENTRY_DSN "vercel"
+  forbidden_key "$VERCEL_ENV_FILE" STRIPE_SECRET_KEY "vercel"
+  forbidden_key "$VERCEL_ENV_FILE" STRIPE_WEBHOOK_SECRET "vercel"
 }
 
 main() {

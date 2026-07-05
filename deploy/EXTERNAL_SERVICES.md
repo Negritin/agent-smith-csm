@@ -33,7 +33,7 @@ sentido, para `/opt/agent-smith/.env.vercel`, sem imprimir segredos.
 | Tavily | `TAVILY_API_KEY` | VPS backend/workers | `tvly-...` |
 | Cohere | `COHERE_API_KEY` | VPS backend/workers | nao vazio |
 | Groq | `GROQ_API_KEY` | VPS backend/workers | `gsk_...` |
-| Stripe | `STRIPE_SECRET_KEY` | VPS backend, opcional Vercel | `sk_test_...` ou `sk_live_...` |
+| Stripe | `STRIPE_SECRET_KEY` | VPS backend | `sk_test_...` ou `sk_live_...` |
 | Stripe | `STRIPE_WEBHOOK_SECRET` | VPS backend | `whsec_...` |
 | SendGrid | `SENDGRID_API_KEY` | Vercel/Next e VPS | `SG...` |
 | SendGrid | `SENDGRID_FROM_EMAIL` | Vercel/Next e VPS | email verificado |
@@ -62,6 +62,9 @@ Backend usa:
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 ```
+
+Nao sincronize `STRIPE_SECRET_KEY` nem `STRIPE_WEBHOOK_SECRET` para a Vercel: o
+checkout e os webhooks Stripe rodam no FastAPI da VPS.
 
 Webhook publico a cadastrar no Stripe:
 

@@ -138,7 +138,6 @@ sync_from_app_to_vercel() {
     STRICT_URL_VALIDATION \
     USE_JWT_DB_CLIENT \
     ADMIN_API_KEY \
-    STRIPE_SECRET_KEY \
     SENDGRID_API_KEY \
     SENDGRID_FROM_EMAIL \
     SENTRY_DSN
