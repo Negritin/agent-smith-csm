@@ -36,7 +36,11 @@ class KnowledgeBaseInput(BaseModel):
     """Input schema para a KnowledgeBaseTool."""
 
     query: str = Field(
-        description="A pergunta ou termo de busca para encontrar nos documentos da empresa"
+        description=(
+            "Pergunta ou termo para buscar nos documentos internos da empresa. "
+            "Nao use para saudacoes, testes de disponibilidade ou pedidos de "
+            "formato como 'responda apenas'."
+        )
     )
 
 
@@ -44,12 +48,16 @@ class KnowledgeBaseTool(AgentTool):
     """
     Ferramenta para buscar informações na base de conhecimento da empresa.
 
-    Use esta ferramenta quando o usuário perguntar sobre:
+    Use esta ferramenta quando o usuário perguntar sobre informações internas
+    ou documentadas, como:
     - Políticas da empresa
     - Documentos internos
     - Procedimentos e processos
     - FAQ e informações específicas da empresa
     - Qualquer informação que possa estar nos documentos carregados
+
+    Não use para saudações, testes de disponibilidade, conversa geral, pedidos
+    de formato da resposta ou perguntas sobre a própria capacidade do agente.
 
     MULTI-AGENT: o tenant (agent_id, company_id, collection_name) é lido do
     ToolExecutionContext em runtime, garantindo isolamento correto entre agentes.
@@ -60,6 +68,8 @@ class KnowledgeBaseTool(AgentTool):
     Busca informações na base de conhecimento (documentos) da empresa.
     Use quando precisar encontrar informações específicas sobre a empresa,
     suas políticas, procedimentos, produtos ou serviços.
+    Não use para saudações, testes, conversa geral ou perguntas sobre o próprio
+    atendimento; nesses casos responda diretamente.
     Retorna trechos relevantes dos documentos que podem responder à pergunta.
     """
     args_schema: Type[BaseModel] = KnowledgeBaseInput

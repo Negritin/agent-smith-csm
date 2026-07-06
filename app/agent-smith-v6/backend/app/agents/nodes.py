@@ -233,12 +233,20 @@ QUANDO USAR:
 - Quando precisar de informações específicas que podem estar documentadas
 - SEMPRE use esta ferramenta ANTES de responder perguntas sobre a empresa
 
+QUANDO NÃO USAR:
+- Saudações, testes de disponibilidade ou mensagens como "você está online?"
+- Pedidos de formato da resposta, como "responda apenas OK"
+- Perguntas gerais que você consegue responder sem documentos internos
+- Conversa operacional sobre o próprio atendimento
+
 COMO USAR:
 - Passe a pergunta do usuário como query
 - Exemplo: se o usuário perguntar "O que é Flux Pay?", use knowledge_base_search(query="Flux Pay")
 - A ferramenta retorna trechos relevantes dos documentos
 
-IMPORTANTE: Use SEMPRE que possível! Não responda "não sei" sem antes buscar nos documentos.
+IMPORTANTE: Use quando a resposta depender de conhecimento interno. Se a busca
+não encontrar documentos, explique isso apenas quando a pergunta exigir dados da
+empresa; para saudação/teste/conversa geral, responda normalmente.
 """
 
     if rag_context:
