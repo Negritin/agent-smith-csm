@@ -71,6 +71,8 @@ export function nextPollDelay(
 
 /** Query string canônica da lista a partir de filtros (§12.3). */
 export type ConversationListFilters = {
+  /** Escopo obrigatório para master_admin; company_admin continua escopado pela sessão. */
+  company_id?: string;
   channel?: string;
   status?: string;
   sla_status?: string;
@@ -221,6 +223,8 @@ export function useConversationListPolling(
 
 type UseConversationDetailsPollingOptions = {
   conversationId: string | null;
+  /** Escopo obrigatório para master_admin; company_admin continua escopado pela sessão. */
+  companyId?: string | null;
   enabled?: boolean;
   backoff?: PollBackoffConfig;
 };
@@ -235,7 +239,7 @@ type ConversationDetailsPollingResult = {
 export function useConversationDetailsPolling(
   options: UseConversationDetailsPollingOptions,
 ): ConversationDetailsPollingResult {
-  const { conversationId, enabled = true, backoff = DEFAULT_BACKOFF } = options;
+  const { conversationId, companyId, enabled = true, backoff = DEFAULT_BACKOFF } = options;
 
   const [details, setDetails] = useState<ConversationDetails | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -246,7 +250,9 @@ export function useConversationDetailsPolling(
   const abortRef = useRef<AbortController | null>(null);
   const mountedRef = useRef(true);
   const idRef = useRef(conversationId);
+  const companyIdRef = useRef(companyId);
   idRef.current = conversationId;
+  companyIdRef.current = companyId;
 
   const clearTimer = () => {
     if (timerRef.current) {
@@ -266,7 +272,10 @@ export function useConversationDetailsPolling(
 
     let ok = false;
     try {
-      const res = await fetch(`/api/admin/conversations/${id}/details`, {
+      const scopeQuery = companyIdRef.current
+        ? `?company_id=${encodeURIComponent(companyIdRef.current)}`
+        : '';
+      const res = await fetch(`/api/admin/conversations/${id}/details${scopeQuery}`, {
         credentials: 'include',
         signal: controller.signal,
       });
@@ -342,7 +351,7 @@ export function useConversationDetailsPolling(
       document.removeEventListener('visibilitychange', onVisibility);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conversationId, enabled]);
+  }, [conversationId, companyId, enabled]);
 
   return { details, isLoading, error, refetch };
 }

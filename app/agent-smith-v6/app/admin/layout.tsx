@@ -218,6 +218,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { href: '/admin/companies', icon: Building2, label: 'Empresas' },
     { href: '/admin/pending-users', icon: UserCheck, label: 'Aprovações Pendentes' },
     { href: '/admin/all-users', icon: Users, label: 'Todos os Usuários' },
+    { href: '/admin/conversations', icon: MessageSquare, label: 'Conversas' },
     {
       href: '/admin/finops',
       icon: DollarSign,
@@ -330,9 +331,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     title={item.label}
                     aria-label={item.label}
                     className={`smith-nav-item flex items-center justify-center px-2 py-3 rounded-md transition-colors ${
-                      isActive
-                        ? 'smith-nav-active'
-                        : 'text-muted-foreground hover:text-foreground'
+                      isActive ? 'smith-nav-active' : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     <item.icon className="w-5 h-5" />
@@ -350,9 +349,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       );
                     }}
                     className={`smith-nav-item w-full flex items-center justify-between gap-3 px-4 py-3 rounded-md transition-colors ${
-                      isActive
-                        ? 'smith-nav-active'
-                        : 'text-muted-foreground hover:text-foreground'
+                      isActive ? 'smith-nav-active' : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -426,11 +423,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 aria-label={sidebarCollapsed ? item.label : undefined}
                 className={`smith-nav-item flex items-center gap-3 py-3 rounded-md transition-colors ${
                   sidebarCollapsed ? 'justify-center px-2' : 'px-4'
-                } ${
-                  isActive
-                    ? 'smith-nav-active'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
+                } ${isActive ? 'smith-nav-active' : 'text-muted-foreground hover:text-foreground'}`}
               >
                 <item.icon className="w-5 h-5" />
                 {!sidebarCollapsed && <span className="font-medium">{item.label}</span>}

@@ -211,6 +211,7 @@ function initials(name: string | null | undefined): string {
 
 type ConversationDetailsPanelProps = {
   conversationId: string | null;
+  companyId?: string | null;
   details: ConversationDetails | null;
   isLoading: boolean;
   error: string | null;
@@ -223,6 +224,7 @@ type ConversationDetailsPanelProps = {
 
 export function ConversationDetailsPanel({
   conversationId,
+  companyId,
   details,
   isLoading,
   error,
@@ -339,7 +341,10 @@ export function ConversationDetailsPanel({
     if (!conversationId) return;
     setBusy(action);
     try {
-      const res = await fetch(`/api/admin/conversations/${conversationId}${path}`, {
+      const scopePath = companyId
+        ? `${path}${path.includes('?') ? '&' : '?'}company_id=${encodeURIComponent(companyId)}`
+        : path;
+      const res = await fetch(`/api/admin/conversations/${conversationId}${scopePath}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -371,160 +376,159 @@ export function ConversationDetailsPanel({
 
   return (
     <div className={cn('flex h-full min-h-0 w-full flex-col overflow-hidden bg-card', className)}>
-        {/* ===== Cabeçalho: cliente (avatar + nome + status) ===== */}
-        <div className="shrink-0 border-b border-border p-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold uppercase text-primary">
-              {initials(conversation.user_name)}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-base font-semibold text-foreground">
-                {conversation.user_name || 'Cliente'}
-              </p>
-              <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                {conversation.channel && (
-                  <Badge className="h-5 border border-border bg-muted px-1.5 text-[9px] font-bold uppercase tracking-wide text-muted-foreground">
-                    {conversation.channel}
-                  </Badge>
-                )}
-                <Badge
-                  className={cn('h-5 px-1.5 text-[9px] font-bold uppercase tracking-wide', statusTone)}
-                >
-                  {statusLabel(conversation.status)}
-                </Badge>
-              </div>
-            </div>
+      {/* ===== Cabeçalho: cliente (avatar + nome + status) ===== */}
+      <div className="shrink-0 border-b border-border p-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold uppercase text-primary">
+            {initials(conversation.user_name)}
           </div>
-          <div className="mt-3 space-y-1.5">
-            {email && (
-              <CopyRow icon={Mail} value={email} onCopy={() => copyToClipboard(email, 'Email')} />
-            )}
-            {phone && (
-              <CopyRow
-                icon={Phone}
-                value={phone}
-                onCopy={() => copyToClipboard(phone, 'Telefone')}
-              />
-            )}
-            <div className="flex items-center gap-1.5 text-xs">
-              <User className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              <span className="text-muted-foreground">Agente</span>
-              <span className="ml-auto min-w-0 truncate font-medium text-foreground">
-                {conversation.agent_name || '—'}
-              </span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-base font-semibold text-foreground">
+              {conversation.user_name || 'Cliente'}
+            </p>
+            <div className="mt-1 flex flex-wrap items-center gap-1.5">
+              {conversation.channel && (
+                <Badge className="h-5 border border-border bg-muted px-1.5 text-[9px] font-bold uppercase tracking-wide text-muted-foreground">
+                  {conversation.channel}
+                </Badge>
+              )}
+              <Badge
+                className={cn(
+                  'h-5 px-1.5 text-[9px] font-bold uppercase tracking-wide',
+                  statusTone,
+                )}
+              >
+                {statusLabel(conversation.status)}
+              </Badge>
             </div>
           </div>
         </div>
+        <div className="mt-3 space-y-1.5">
+          {email && (
+            <CopyRow icon={Mail} value={email} onCopy={() => copyToClipboard(email, 'Email')} />
+          )}
+          {phone && (
+            <CopyRow icon={Phone} value={phone} onCopy={() => copyToClipboard(phone, 'Telefone')} />
+          )}
+          <div className="flex items-center gap-1.5 text-xs">
+            <User className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <span className="text-muted-foreground">Agente</span>
+            <span className="ml-auto min-w-0 truncate font-medium text-foreground">
+              {conversation.agent_name || '—'}
+            </span>
+          </div>
+        </div>
+      </div>
 
-        {/* ===== Blocos roláveis ===== */}
-        <ScrollArea className="min-h-0 flex-1">
-          <div className="space-y-3 p-3">
-            {/* ===== Responsável ===== */}
-            <Section icon={ShieldCheck} title="Responsável">
-              <p className="text-sm text-foreground">
-                {assignee?.name || assignee?.email || (
-                  <span className="text-muted-foreground">Não atribuído</span>
-                )}
-              </p>
-            </Section>
+      {/* ===== Blocos roláveis ===== */}
+      <ScrollArea className="min-h-0 flex-1">
+        <div className="space-y-3 p-3">
+          {/* ===== Responsável ===== */}
+          <Section icon={ShieldCheck} title="Responsável">
+            <p className="text-sm text-foreground">
+              {assignee?.name || assignee?.email || (
+                <span className="text-muted-foreground">Não atribuído</span>
+              )}
+            </p>
+          </Section>
 
-            {/* ===== SLA ===== */}
-            <Section icon={Clock} title="SLA">
-              <SlaIndicator sla={sla} variant="full" />
-            </Section>
+          {/* ===== SLA ===== */}
+          <Section icon={Clock} title="SLA">
+            <SlaIndicator sla={sla} variant="full" />
+          </Section>
 
-            {/* ===== Tempo (relógio client-side: decorrido + countdown de SLA) ===== */}
-            {elapsedMs !== null && (
-              <Section icon={Clock} title="Tempo">
-                <div className="space-y-1 text-xs">
-                  <div className="flex items-baseline justify-between">
-                    <span className="text-muted-foreground">{clockLabel}</span>
-                    <span className="font-semibold tabular-nums text-foreground">
-                      {formatDuration(elapsedMs)}
+          {/* ===== Tempo (relógio client-side: decorrido + countdown de SLA) ===== */}
+          {elapsedMs !== null && (
+            <Section icon={Clock} title="Tempo">
+              <div className="space-y-1 text-xs">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-muted-foreground">{clockLabel}</span>
+                  <span className="font-semibold tabular-nums text-foreground">
+                    {formatDuration(elapsedMs)}
+                  </span>
+                </div>
+                {slaRemainingMs !== null && (
+                  <div
+                    className="flex items-baseline justify-between"
+                    title="Tempo de relógio (horas corridas) até o prazo. O SLA é medido em horário comercial, então o valor pode atravessar fins de semana e madrugadas."
+                  >
+                    <span className="text-muted-foreground">
+                      {slaRemainingMs >= 0 ? 'Prazo de SLA em horas corridas' : 'SLA vencido há'}
+                    </span>
+                    <span
+                      className={cn(
+                        'font-semibold tabular-nums',
+                        slaRemainingMs >= 0 ? 'text-foreground' : 'text-danger',
+                      )}
+                    >
+                      {formatDuration(Math.abs(slaRemainingMs))}
                     </span>
                   </div>
-                  {slaRemainingMs !== null && (
-                    <div
-                      className="flex items-baseline justify-between"
-                      title="Tempo de relógio (horas corridas) até o prazo. O SLA é medido em horário comercial, então o valor pode atravessar fins de semana e madrugadas."
-                    >
-                      <span className="text-muted-foreground">
-                        {slaRemainingMs >= 0 ? 'Prazo de SLA em horas corridas' : 'SLA vencido há'}
-                      </span>
-                      <span
-                        className={cn(
-                          'font-semibold tabular-nums',
-                          slaRemainingMs >= 0 ? 'text-foreground' : 'text-danger',
-                        )}
-                      >
-                        {formatDuration(Math.abs(slaRemainingMs))}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </Section>
-            )}
-
-            {/* ===== Handoff ===== */}
-            {current_session && (
-              <Section icon={Hand} title="Handoff">
-                <dl className="space-y-1 text-xs">
-                  <Row label="Solicitado" value={fmtDateTime(current_session.human_requested_at)} />
-                  <Row label="Assumido" value={fmtDateTime(current_session.human_taken_at)} />
-                  <Row
-                    label="1ª resposta"
-                    value={fmtDateTime(current_session.first_human_response_at)}
-                  />
-                  {current_session.human_request_reason && (
-                    <Row label="Motivo" value={current_session.human_request_reason} />
-                  )}
-                </dl>
-              </Section>
-            )}
-
-            {/* ===== Timer de auto-close (previsto) ===== */}
-            {active_timer && (
-              <Section icon={Clock} title="Auto-encerramento">
-                <dl className="space-y-1 text-xs">
-                  <Row label="Previsto para" value={fmtDateTime(active_timer.next_action_at)} />
-                  <Row label="Base" value={fmtDateTime(active_timer.basis_at)} />
-                </dl>
-                <p className="mt-1 text-[10px] italic text-muted-foreground">
-                  Horário previsto (não exato): depende do tick do worker.
-                </p>
-              </Section>
-            )}
-
-            {/* ===== Notificações (§11.4) ===== */}
-            <Section icon={Bell} title="Notificações">
-              {notification_deliveries.length === 0 ? (
-                <p className="text-xs text-muted-foreground">Sem notificações.</p>
-              ) : (
-                <ul className="space-y-2">
-                  {notification_deliveries.slice(0, 8).map((d) => (
-                    <NotificationRow key={d.id} delivery={d} />
-                  ))}
-                </ul>
-              )}
+                )}
+              </div>
             </Section>
+          )}
 
-            {/* ===== Timeline (desc) ===== */}
-            <Section icon={History} title="Timeline">
-              {events.length === 0 ? (
-                <p className="text-xs text-muted-foreground">Sem eventos registrados.</p>
-              ) : (
-                <ol className="space-y-2">
-                  {events.slice(0, 12).map((e) => (
-                    <TimelineRow key={e.id} event={e} />
-                  ))}
-                </ol>
-              )}
+          {/* ===== Handoff ===== */}
+          {current_session && (
+            <Section icon={Hand} title="Handoff">
+              <dl className="space-y-1 text-xs">
+                <Row label="Solicitado" value={fmtDateTime(current_session.human_requested_at)} />
+                <Row label="Assumido" value={fmtDateTime(current_session.human_taken_at)} />
+                <Row
+                  label="1ª resposta"
+                  value={fmtDateTime(current_session.first_human_response_at)}
+                />
+                {current_session.human_request_reason && (
+                  <Row label="Motivo" value={current_session.human_request_reason} />
+                )}
+              </dl>
             </Section>
-          </div>
-        </ScrollArea>
+          )}
 
-        {/* ===== Ações (rodapé fixo) ===== */}
-        <div className="shrink-0 space-y-2 border-t border-border p-3">
+          {/* ===== Timer de auto-close (previsto) ===== */}
+          {active_timer && (
+            <Section icon={Clock} title="Auto-encerramento">
+              <dl className="space-y-1 text-xs">
+                <Row label="Previsto para" value={fmtDateTime(active_timer.next_action_at)} />
+                <Row label="Base" value={fmtDateTime(active_timer.basis_at)} />
+              </dl>
+              <p className="mt-1 text-[10px] italic text-muted-foreground">
+                Horário previsto (não exato): depende do tick do worker.
+              </p>
+            </Section>
+          )}
+
+          {/* ===== Notificações (§11.4) ===== */}
+          <Section icon={Bell} title="Notificações">
+            {notification_deliveries.length === 0 ? (
+              <p className="text-xs text-muted-foreground">Sem notificações.</p>
+            ) : (
+              <ul className="space-y-2">
+                {notification_deliveries.slice(0, 8).map((d) => (
+                  <NotificationRow key={d.id} delivery={d} />
+                ))}
+              </ul>
+            )}
+          </Section>
+
+          {/* ===== Timeline (desc) ===== */}
+          <Section icon={History} title="Timeline">
+            {events.length === 0 ? (
+              <p className="text-xs text-muted-foreground">Sem eventos registrados.</p>
+            ) : (
+              <ol className="space-y-2">
+                {events.slice(0, 12).map((e) => (
+                  <TimelineRow key={e.id} event={e} />
+                ))}
+              </ol>
+            )}
+          </Section>
+        </div>
+      </ScrollArea>
+
+      {/* ===== Ações (rodapé fixo) ===== */}
+      <div className="shrink-0 space-y-2 border-t border-border p-3">
         <div className="grid grid-cols-2 gap-2">
           <ActionButton
             label="Assumir"
@@ -580,8 +584,8 @@ export function ConversationDetailsPanel({
               já está na conversa é redundante; e falhas de entrega já são retentadas
               automaticamente pelo worker do outbox. A rota /notifications/resend segue
               existindo, mas sem gatilho na UI. */}
-          </div>
         </div>
+      </div>
     </div>
   );
 }

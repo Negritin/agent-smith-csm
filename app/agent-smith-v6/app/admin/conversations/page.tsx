@@ -25,6 +25,7 @@ import {
   Clock,
   Timer,
   ArrowLeft,
+  Building2,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -72,6 +73,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 // S9: o cliente Supabase anon é mantido APENAS para upload de mídia em buckets
 // públicos (storage). A atualização ao vivo de lista/chat/card NÃO depende mais
 // de Realtime anon — usa POLLING autenticado (iron-session) via
@@ -82,7 +90,7 @@ import {
 import { supabase } from '@/lib/supabase'; // KEPT: Only for storage uploads (public buckets)
 import { useAdminRole } from '@/hooks/useAdminRole';
 import { toast } from 'sonner';
-import { Message } from '@/lib/types';
+import type { Company, Message } from '@/lib/types';
 import {
   extractAllUCPData,
   ProductCarousel,
@@ -198,9 +206,16 @@ function isHumanAttendance(status: string | undefined | null): boolean {
 }
 
 function AdminConversationsPageInner() {
-  const { companyId, userId } = useAdminRole();
+  const { role, companyId, userId } = useAdminRole();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const isMaster = role === 'master';
+
+  const [masterCompanies, setMasterCompanies] = useState<Company[]>([]);
+  const [isLoadingCompanies, setIsLoadingCompanies] = useState(false);
+  const [masterCompanyId, setMasterCompanyId] = useState<string | null>(() => {
+    return searchParams.get('company_id') || searchParams.get('companyId');
+  });
 
   // ============================================================
   // [NEW] Estados dos Filtros (§12.3)
@@ -220,6 +235,61 @@ function AdminConversationsPageInner() {
   const [contactUserId, setContactUserId] = useState<string | null>(() =>
     searchParams.get('contact_user_id'),
   );
+
+  const effectiveCompanyId = isMaster ? masterCompanyId : companyId;
+  const companyScopedPath = (path: string): string => {
+    if (!effectiveCompanyId) return path;
+    return `${path}${path.includes('?') ? '&' : '?'}company_id=${encodeURIComponent(effectiveCompanyId)}`;
+  };
+  const conversationsBasePath = effectiveCompanyId
+    ? `/admin/conversations?company_id=${encodeURIComponent(effectiveCompanyId)}`
+    : '/admin/conversations';
+
+  useEffect(() => {
+    if (!isMaster) {
+      setMasterCompanies([]);
+      setMasterCompanyId(null);
+      return;
+    }
+
+    let cancelled = false;
+    setIsLoadingCompanies(true);
+    const loadCompanies = async () => {
+      try {
+        const res = await fetch('/api/admin/companies?status=all', { credentials: 'include' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const companies = Array.isArray(data.companies) ? (data.companies as Company[]) : [];
+        if (cancelled) return;
+        setMasterCompanies(companies);
+        setMasterCompanyId((current) => {
+          if (current && companies.some((company) => company.id === current)) return current;
+          return companies[0]?.id ?? null;
+        });
+      } catch {
+        if (!cancelled) {
+          setMasterCompanies([]);
+          toast.error('Erro ao carregar empresas.');
+        }
+      } finally {
+        if (!cancelled) setIsLoadingCompanies(false);
+      }
+    };
+
+    void loadCompanies();
+    return () => {
+      cancelled = true;
+    };
+  }, [isMaster]);
+
+  useEffect(() => {
+    if (!isMaster || !masterCompanyId) return;
+    const params = new URLSearchParams(searchParams.toString());
+    if (params.get('company_id') === masterCompanyId && !params.has('companyId')) return;
+    params.set('company_id', masterCompanyId);
+    params.delete('companyId');
+    router.replace(`/admin/conversations?${params.toString()}`);
+  }, [isMaster, masterCompanyId, router, searchParams]);
 
   // Debounce da busca para o servidor (evita 1 request por tecla; a UI segue
   // responsiva via `searchQuery` enquanto o request usa `debouncedSearch`).
@@ -245,8 +315,17 @@ function AdminConversationsPageInner() {
     // sem fila ativa, activeQueue é null, então f.status fica indefinido e o
     // contato aparece em TODAS as filas.
     if (contactUserId) f.contact_user_id = contactUserId;
+    if (effectiveCompanyId) f.company_id = effectiveCompanyId;
     return f;
-  }, [channelFilter, debouncedSearch, quickFilter, userId, activeQueue, contactUserId]);
+  }, [
+    channelFilter,
+    debouncedSearch,
+    quickFilter,
+    userId,
+    activeQueue,
+    contactUserId,
+    effectiveCompanyId,
+  ]);
 
   // ============================================================
   // S9/S10 — POLLING AUTENTICADO da lista (substitui a subscription Supabase
@@ -260,7 +339,7 @@ function AdminConversationsPageInner() {
     isLoading: isLoadingList,
     refetch: refetchList,
   } = useConversationListPolling({
-    enabled: !!companyId && (selectedQueue !== null || !!contactUserId),
+    enabled: !!effectiveCompanyId && (selectedQueue !== null || !!contactUserId),
     filters: serverFilters,
   });
 
@@ -269,11 +348,14 @@ function AdminConversationsPageInner() {
   const [queueCounts, setQueueCounts] = useState<Partial<Record<QueueId, number>>>({});
   const [queueTotal, setQueueTotal] = useState<number | null>(null);
   useEffect(() => {
-    if (!companyId) return;
+    if (!effectiveCompanyId) return;
     let cancelled = false;
     const loadCounts = async () => {
       try {
-        const res = await fetch('/api/admin/conversations/counts', { credentials: 'include' });
+        const res = await fetch(
+          `/api/admin/conversations/counts?company_id=${encodeURIComponent(effectiveCompanyId)}`,
+          { credentials: 'include' },
+        );
         if (!res.ok || cancelled) return;
         const data = await res.json();
         if (cancelled) return;
@@ -299,7 +381,7 @@ function AdminConversationsPageInner() {
       cancelled = true;
       clearInterval(t);
     };
-  }, [companyId, selectedQueue]);
+  }, [effectiveCompanyId, selectedQueue]);
 
   // Overlay local de unread (zerar ao abrir a conversa sem esperar o próximo poll).
   const [readOverlay, setReadOverlay] = useState<Record<string, number>>({});
@@ -349,6 +431,14 @@ function AdminConversationsPageInner() {
   const [isLoadingChat, setIsLoadingChat] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    setSelectedQueue(null);
+    setSelectedId(null);
+    setMessages([]);
+    setQueueCounts({});
+    setQueueTotal(null);
+  }, [effectiveCompanyId]);
+
   // S9 — drawer do card lateral em telas < 1280px.
   const [detailsDrawerOpen, setDetailsDrawerOpen] = useState(false);
 
@@ -358,7 +448,7 @@ function AdminConversationsPageInner() {
     isLoading: isLoadingDetails,
     error: detailsError,
     refetch: refetchDetails,
-  } = useConversationDetailsPolling({ conversationId: selectedId });
+  } = useConversationDetailsPolling({ conversationId: selectedId, companyId: effectiveCompanyId });
 
   // 🔔 Estado para resposta humana
   const [humanReplyText, setHumanReplyText] = useState('');
@@ -457,10 +547,9 @@ function AdminConversationsPageInner() {
     const loadMessages = async (initial: boolean) => {
       if (initial) setIsLoadingChat(true);
       try {
-        const response = await fetch(
-          `/api/messages?conversation_id=${selectedId}&scope=admin`,
-          { credentials: 'include' },
-        );
+        const response = await fetch(`/api/messages?conversation_id=${selectedId}&scope=admin`, {
+          credentials: 'include',
+        });
         if (!response.ok) throw new Error('Falha ao buscar mensagens');
         const result = await response.json();
         if (cancelled) return;
@@ -628,7 +717,7 @@ function AdminConversationsPageInner() {
     setIsSendingReply(true);
     try {
       // 1. Salvar mensagem via API (bypassa RLS, usa sender_user_id via sessão)
-      const response = await fetch('/api/admin/conversations/messages', {
+      const response = await fetch(companyScopedPath('/api/admin/conversations/messages'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -666,10 +755,9 @@ function AdminConversationsPageInner() {
   const refreshActiveMessages = async () => {
     if (!selectedId) return;
     try {
-      const response = await fetch(
-        `/api/messages?conversation_id=${selectedId}&scope=admin`,
-        { credentials: 'include' },
-      );
+      const response = await fetch(`/api/messages?conversation_id=${selectedId}&scope=admin`, {
+        credentials: 'include',
+      });
       if (!response.ok) return;
       const result = await response.json();
       setMessages(result.messages || []);
@@ -686,12 +774,15 @@ function AdminConversationsPageInner() {
     if (!selectedId) return;
 
     try {
-      const response = await fetch(`/api/admin/conversations/${selectedId}/return-to-ai`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({}),
-      });
+      const response = await fetch(
+        companyScopedPath(`/api/admin/conversations/${selectedId}/return-to-ai`),
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({}),
+        },
+      );
 
       if (!response.ok) throw new Error('Failed to return to AI');
 
@@ -717,11 +808,14 @@ function AdminConversationsPageInner() {
       // status='HUMAN_REQUESTED' ao shim PUT /status, que mapeia para
       // request_handoff e NOTIFICA os destinatários — efeito espúrio contrário à
       // intenção de "assumir"; corrigido aqui ao adiantar a migração do caller.)
-      const response = await fetch(`/api/admin/conversations/${selectedId}/claim`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason: 'Intervenção Manual do Admin' }),
-      });
+      const response = await fetch(
+        companyScopedPath(`/api/admin/conversations/${selectedId}/claim`),
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason: 'Intervenção Manual do Admin' }),
+        },
+      );
 
       if (!response.ok) throw new Error('Failed to take over');
 
@@ -761,7 +855,7 @@ function AdminConversationsPageInner() {
       } = supabase.storage.from('chat-media').getPublicUrl(path);
 
       // Inserir mensagem via API (bypassa RLS)
-      const response = await fetch('/api/admin/conversations/messages', {
+      const response = await fetch(companyScopedPath('/api/admin/conversations/messages'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -843,7 +937,7 @@ function AdminConversationsPageInner() {
       } = supabase.storage.from('voice-messages').getPublicUrl(path);
 
       // Inserir mensagem via API (bypassa RLS)
-      const response = await fetch('/api/admin/conversations/messages', {
+      const response = await fetch(companyScopedPath('/api/admin/conversations/messages'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -881,7 +975,51 @@ function AdminConversationsPageInner() {
     <ChatFrame className="h-full">
       {/* ================= SIDEBAR (LISTA) ================= */}
       <ConversationRail>
-        {!showConversationList ? (
+        {isMaster && (
+          <div className="shrink-0 border-b border-border p-3">
+            <div className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <Building2 className="h-3.5 w-3.5" />
+              Empresa
+            </div>
+            <Select
+              value={masterCompanyId ?? undefined}
+              onValueChange={(value) => {
+                setMasterCompanyId(value);
+                setSelectedQueue(null);
+                setSelectedId(null);
+                setMessages([]);
+                setContactUserId(null);
+                setQueueCounts({});
+                setQueueTotal(null);
+                const params = new URLSearchParams(searchParams.toString());
+                params.set('company_id', value);
+                params.delete('companyId');
+                params.delete('contact_user_id');
+                router.replace(`/admin/conversations?${params.toString()}`);
+              }}
+              disabled={isLoadingCompanies || masterCompanies.length === 0}
+            >
+              <SelectTrigger className="h-9 bg-muted/40">
+                <SelectValue
+                  placeholder={isLoadingCompanies ? 'Carregando empresas...' : 'Selecionar empresa'}
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {masterCompanies.map((company) => (
+                  <SelectItem key={company.id} value={company.id}>
+                    {company.company_name || company.legal_name || company.id}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {isMaster && !effectiveCompanyId ? (
+          <div className="flex min-h-0 flex-1 items-center justify-center p-8 text-center text-sm text-muted-foreground">
+            Selecione uma empresa para abrir a inbox de atendimento.
+          </div>
+        ) : !showConversationList ? (
           <QueuePicker
             counts={queueCounts}
             total={queueTotal}
@@ -908,7 +1046,7 @@ function AdminConversationsPageInner() {
                       // showConversationList continua true e o usuário fica preso
                       // na lista (validação B-render); um refresh re-prenderia.
                       setContactUserId(null);
-                      router.replace('/admin/conversations');
+                      router.replace(conversationsBasePath);
                     }}
                     title="Voltar às filas"
                     aria-label="Voltar às filas"
@@ -1394,9 +1532,7 @@ function AdminConversationsPageInner() {
 
                   // Nome/foto do remetente (cabeçalho do grupo, estilo WhatsApp)
                   const groupName = isUser
-                    ? activeConversation?.user_name ||
-                      activeConversation?.user_phone ||
-                      'Usuário'
+                    ? activeConversation?.user_name || activeConversation?.user_phone || 'Usuário'
                     : isHumanMessage
                       ? senderName || adminName || 'Admin'
                       : activeConversation?.agent_name || 'Agente';
@@ -1685,6 +1821,7 @@ function AdminConversationsPageInner() {
         <ChatDetailsAside>
           <ConversationDetailsPanel
             conversationId={selectedId}
+            companyId={effectiveCompanyId}
             details={details}
             isLoading={isLoadingDetails}
             error={detailsError}
@@ -1703,6 +1840,7 @@ function AdminConversationsPageInner() {
           <div className="h-[calc(100%-3.25rem)]">
             <ConversationDetailsPanel
               conversationId={selectedId}
+              companyId={effectiveCompanyId}
               details={details}
               isLoading={isLoadingDetails}
               error={detailsError}
